@@ -1,0 +1,259 @@
+{
+  "projects": [
+    {
+      "id": "project-001",
+      "title": "환상의 숲 - 디지털 일러스트",
+      "comment": "자연과 판타지를 결합한 컨셉 아트",
+      "learnings": "색감 조화와 빛의 표현에 대해 많이 배웠습니다. 특히 대기 원근법을 활용한 깊이감 표현이 중요했습니다.",
+      "memo": "이 작품은 3주에 걸쳐 완성했으며, Procreate와 Photoshop을 함께 사용했습니다.",
+      "startDate": "2025-12-01",
+      "endDate": "2025-12-21",
+      "publishDate": "2026-01-15",
+      "tools": ["Procreate", "Photoshop"],
+      "subject": "판타지 풍경",
+      "tags": ["디지털", "풍경", "판타지", "컨셉아트"],
+      "stages": [
+        {
+          "stage": "rough",
+          "enabled": true,
+          "imageUrl": "/images/projects/project-001-rough.jpg",
+          "description": "전체 구도와 배치를 결정하는 스케치 단계",
+          "order": 1
+        },
+        {
+          "stage": "lineart",
+          "enabled": true,
+          "imageUrl": "/images/projects/project-001-lineart.jpg",
+          "description": "선화를 다듬어 최종 윤곽을 정의",
+          "order": 2
+        },
+        {
+          "stage": "baseColor",
+          "enabled": true,
+          "imageUrl": "/images/projects/project-001-basecolor.jpg",
+          "description": "기본 색상을 칠하는 단계",
+          "order": 3
+        },
+        {
+          "stage": "shading",
+          "enabled": true,
+          "imageUrl": "/images/projects/project-001-shading.jpg",
+          "description": "명암을 더하여 입체감을 표현",
+          "order": 4
+        },
+        {
+          "stage": "detail",
+          "enabled": true,
+          "imageUrl": "/images/projects/project-001-detail.jpg",
+          "description": "세부 묘사와 질감 추가",
+          "order": 5
+        },
+        {
+          "stage": "adjustment",
+          "enabled": true,
+          "imageUrl": "/images/projects/project-001-adjustment.jpg",
+          "description": "색감 보정 및 최종 조정",
+          "order": 6
+        },
+        {
+          "stage": "final",
+          "enabled": true,
+          "imageUrl": "/images/projects/project-001-final.jpg",
+          "description": "최종 완성본",
+          "order": 7
+        }
+      ],
+      "createdAt": "2025-12-01T10:00:00Z",
+      "updatedAt": "2026-01-15T14:30:00Z"
+    },
+    {
+      "id": "project-002",
+      "title": "캐릭터 디자인 - 마법사",
+      "comment": "중세 판타지 세계관의 마법사 캐릭터",
+      "learnings": "캐릭터 디자인에서 실루엣의 중요성을 깨달았습니다. 멀리서 봐도 캐릭터가 구분되는 디자인이 좋은 디자인입니다.",
+      "memo": "의상 디자인에 많은 시간을 투자했으며, 여러 변형안을 그렸습니다.",
+      "startDate": "2025-11-15",
+      "endDate": "2025-12-05",
+      "publishDate": "2026-01-10",
+      "tools": ["Clip Studio Paint", "Photoshop"],
+      "subject": "캐릭터 디자인",
+      "tags": ["캐릭터", "판타지", "의상디자인"],
+      "stages": [
+        {
+          "stage": "rough",
+          "enabled": true,
+          "imageUrl": "/images/projects/project-002-rough.jpg",
+          "description": "기본 포즈와 실루엣 스케치",
+          "order": 1
+        },
+        {
+          "stage": "lineart",
+          "enabled": true,
+          "imageUrl": "/images/projects/project-002-lineart.jpg",
+          "description": "세부 선화 완성",
+          "order": 2
+        },
+        {
+          "stage": "baseColor",
+          "enabled": true,
+          "imageUrl": "/images/projects/project-002-basecolor.jpg",
+          "description": "기본 색상 배치",
+          "order": 3
+        },
+        {
+          "stage": "shading",
+          "enabled": true,
+          "imageUrl": "/images/projects/project-002-shading.jpg",
+          "description": "명암 표현",
+          "order": 4
+        },
+        {
+          "stage": "detail",
+          "enabled": true,
+          "imageUrl": "/images/projects/project-002-detail.jpg",
+          "description": "의상 패턴과 소품 디테일",
+          "order": 5
+        },
+        {
+          "stage": "adjustment",
+          "enabled": true,
+          "imageUrl": "/images/projects/project-002-adjustment.jpg",
+          "description": "최종 색감 조정",
+          "order": 6
+        },
+        {
+          "stage": "final",
+          "enabled": true,
+          "imageUrl": "/images/projects/project-002-final.jpg",
+          "description": "완성본",
+          "order": 7
+        }
+      ],
+      "createdAt": "2025-11-15T09:00:00Z",
+      "updatedAt": "2026-01-10T11:20:00Z"
+    }
+  ],
+  "frames": [
+    {
+      "id": "frame-1",
+      "name": "클래식 우드",
+      "borderWidth": 12,
+      "borderColor": "#8B7355",
+      "borderStyle": "solid",
+      "backgroundColor": "#F5F1E8",
+      "padding": 8,
+      "shadowSize": 8,
+      "shadowColor": "rgba(0,0,0,0.15)",
+      "isCustom": false
+    },
+    {
+      "id": "frame-2",
+      "name": "미니멀 화이트",
+      "borderWidth": 6,
+      "borderColor": "#FFFFFF",
+      "borderStyle": "solid",
+      "backgroundColor": "#FFFFFF",
+      "padding": 12,
+      "shadowSize": 4,
+      "shadowColor": "rgba(0,0,0,0.1)",
+      "isCustom": false
+    },
+    {
+      "id": "frame-3",
+      "name": "모던 블랙",
+      "borderWidth": 4,
+      "borderColor": "#2C2C2C",
+      "borderStyle": "solid",
+      "backgroundColor": "#2C2C2C",
+      "padding": 6,
+      "shadowSize": 6,
+      "shadowColor": "rgba(0,0,0,0.25)",
+      "isCustom": false
+    },
+    {
+      "id": "frame-4",
+      "name": "엔티크 골드",
+      "borderWidth": 10,
+      "borderColor": "#D4AF37",
+      "borderStyle": "ridge",
+      "backgroundColor": "#F5F1E8",
+      "padding": 10,
+      "shadowSize": 10,
+      "shadowColor": "rgba(212,175,55,0.2)",
+      "isCustom": false
+    },
+    {
+      "id": "frame-5",
+      "name": "내추럴 틸",
+      "borderWidth": 8,
+      "borderColor": "#7A9D96",
+      "borderStyle": "solid",
+      "backgroundColor": "#E8E5DD",
+      "padding": 8,
+      "shadowSize": 6,
+      "shadowColor": "rgba(122,157,150,0.15)",
+      "isCustom": false
+    }
+  ],
+  "backgrounds": [
+    {
+      "id": "bg-1",
+      "name": "갤러리 월",
+      "imageUrl": "https://files.manuscdn.com/user_upload_by_module/session_file/310519663336206210/zJkKdAelSLBUdHLp.png",
+      "isCustom": false
+    },
+    {
+      "id": "bg-2",
+      "name": "수채화 그라데이션",
+      "imageUrl": "https://files.manuscdn.com/user_upload_by_module/session_file/310519663336206210/YDNINrfhbEVodSUL.png",
+      "isCustom": false
+    }
+  ],
+  "gallery": {
+    "backgroundId": "bg-1",
+    "items": [
+      {
+        "id": "gallery-item-1",
+        "projectId": "project-001",
+        "frameId": "frame-1",
+        "position": {
+          "x": 100,
+          "y": 80
+        },
+        "size": {
+          "width": 400,
+          "height": 300
+        },
+        "rotation": 0,
+        "zIndex": 1
+      },
+      {
+        "id": "gallery-item-2",
+        "projectId": "project-002",
+        "frameId": "frame-4",
+        "position": {
+          "x": 550,
+          "y": 120
+        },
+        "size": {
+          "width": 350,
+          "height": 450
+        },
+        "rotation": 2,
+        "zIndex": 2
+      }
+    ]
+  },
+  "profile": {
+    "name": "일러스트레이터",
+    "bio": "디지털 일러스트와 캐릭터 디자인을 전문으로 하는 창작자입니다. 판타지와 자연을 주제로 작업하고 있습니다.",
+    "website": "https://example.com",
+    "avatarUrl": null,
+    "social": {
+      "instagram": "https://instagram.com/your-account",
+      "twitter": "https://twitter.com/your-account",
+      "behance": "https://behance.net/your-account",
+      "artstation": "https://artstation.com/your-account"
+    }
+  }
+}
