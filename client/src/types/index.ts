@@ -24,7 +24,7 @@ export interface WorldData {
   id: string;
   name: string;
   description: string;
-  icon: string;
+  iconImage: string;
   mainImage: string;
   backgroundImage: string;
   creatures: WorldCreature[];

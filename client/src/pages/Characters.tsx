@@ -1,698 +1,772 @@
-import { usePortfolioContext } from '@/contexts/PortfolioContext';
-import { Plus, Trash2, ChevronLeft, ChevronRight, X } from 'lucide-react';
-import { useState } from 'react';
-import ImageUpload from '@/components/ImageUpload';
+// Character.tsx
+import { usePortfolioContext } from "@/contexts/PortfolioContext";
+import { Plus, Trash2, X, ChevronLeft, ChevronRight, Pencil } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import ImageUpload from "@/components/ImageUpload";
+
+type SubImage = { image: string; description: string };
+type Character = {
+  id: string;
+  name: string;
+  mainCategory: string;
+  subCategory: string;
+  profileImage: string;
+  mainImage: string;
+  mainImageDesc?: string;
+  subImages: SubImage[];
+  tags: string[];
+  description: string;
+};
+
+type CategoryGroup = { main: string; subs: string[] };
 
 export default function Characters() {
   const { data, setData, editMode } = usePortfolioContext();
-  const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(
-    data.characters[0]?.id || null
-  );
-  const [currentSubImageIndex, setCurrentSubImageIndex] = useState(0);
-  const [isAddingCharacter, setIsAddingCharacter] = useState(false);
-  const [newCharacterName, setNewCharacterName] = useState('');
-  const [selectedModalCharacterId, setSelectedModalCharacterId] = useState<string | null>(null);
-  const [modalSubImageIndex, setModalSubImageIndex] = useState(0);
 
-  const characters = data.characters || [];
-  const selectedCharacter = characters.find((c) => c.id === selectedCharacterId);
-  const modalCharacter = characters.find((c) => c.id === selectedModalCharacterId);
+  const characters: Character[] = data.characters || [];
+  const categories: CategoryGroup[] = data.settings.characterCategories || [];
 
-  const handleAddCharacter = () => {
-    if (newCharacterName.trim()) {
-      const newCharacter: any = {
-        id: Date.now().toString(),
-        name: newCharacterName,
-        mainCategory: data.settings.characterCategories[0]?.main || '미분류',
-        subCategory: data.settings.characterCategories[0]?.subs[0] || '미분류',
-        profileImage: '',
-        mainImage: '',
-        subImages: [],
-        tags: [],
-        description: '',
-      };
-      setData({
-        ...data,
-        characters: [...characters, newCharacter],
-      });
-      setSelectedCharacterId(newCharacter.id);
-      setNewCharacterName('');
-      setIsAddingCharacter(false);
+  const [selectedId, setSelectedId] = useState<string | null>(characters[0]?.id || null);
+
+  // ✅ 필터(상단 카테고리)
+  const [activeMain, setActiveMain] = useState(categories[0]?.main || "전체");
+  const [activeSub, setActiveSub] = useState<string>(categories[0]?.subs?.[0] || "전체");
+
+  // ✅ 카테고리 편집 모드
+  const [isEditingCategory, setIsEditingCategory] = useState(false);
+  const [draftCategories, setDraftCategories] = useState<CategoryGroup[]>(categories);
+
+  // ✅ 캐릭터 추가/수정 모달
+  const [editingTarget, setEditingTarget] = useState<"new" | string | null>(null);
+
+  // ✅ 감상 모드 상세 모달(네 기존 유지용)
+  const [viewModalId, setViewModalId] = useState<string | null>(null);
+  const [viewSubIndex, setViewSubIndex] = useState(0);
+
+  useEffect(() => {
+    // data.settings 변경 시 드래프트 동기화
+    setDraftCategories(categories);
+    if (!categories.find((c) => c.main === activeMain)) {
+      setActiveMain(categories[0]?.main || "전체");
+      setActiveSub(categories[0]?.subs?.[0] || "전체");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data.settings.characterCategories]);
+
+  const selected = characters.find((c) => c.id === selectedId) || null;
+  const viewModalChar = characters.find((c) => c.id === viewModalId) || null;
+
+  const subsOfActiveMain = useMemo(() => {
+    const found = categories.find((c) => c.main === activeMain);
+    return found?.subs || [];
+  }, [categories, activeMain]);
+
+  const filtered = useMemo(() => {
+    // "전체" 옵션은 원하면 넣을 수 있는데, 지금은 카테고리 기반으로만 필터
+    return characters.filter((c) => {
+      const mainOk = activeMain ? c.mainCategory === activeMain : true;
+      const subOk = activeSub ? c.subCategory === activeSub : true;
+      return mainOk && subOk;
+    });
+  }, [characters, activeMain, activeSub]);
+
+  const updateCharacters = (next: Character[]) => setData({ ...data, characters: next });
+
+  const openNewModal = () => setEditingTarget("new");
+  const openEditModal = (id: string) => setEditingTarget(id);
+
+  const upsertCharacter = (payload: Character) => {
+    const exists = characters.some((c) => c.id === payload.id);
+    const next = exists
+      ? characters.map((c) => (c.id === payload.id ? payload : c))
+      : [...characters, payload];
+
+    updateCharacters(next);
+    setSelectedId(payload.id);
   };
 
-  const handleDeleteCharacter = () => {
-    if (selectedCharacter && characters.length > 1) {
-      const newCharacters = characters.filter((c) => c.id !== selectedCharacterId);
-      setData({
-        ...data,
-        characters: newCharacters,
-      });
-      setSelectedCharacterId(newCharacters[0]?.id || null);
-    }
+  const deleteCharacter = (id: string) => {
+    const next = characters.filter((c) => c.id !== id);
+    updateCharacters(next);
+    setSelectedId(next[0]?.id || null);
   };
 
-  const handleUpdateCharacter = (updates: any) => {
-    if (!selectedCharacter) return;
-    const newCharacters = characters.map((c) =>
-      c.id === selectedCharacterId ? { ...c, ...updates } : c
-    );
+  // ----------------------------
+  // Category Editor
+  // ----------------------------
+  const saveCategories = () => {
     setData({
       ...data,
-      characters: newCharacters,
+      settings: {
+        ...data.settings,
+        characterCategories: draftCategories,
+      },
     });
+    setIsEditingCategory(false);
   };
 
-  const handleAddSubImage = () => {
-    const newSubImages = [...(selectedCharacter?.subImages || [])];
-    newSubImages.push({ image: '', description: '' });
-    handleUpdateCharacter({ subImages: newSubImages });
-  };
+  // ----------------------------
+  // RENDER
+  // ----------------------------
+  return (
+    <div className="min-h-screen bg-background md:ml-64">
+      {/* ✅ HERO / HEADER (이미지 느낌) */}
+      <div className="relative overflow-hidden border-b border-border">
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-background" />
+        <div className="container relative py-14">
+          <div className="flex items-end justify-between gap-6">
+            <div>
+              <h1 className="text-4xl font-extrabold tracking-tight">CHARACTER</h1>
+              <p className="mt-2 text-sm text-muted-foreground">
+                캐릭터를 카테고리로 분류하고, 프로필 썸네일로 빠르게 선택하세요.
+              </p>
+            </div>
 
-  const handleUpdateSubImage = (index: number, updates: any) => {
-    const newSubImages = [...(selectedCharacter?.subImages || [])];
-    newSubImages[index] = { ...newSubImages[index], ...updates };
-    handleUpdateCharacter({ subImages: newSubImages });
-  };
+            {editMode && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIsEditingCategory((v) => !v)}
+                  className="inline-flex items-center gap-2 h-10 px-4 rounded-lg border border-border bg-secondary/50 hover:bg-secondary transition"
+                >
+                  <Pencil className="w-4 h-4" />
+                  카테고리 편집
+                </button>
 
-  const handleDeleteSubImage = (index: number) => {
-    const newSubImages = selectedCharacter?.subImages?.filter(
-      (_, i) => i !== index
-    ) || [];
-    handleUpdateCharacter({ subImages: newSubImages });
-    setCurrentSubImageIndex(Math.max(0, currentSubImageIndex - 1));
-  };
-
-  // 감상 모드 렌더링
-  if (!editMode) {
-    return (
-      <div className="min-h-screen bg-background py-12 md:ml-64">
-        <div className="container">
-          {/* Header */}
-          <div className="mb-12">
-            <h1 className="text-4xl font-bold mb-2">캐릭터</h1>
-            <p className="text-muted-foreground">
-              캐릭터 갤러리
-            </p>
+                <button
+                  onClick={openNewModal}
+                  className="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition"
+                >
+                  <Plus className="w-4 h-4" />
+                  캐릭터 추가
+                </button>
+              </div>
+            )}
           </div>
 
-          {/* Grid Gallery */}
-          {characters.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-              {characters.map((char) => (
+          {/* ✅ 필터 바 (메인/서브 카테고리) */}
+          {!isEditingCategory ? (
+            <div className="mt-10 space-y-4">
+              {/* 메인 */}
+              <div className="flex flex-wrap items-center gap-2">
+                {categories.map((c) => {
+                  const active = c.main === activeMain;
+                  return (
+                    <button
+                      key={c.main}
+                      onClick={() => {
+                        setActiveMain(c.main);
+                        setActiveSub(c.subs?.[0] || "");
+                      }}
+                      className={[
+                        "h-9 px-4 rounded-full border transition",
+                        active
+                          ? "bg-foreground text-background border-foreground"
+                          : "bg-background/40 border-border hover:bg-secondary/60",
+                      ].join(" ")}
+                    >
+                      {c.main}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* 서브 */}
+              <div className="flex flex-wrap items-center gap-2">
+                {subsOfActiveMain.map((s) => {
+                  const active = s === activeSub;
+                  return (
+                    <button
+                      key={s}
+                      onClick={() => setActiveSub(s)}
+                      className={[
+                        "h-8 px-3 rounded-full border text-sm transition",
+                        active
+                          ? "bg-secondary border-foreground/40"
+                          : "bg-background/40 border-border hover:bg-secondary/50",
+                      ].join(" ")}
+                    >
+                      {s}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            // ✅ 카테고리 편집 UI (간단 버전)
+            <div className="mt-10 rounded-2xl border border-border bg-secondary/30 p-5 space-y-4">
+              <div className="flex items-center justify-between">
+                <p className="font-semibold">카테고리 편집</p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={saveCategories}
+                    className="h-9 px-4 rounded-lg bg-foreground text-background hover:opacity-90 transition"
+                  >
+                    저장
+                  </button>
+                  <button
+                    onClick={() => {
+                      setDraftCategories(categories);
+                      setIsEditingCategory(false);
+                    }}
+                    className="h-9 px-4 rounded-lg border border-border hover:bg-secondary transition"
+                  >
+                    취소
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {draftCategories.map((cg, idx) => (
+                  <div key={idx} className="rounded-xl border border-border bg-background/40 p-4">
+                    <div className="flex items-center gap-3">
+                      <input
+                        value={cg.main}
+                        onChange={(e) => {
+                          const next = [...draftCategories];
+                          next[idx] = { ...next[idx], main: e.target.value };
+                          setDraftCategories(next);
+                        }}
+                        className="h-9 px-3 rounded-lg border border-border bg-background w-48"
+                        placeholder="메인 카테고리"
+                      />
+                      <button
+                        onClick={() => {
+                          const next = draftCategories.filter((_, i) => i !== idx);
+                          setDraftCategories(next);
+                        }}
+                        className="h-9 px-3 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
+                      >
+                        삭제
+                      </button>
+                    </div>
+
+                    <div className="mt-3 space-y-2">
+                      {cg.subs.map((s, sidx) => (
+                        <div key={sidx} className="flex items-center gap-2">
+                          <input
+                            value={s}
+                            onChange={(e) => {
+                              const next = [...draftCategories];
+                              const subs = [...next[idx].subs];
+                              subs[sidx] = e.target.value;
+                              next[idx] = { ...next[idx], subs };
+                              setDraftCategories(next);
+                            }}
+                            className="h-9 px-3 rounded-lg border border-border bg-background w-64"
+                            placeholder="서브 카테고리"
+                          />
+                          <button
+                            onClick={() => {
+                              const next = [...draftCategories];
+                              next[idx] = { ...next[idx], subs: next[idx].subs.filter((_, i) => i !== sidx) };
+                              setDraftCategories(next);
+                            }}
+                            className="h-9 px-3 rounded-lg border border-border hover:bg-secondary transition"
+                          >
+                            제거
+                          </button>
+                        </div>
+                      ))}
+
+                      <button
+                        onClick={() => {
+                          const next = [...draftCategories];
+                          next[idx] = { ...next[idx], subs: [...next[idx].subs, "새 서브"] };
+                          setDraftCategories(next);
+                        }}
+                        className="h-9 px-3 rounded-lg border border-border hover:bg-secondary transition"
+                      >
+                        + 서브 추가
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
                 <button
-                  key={char.id}
-                  onClick={() => {
-                    setSelectedModalCharacterId(char.id);
-                    setModalSubImageIndex(0);
-                  }}
-                  className="group relative aspect-square rounded-lg overflow-hidden border border-border hover:border-foreground transition-all duration-300 cursor-pointer"
+                  onClick={() => setDraftCategories([...draftCategories, { main: "새 메인", subs: ["새 서브"] }])}
+                  className="h-10 px-4 rounded-lg border border-border hover:bg-secondary transition"
                 >
-                  {/* Profile Image */}
-                  <div className="w-full h-full bg-secondary">
-                    {char.profileImage ? (
+                  + 메인 카테고리 추가
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ✅ GRID (프로필 썸네일 나열 / 선택 효과) */}
+      <div className="container py-10">
+        {filtered.length === 0 ? (
+          <div className="py-20 text-center text-muted-foreground">해당 카테고리에 캐릭터가 없습니다.</div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            {filtered.map((c) => {
+              const isSelected = c.id === selectedId;
+              return (
+                <button
+                  key={c.id}
+                  onClick={() => setSelectedId(c.id)}
+                  onDoubleClick={() => !editMode && setViewModalId(c.id)}
+                  className={[
+                    "group relative aspect-square overflow-hidden rounded-xl border transition",
+                    isSelected ? "border-foreground" : "border-border hover:border-muted-foreground",
+                  ].join(" ")}
+                  title={editMode ? "클릭: 선택 / (편집은 우측 패널)" : "더블클릭: 상세 보기"}
+                >
+                  {/* 이미지 */}
+                  <div className="absolute inset-0 bg-secondary">
+                    {c.profileImage ? (
                       <img
-                        src={char.profileImage}
-                        alt={char.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        src={c.profileImage}
+                        alt={c.name}
+                        className={[
+                          "h-full w-full object-cover transition duration-300",
+                          isSelected ? "scale-[1.06] grayscale-0 opacity-100 brightness-100" : "scale-100 grayscale opacity-70 brightness-75",
+                        ].join(" ")}
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                      <div className="h-full w-full flex items-center justify-center text-xs text-muted-foreground">
                         이미지 없음
                       </div>
                     )}
                   </div>
 
-                  {/* Overlay */}
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-300 flex items-end justify-start p-3">
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <p className="text-white font-semibold text-sm">{char.name}</p>
-                      <p className="text-gray-300 text-xs">
-                        {char.mainCategory} / {char.subCategory}
-                      </p>
+                  {/* 하단 라벨 */}
+                  <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/70 to-transparent">
+                    <div className="text-white text-sm font-semibold">{c.name}</div>
+                    <div className="text-white/70 text-[11px]">
+                      {c.mainCategory} / {c.subCategory}
                     </div>
                   </div>
                 </button>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">캐릭터가 없습니다</p>
-            </div>
-          )}
+              );
+            })}
+          </div>
+        )}
 
-          {/* Detail Modal */}
-          {modalCharacter && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-              <div className="bg-background rounded-lg shadow-xl max-w-2xl w-full max-h-96 overflow-y-auto border border-border">
-                {/* Header */}
-                <div className="sticky top-0 bg-background border-b border-border p-6 flex items-center justify-between">
-                  <h2 className="text-2xl font-bold">{modalCharacter.name}</h2>
-                  <button
-                    onClick={() => {
-                      setSelectedModalCharacterId(null);
-                      setModalSubImageIndex(0);
+        {/* ✅ 선택 캐릭터 편집 패널 (editMode에서만) */}
+        {editMode && selected && (
+          <div className="mt-10 grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 rounded-2xl border border-border bg-secondary/30 p-6 space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">선택됨</p>
+                  <p className="text-2xl font-bold">{selected.name}</p>
+                </div>
+                <button
+                  onClick={() => openEditModal(selected.id)}
+                  className="h-10 px-4 rounded-lg bg-foreground text-background hover:opacity-90 transition"
+                >
+                  상세 편집(모달)
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs text-muted-foreground mb-2">메인 카테고리</p>
+                  <select
+                    value={selected.mainCategory}
+                    onChange={(e) => {
+                      const next = characters.map((x) =>
+                        x.id === selected.id ? { ...x, mainCategory: e.target.value, subCategory: (categories.find((c) => c.main === e.target.value)?.subs?.[0] || "") } : x
+                      );
+                      updateCharacters(next);
+                      setActiveMain(e.target.value);
+                      setActiveSub(categories.find((c) => c.main === e.target.value)?.subs?.[0] || "");
                     }}
-                    className="p-1 hover:bg-secondary rounded transition-colors"
+                    className="w-full h-10 px-3 rounded-lg border border-border bg-background"
                   >
-                    <X className="w-5 h-5" />
-                  </button>
+                    {categories.map((c) => (
+                      <option key={c.main} value={c.main}>
+                        {c.main}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
-                {/* Content */}
-                <div className="p-6 space-y-6">
-                  {/* Main Image */}
-                  <div>
-                    <p className="text-sm font-medium mb-3">메인 이미지</p>
-                    <div className="aspect-video bg-secondary rounded-lg overflow-hidden border border-border">
-                      {modalCharacter.mainImage ? (
-                        <img
-                          src={modalCharacter.mainImage}
-                          alt="main"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                          이미지 없음
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Info */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-1">메인 카테고리</p>
-                      <p className="font-semibold">{modalCharacter.mainCategory}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-1">서브 카테고리</p>
-                      <p className="font-semibold">{modalCharacter.subCategory}</p>
-                    </div>
-                  </div>
-
-                  {/* Description */}
-                  {modalCharacter.description && (
-                    <div>
-                      <p className="text-sm font-medium mb-2">설명</p>
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        {modalCharacter.description}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Sub Images */}
-                  {modalCharacter.subImages && modalCharacter.subImages.length > 0 && (
-                    <div>
-                      <div className="flex items-center justify-between mb-3">
-                        <p className="text-sm font-medium">서브 이미지</p>
-                        <span className="text-xs text-muted-foreground">
-                          {modalSubImageIndex + 1} / {modalCharacter.subImages.length}
-                        </span>
-                      </div>
-
-                      {/* Main Sub Image Display */}
-                      <div className="aspect-video bg-secondary rounded-lg overflow-hidden border border-border mb-4">
-                        {modalCharacter.subImages[modalSubImageIndex]?.image ? (
-                          <img
-                            src={modalCharacter.subImages[modalSubImageIndex].image}
-                            alt="sub"
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                            이미지 없음
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Sub Image Description */}
-                      {modalCharacter.subImages[modalSubImageIndex]?.description && (
-                        <p className="text-sm text-muted-foreground mb-4">
-                          {modalCharacter.subImages[modalSubImageIndex].description}
-                        </p>
-                      )}
-
-                      {/* Navigation */}
-                      <div className="flex items-center justify-between">
-                        <button
-                          onClick={() =>
-                            setModalSubImageIndex(
-                              (prev) =>
-                                (prev - 1 + modalCharacter.subImages.length) %
-                                modalCharacter.subImages.length
-                            )
-                          }
-                          className="p-2 hover:bg-secondary rounded transition-colors"
-                        >
-                          <ChevronLeft className="w-5 h-5" />
-                        </button>
-
-                        {/* Thumbnail Strip */}
-                        <div className="flex gap-2 overflow-x-auto flex-1 mx-4 pb-2">
-                          {modalCharacter.subImages.map((subImg, idx) => (
-                            <button
-                              key={idx}
-                              onClick={() => setModalSubImageIndex(idx)}
-                              className={`flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden border-2 transition-colors ${
-                                idx === modalSubImageIndex
-                                  ? 'border-foreground'
-                                  : 'border-border hover:border-muted-foreground'
-                              }`}
-                            >
-                              {subImg.image ? (
-                                <img
-                                  src={subImg.image}
-                                  alt={`sub-${idx}`}
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <div className="w-full h-full bg-secondary" />
-                              )}
-                            </button>
-                          ))}
-                        </div>
-
-                        <button
-                          onClick={() =>
-                            setModalSubImageIndex(
-                              (prev) =>
-                                (prev + 1) % modalCharacter.subImages.length
-                            )
-                          }
-                          className="p-2 hover:bg-secondary rounded transition-colors"
-                        >
-                          <ChevronRight className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </div>
-                  )}
+                <div>
+                  <p className="text-xs text-muted-foreground mb-2">서브 카테고리</p>
+                  <select
+                    value={selected.subCategory}
+                    onChange={(e) => {
+                      const next = characters.map((x) => (x.id === selected.id ? { ...x, subCategory: e.target.value } : x));
+                      updateCharacters(next);
+                      setActiveSub(e.target.value);
+                    }}
+                    className="w-full h-10 px-3 rounded-lg border border-border bg-background"
+                  >
+                    {(categories.find((c) => c.main === selected.mainCategory)?.subs || []).map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
 
-  // 편집 모드 렌더링
-  if (!selectedCharacter) {
-    return (
-      <div className="min-h-screen bg-background py-12 md:ml-64 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-lg mb-4">캐릭터를 추가해주세요</p>
-          {editMode && (
-            <button
-              onClick={() => setIsAddingCharacter(true)}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              캐릭터 추가
-            </button>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-background py-12 md:ml-64">
-      <div className="container">
-        {/* Header */}
-        <div className="mb-12">
-          <h1 className="text-4xl font-bold mb-2">캐릭터</h1>
-          <p className="text-muted-foreground">
-            캐릭터 목록을 관리하고 상세 정보를 편집합니다
-          </p>
-        </div>
-
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Left - Character List */}
-          <div className="lg:col-span-1">
-            <div className="space-y-2 mb-4">
-              <h2 className="text-lg font-bold">캐릭터 목록</h2>
-              {editMode && (
-                <button
-                  onClick={() => setIsAddingCharacter(true)}
-                  className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors text-sm"
-                >
-                  <Plus className="w-4 h-4" />
-                  추가
-                </button>
-              )}
-            </div>
-
-            <div className="space-y-2 max-h-96 overflow-y-auto">
-              {characters.map((char) => (
-                <button
-                  key={char.id}
-                  onClick={() => {
-                    setSelectedCharacterId(char.id);
-                    setCurrentSubImageIndex(0);
+              <div>
+                <p className="text-xs text-muted-foreground mb-2">설명</p>
+                <textarea
+                  value={selected.description}
+                  onChange={(e) => {
+                    const next = characters.map((x) => (x.id === selected.id ? { ...x, description: e.target.value } : x));
+                    updateCharacters(next);
                   }}
-                  className={`w-full p-3 rounded-lg text-left transition-colors ${
-                    selectedCharacterId === char.id
-                      ? 'bg-foreground text-background'
-                      : 'bg-secondary hover:bg-border'
-                  }`}
-                >
-                  <div className="font-semibold text-sm">{char.name}</div>
-                  <div className="text-xs opacity-70">
-                    {char.mainCategory} / {char.subCategory}
-                  </div>
-                </button>
-              ))}
+                  className="w-full min-h-24 p-3 rounded-lg border border-border bg-background resize-none"
+                  placeholder="캐릭터 설명"
+                />
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-border bg-secondary/30 p-6 space-y-4">
+              <p className="font-semibold">빠른 작업</p>
+              <button
+                onClick={() => openEditModal(selected.id)}
+                className="w-full h-10 rounded-lg border border-border hover:bg-secondary transition"
+              >
+                이미지/서브 상세 편집
+              </button>
+              <button
+                onClick={() => deleteCharacter(selected.id)}
+                disabled={characters.length <= 1}
+                className="w-full h-10 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 transition"
+              >
+                <span className="inline-flex items-center gap-2 justify-center">
+                  <Trash2 className="w-4 h-4" />
+                  캐릭터 삭제
+                </span>
+              </button>
             </div>
           </div>
+        )}
+      </div>
 
-          {/* Right - Character Details */}
-          <div className="lg:col-span-3 space-y-8">
-            {/* Profile Image */}
-            <div className="border border-border rounded-lg p-6 bg-secondary/50">
-              <h3 className="text-lg font-bold mb-4">프로필 이미지</h3>
-              {editMode ? (
-                <ImageUpload
-                  value={selectedCharacter.profileImage}
-                  onChange={(value) =>
-                    handleUpdateCharacter({ profileImage: value })
-                  }
-                  label="프로필 이미지"
-                />
-              ) : (
-                <div className="w-32 h-32 bg-gray-900 rounded-lg overflow-hidden border border-border">
-                  {selectedCharacter.profileImage ? (
-                    <img
-                      src={selectedCharacter.profileImage}
-                      alt="profile"
-                      className="w-full h-full object-cover"
-                    />
+      {/* ✅ 감상 모드 상세 모달(더블클릭) */}
+      {!editMode && viewModalChar && (
+        <div className="fixed inset-0 z-50 bg-black/80 p-4 flex items-center justify-center">
+          <div className="w-full max-w-3xl max-h-[85vh] overflow-y-auto rounded-2xl border border-border bg-background">
+            <div className="sticky top-0 bg-background border-b border-border p-5 flex items-center justify-between">
+              <div>
+                <p className="text-xs text-muted-foreground">
+                  {viewModalChar.mainCategory} / {viewModalChar.subCategory}
+                </p>
+                <h2 className="text-2xl font-bold">{viewModalChar.name}</h2>
+              </div>
+              <button
+                onClick={() => {
+                  setViewModalId(null);
+                  setViewSubIndex(0);
+                }}
+                className="h-9 w-9 rounded-lg hover:bg-secondary transition flex items-center justify-center"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Main */}
+              <div className="space-y-2">
+                <p className="text-sm font-semibold">메인 이미지</p>
+                <div className="aspect-video rounded-xl border border-border overflow-hidden bg-secondary">
+                  {viewModalChar.mainImage ? (
+                    <img src={viewModalChar.mainImage} className="w-full h-full object-cover" alt="main" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                      없음
-                    </div>
+                    <div className="w-full h-full flex items-center justify-center text-muted-foreground">이미지 없음</div>
                   )}
                 </div>
-              )}
-            </div>
-
-            {/* Basic Info */}
-            <div className="border border-border rounded-lg p-6 bg-secondary/50 space-y-4">
-              <h3 className="text-lg font-bold">기본 정보</h3>
-
-              {editMode ? (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      이름
-                    </label>
-                    <input
-                      type="text"
-                      value={selectedCharacter.name}
-                      onChange={(e) =>
-                        handleUpdateCharacter({ name: e.target.value })
-                      }
-                      className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-foreground"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-2">
-                        메인 카테고리
-                      </label>
-                      <select
-                        value={selectedCharacter.mainCategory}
-                        onChange={(e) =>
-                          handleUpdateCharacter({ mainCategory: e.target.value })
-                        }
-                        className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-foreground"
-                      >
-                        {data.settings.characterCategories.map((cat) => (
-                          <option key={cat.main} value={cat.main}>
-                            {cat.main}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-2">
-                        서브 카테고리
-                      </label>
-                      <select
-                        value={selectedCharacter.subCategory}
-                        onChange={(e) =>
-                          handleUpdateCharacter({ subCategory: e.target.value })
-                        }
-                        className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-foreground"
-                      >
-                        {data.settings.characterCategories
-                          .find((cat) => cat.main === selectedCharacter.mainCategory)
-                          ?.subs.map((sub) => (
-                            <option key={sub} value={sub}>
-                              {sub}
-                            </option>
-                          ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      설명
-                    </label>
-                    <textarea
-                      value={selectedCharacter.description}
-                      onChange={(e) =>
-                        handleUpdateCharacter({ description: e.target.value })
-                      }
-                      placeholder="캐릭터 설명"
-                      className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-foreground resize-none h-24"
-                    />
-                  </div>
-
-                  <button
-                    onClick={handleDeleteCharacter}
-                    disabled={characters.length === 1}
-                    className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 rounded-lg transition-colors text-sm"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    삭제
-                  </button>
-                </>
-              ) : (
-                <>
-                  <div>
-                    <div className="text-sm text-muted-foreground">이름</div>
-                    <div className="font-semibold">{selectedCharacter.name}</div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <div className="text-sm text-muted-foreground">
-                        메인 카테고리
-                      </div>
-                      <div className="font-semibold">
-                        {selectedCharacter.mainCategory}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-muted-foreground">
-                        서브 카테고리
-                      </div>
-                      <div className="font-semibold">
-                        {selectedCharacter.subCategory}
-                      </div>
-                    </div>
-                  </div>
-                  {selectedCharacter.description && (
-                    <div>
-                      <div className="text-sm text-muted-foreground">설명</div>
-                      <div className="text-sm">{selectedCharacter.description}</div>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-
-            {/* Main Image */}
-            <div className="border border-border rounded-lg p-6 bg-secondary/50">
-              <h3 className="text-lg font-bold mb-4">메인 이미지</h3>
-              {editMode ? (
-                <ImageUpload
-                  value={selectedCharacter.mainImage}
-                  onChange={(value) =>
-                    handleUpdateCharacter({ mainImage: value })
-                  }
-                  label="메인 이미지"
-                />
-              ) : (
-                <div className="aspect-video bg-gray-900 rounded-lg overflow-hidden border border-border">
-                  {selectedCharacter.mainImage ? (
-                    <img
-                      src={selectedCharacter.mainImage}
-                      alt="main"
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                      없음
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Sub Images */}
-            <div className="border border-border rounded-lg p-6 bg-secondary/50">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold">서브 이미지</h3>
-                {editMode && (
-                  <button
-                    onClick={handleAddSubImage}
-                    className="flex items-center gap-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-sm transition-colors"
-                  >
-                    <Plus className="w-4 h-4" />
-                    추가
-                  </button>
+                {viewModalChar.mainImageDesc && (
+                  <p className="text-sm text-muted-foreground">{viewModalChar.mainImageDesc}</p>
                 )}
               </div>
 
-              {selectedCharacter.subImages && selectedCharacter.subImages.length > 0 ? (
-                <div className="space-y-4">
-                  {/* Sub Image Carousel */}
-                  <div className="flex items-center gap-4">
+              {/* Desc */}
+              {viewModalChar.description && (
+                <div>
+                  <p className="text-sm font-semibold mb-2">설명</p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{viewModalChar.description}</p>
+                </div>
+              )}
+
+              {/* Subs */}
+              {viewModalChar.subImages?.length > 0 && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold">서브 이미지</p>
+                    <p className="text-xs text-muted-foreground">
+                      {viewSubIndex + 1} / {viewModalChar.subImages.length}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-3">
                     <button
-                      onClick={() =>
-                        setCurrentSubImageIndex(
-                          (prev) =>
-                            (prev - 1 + selectedCharacter.subImages.length) %
-                            selectedCharacter.subImages.length
-                        )
-                      }
-                      className="p-2 hover:bg-border rounded transition-colors"
+                      className="h-10 w-10 rounded-lg hover:bg-secondary transition flex items-center justify-center"
+                      onClick={() => setViewSubIndex((p) => (p - 1 + viewModalChar.subImages.length) % viewModalChar.subImages.length)}
                     >
                       <ChevronLeft className="w-5 h-5" />
                     </button>
 
-                    <div className="flex-1 aspect-video bg-gray-900 rounded-lg overflow-hidden border border-border">
-                      {selectedCharacter.subImages[currentSubImageIndex]?.image ? (
-                        <img
-                          src={selectedCharacter.subImages[currentSubImageIndex].image}
-                          alt="sub"
-                          className="w-full h-full object-cover"
-                        />
+                    <div className="flex-1 aspect-video rounded-xl border border-border overflow-hidden bg-secondary">
+                      {viewModalChar.subImages[viewSubIndex]?.image ? (
+                        <img src={viewModalChar.subImages[viewSubIndex].image} className="w-full h-full object-cover" alt="sub" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                          없음
-                        </div>
+                        <div className="w-full h-full flex items-center justify-center text-muted-foreground">이미지 없음</div>
                       )}
                     </div>
 
                     <button
-                      onClick={() =>
-                        setCurrentSubImageIndex(
-                          (prev) =>
-                            (prev + 1) % selectedCharacter.subImages.length
-                        )
-                      }
-                      className="p-2 hover:bg-border rounded transition-colors"
+                      className="h-10 w-10 rounded-lg hover:bg-secondary transition flex items-center justify-center"
+                      onClick={() => setViewSubIndex((p) => (p + 1) % viewModalChar.subImages.length)}
                     >
                       <ChevronRight className="w-5 h-5" />
                     </button>
                   </div>
 
-                  <div className="text-center text-sm text-muted-foreground">
-                    {currentSubImageIndex + 1} / {selectedCharacter.subImages.length}
-                  </div>
-
-                  {/* Current Sub Image Edit */}
-                  {editMode && (
-                    <div className="space-y-4 border-t border-border pt-4">
-                      <ImageUpload
-                        value={
-                          selectedCharacter.subImages[currentSubImageIndex]?.image || ''
-                        }
-                        onChange={(value) =>
-                          handleUpdateSubImage(currentSubImageIndex, {
-                            image: value,
-                          })
-                        }
-                        label="이미지"
-                      />
-
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          설명
-                        </label>
-                        <textarea
-                          value={
-                            selectedCharacter.subImages[currentSubImageIndex]
-                              ?.description || ''
-                          }
-                          onChange={(e) =>
-                            handleUpdateSubImage(currentSubImageIndex, {
-                              description: e.target.value,
-                            })
-                          }
-                          placeholder="이미지 설명"
-                          className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-foreground resize-none h-20"
-                        />
-                      </div>
-
-                      <button
-                        onClick={() => handleDeleteSubImage(currentSubImageIndex)}
-                        className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-red-600 hover:bg-red-700 rounded-lg transition-colors text-sm"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        삭제
-                      </button>
-                    </div>
+                  {viewModalChar.subImages[viewSubIndex]?.description && (
+                    <p className="text-sm text-muted-foreground">{viewModalChar.subImages[viewSubIndex].description}</p>
                   )}
-                </div>
-              ) : editMode ? (
-                <p className="text-muted-foreground text-sm">
-                  서브 이미지를 추가해주세요
-                </p>
-              ) : null}
-            </div>
-          </div>
-        </div>
-      </div>
 
-      {/* Add Character Modal */}
-      {isAddingCharacter && editMode && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-background rounded-lg shadow-xl p-6 max-w-md w-full border border-border">
-            <h2 className="text-2xl font-bold mb-4">캐릭터 추가</h2>
-            <input
-              type="text"
-              value={newCharacterName}
-              onChange={(e) => setNewCharacterName(e.target.value)}
-              placeholder="캐릭터 이름"
-              className="w-full px-4 py-2 border border-border rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-foreground bg-secondary"
-              onKeyPress={(e) => e.key === 'Enter' && handleAddCharacter()}
-            />
-            <div className="flex gap-3">
-              <button
-                onClick={handleAddCharacter}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-              >
-                추가
-              </button>
-              <button
-                onClick={() => {
-                  setIsAddingCharacter(false);
-                  setNewCharacterName('');
-                }}
-                className="flex-1 px-4 py-2 bg-muted text-foreground rounded-lg font-semibold hover:bg-border transition-colors"
-              >
-                취소
-              </button>
+                  <div className="flex gap-2 overflow-x-auto pb-2">
+                    {viewModalChar.subImages.map((s, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setViewSubIndex(idx)}
+                        className={[
+                          "w-14 h-14 rounded-xl overflow-hidden border-2 flex-shrink-0 transition",
+                          idx === viewSubIndex ? "border-foreground" : "border-border hover:border-muted-foreground",
+                        ].join(" ")}
+                      >
+                        {s.image ? <img src={s.image} className="w-full h-full object-cover" alt={`thumb-${idx}`} /> : <div className="w-full h-full bg-secondary" />}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
       )}
+
+      {/* ✅ 추가/수정 모달 (editMode) */}
+      {editMode && editingTarget && (
+        <CharacterEditModal
+          key={editingTarget} // target 바뀔 때 초기화
+          target={editingTarget}
+          categories={categories}
+          characters={characters}
+          onClose={() => setEditingTarget(null)}
+          onSave={(c) => {
+            upsertCharacter(c);
+            setEditingTarget(null);
+          }}
+          onDelete={(id) => {
+            deleteCharacter(id);
+            setEditingTarget(null);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+// ----------------------------
+// Modal Component
+// ----------------------------
+function CharacterEditModal(props: {
+  target: "new" | string;
+  categories: { main: string; subs: string[] }[];
+  characters: Character[];
+  onClose: () => void;
+  onSave: (c: Character) => void;
+  onDelete: (id: string) => void;
+}) {
+  const { target, categories, characters, onClose, onSave, onDelete } = props;
+
+  const original = target === "new" ? null : characters.find((c) => c.id === target) || null;
+  const fallbackMain = categories[0]?.main || "미분류";
+  const fallbackSub = categories[0]?.subs?.[0] || "미분류";
+
+  const [draft, setDraft] = useState<Character>(() => {
+    if (original) return original;
+    return {
+      id: Date.now().toString(),
+      name: "새 캐릭터",
+      mainCategory: fallbackMain,
+      subCategory: fallbackSub,
+      profileImage: "",
+      mainImage: "",
+      mainImageDesc: "",
+      subImages: [],
+      tags: [],
+      description: "",
+    };
+  });
+
+  const subs = categories.find((c) => c.main === draft.mainCategory)?.subs || [];
+
+  const addSubImage = () => setDraft((d) => ({ ...d, subImages: [...d.subImages, { image: "", description: "" }] }));
+  const updateSubImage = (idx: number, patch: Partial<SubImage>) =>
+    setDraft((d) => {
+      const next = [...d.subImages];
+      next[idx] = { ...next[idx], ...patch };
+      return { ...d, subImages: next };
+    });
+
+  const removeSubImage = (idx: number) =>
+    setDraft((d) => ({ ...d, subImages: d.subImages.filter((_, i) => i !== idx) }));
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 p-4 flex items-center justify-center">
+      <div className="w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl border border-border bg-background">
+        <div className="sticky top-0 bg-background border-b border-border p-5 flex items-center justify-between">
+          <div>
+            <p className="text-xs text-muted-foreground">{target === "new" ? "캐릭터 추가" : "캐릭터 수정"}</p>
+            <h3 className="text-2xl font-bold">{draft.name}</h3>
+          </div>
+          <button onClick={onClose} className="h-9 w-9 rounded-lg hover:bg-secondary transition flex items-center justify-center">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-8">
+          {/* 기본 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm font-semibold mb-2">이름</p>
+              <input
+                value={draft.name}
+                onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
+                className="w-full h-10 px-3 rounded-lg border border-border bg-background"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <p className="text-sm font-semibold mb-2">메인</p>
+                <select
+                  value={draft.mainCategory}
+                  onChange={(e) => {
+                    const main = e.target.value;
+                    const firstSub = categories.find((c) => c.main === main)?.subs?.[0] || "";
+                    setDraft((d) => ({ ...d, mainCategory: main, subCategory: firstSub }));
+                  }}
+                  className="w-full h-10 px-3 rounded-lg border border-border bg-background"
+                >
+                  {categories.map((c) => (
+                    <option key={c.main} value={c.main}>
+                      {c.main}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <p className="text-sm font-semibold mb-2">서브</p>
+                <select
+                  value={draft.subCategory}
+                  onChange={(e) => setDraft((d) => ({ ...d, subCategory: e.target.value }))}
+                  className="w-full h-10 px-3 rounded-lg border border-border bg-background"
+                >
+                  {subs.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <p className="text-sm font-semibold mb-2">캐릭터 설명</p>
+            <textarea
+              value={draft.description}
+              onChange={(e) => setDraft((d) => ({ ...d, description: e.target.value }))}
+              className="w-full min-h-24 p-3 rounded-lg border border-border bg-background resize-none"
+              placeholder="세계관/성격/능력 등"
+            />
+          </div>
+
+          {/* 프로필 */}
+          <div className="rounded-2xl border border-border bg-secondary/30 p-5 space-y-3">
+            <p className="font-semibold">프로필 이미지</p>
+            <ImageUpload value={draft.profileImage} onChange={(v) => setDraft((d) => ({ ...d, profileImage: v }))} />
+          </div>
+
+          {/* 메인 */}
+          <div className="rounded-2xl border border-border bg-secondary/30 p-5 space-y-3">
+            <p className="font-semibold">메인 이미지</p>
+            <ImageUpload value={draft.mainImage} onChange={(v) => setDraft((d) => ({ ...d, mainImage: v }))} />
+            <textarea
+              value={draft.mainImageDesc || ""}
+              onChange={(e) => setDraft((d) => ({ ...d, mainImageDesc: e.target.value }))}
+              className="w-full min-h-20 p-3 rounded-lg border border-border bg-background resize-none"
+              placeholder="메인 이미지 설명"
+            />
+          </div>
+
+          {/* 서브 */}
+          <div className="rounded-2xl border border-border bg-secondary/30 p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="font-semibold">서브 이미지</p>
+              <button
+                onClick={addSubImage}
+                className="h-9 px-4 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition inline-flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                추가
+              </button>
+            </div>
+
+            {draft.subImages.length === 0 ? (
+              <p className="text-sm text-muted-foreground">서브 이미지를 추가해주세요.</p>
+            ) : (
+              <div className="space-y-6">
+                {draft.subImages.map((s, idx) => (
+                  <div key={idx} className="rounded-xl border border-border bg-background/40 p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-semibold">서브 #{idx + 1}</p>
+                      <button
+                        onClick={() => removeSubImage(idx)}
+                        className="h-9 px-3 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
+                      >
+                        삭제
+                      </button>
+                    </div>
+
+                    <ImageUpload value={s.image} onChange={(v) => updateSubImage(idx, { image: v })} />
+                    <textarea
+                      value={s.description}
+                      onChange={(e) => updateSubImage(idx, { description: e.target.value })}
+                      className="w-full min-h-20 p-3 rounded-lg border border-border bg-background resize-none"
+                      placeholder="서브 이미지 설명"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center gap-3 pb-4">
+            <button
+              onClick={() => onSave(draft)}
+              className="flex-1 h-11 rounded-lg bg-foreground text-background hover:opacity-90 transition"
+            >
+              저장
+            </button>
+
+            {target !== "new" && (
+              <button
+                onClick={() => onDelete(draft.id)}
+                className="h-11 px-4 rounded-lg bg-red-600 text-white hover:bg-red-700 transition inline-flex items-center gap-2"
+              >
+                <Trash2 className="w-4 h-4" />
+                삭제
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

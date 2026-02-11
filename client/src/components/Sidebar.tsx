@@ -45,7 +45,7 @@ export default function Sidebar() {
       {/* 모바일 토글 */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed top-4 left-4 z-40 p-2 rounded-lg bg-foreground text-background md:hidden"
+        className="fixed top-4 left-6 z-40 p-2 rounded-lg bg-foreground text-background md:hidden"
       >
         {isOpen ? <X size={18} /> : <Menu size={18} />}
       </button>
@@ -199,7 +199,13 @@ export default function Sidebar() {
                   return (
                     <label
                       key={idx}
-                      className="w-full flex items-center px-3 py-2 rounded-md hover:bg-zinc-200 transition-colors cursor-pointer"
+                      className="
+                        w-full flex items-center
+                        px-3 py-2 rounded-md
+                        bg-zinc-200
+                        hover:bg-zinc-300
+                        transition-colors duration-150
+                      "
                     >
                       <div className="w-8 flex justify-center flex-shrink-0">
                         <Icon size={18} />
@@ -234,7 +240,13 @@ export default function Sidebar() {
                   <button
                     key={idx}
                     onClick={tool.action}
-                    className="w-full flex items-center px-3 py-2 rounded-md hover:bg-zinc-200 transition-colors"
+                    className="
+                      w-full flex items-center
+                      px-3 py-2 rounded-md
+                      bg-zinc-200
+                      hover:bg-zinc-300
+                      transition-colors duration-150
+                    "
                   >
                     <div className="w-8 flex justify-center flex-shrink-0">
                       <Icon size={18} />
@@ -265,9 +277,8 @@ export default function Sidebar() {
       {/* 데스크탑 spacer */}
       <div
         className={`
-          hidden md:block
+          hidden md:block w-20
           transition-all duration-300 ease-in-out
-          ${isCollapsed ? "w-20" : "w-64"}
         `}
       />
     </>
