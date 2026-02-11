@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&family=Lato:wght@300;400;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url("https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/subsets/Paperlogy-dynamic-subset.css");
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -113,16 +115,13 @@
   --sidebar-ring: #ffffff;
 }
 
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&family=Lato:wght@300;400;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
-@import url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2408-3@1.0/Paperlogy.css');
-
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
   body {
     @apply bg-background text-foreground font-sans;
-    font-family: 'Paperozi', sans-serif;
+    font-family: 'Paperlogy', sans-serif;
   }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
@@ -137,7 +136,7 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Paperozi', serif;
+    font-family: 'Paperlogy', serif;
     font-weight: 600;
   }
 
@@ -166,7 +165,7 @@
   }
 
   .font-mono {
-    font-family: 'Paperozi', 'JetBrains Mono', monospace;
+    font-family: 'Paperlogy', 'JetBrains Mono', monospace;
   }
 }
 
@@ -223,8 +222,4 @@
   .slide-in {
     @apply animate-in slide-in-from-bottom-4 duration-500;
   }
-}
-
-/*
-  additional custome css
-*/
+};
