@@ -12,10 +12,10 @@ import {
   UserRound,
   Sparkles,
   IdCard,
-} from 'lucide-react';
-import { useState } from 'react';
-import { useLocation } from 'wouter';
-import { usePortfolioContext } from '@/contexts/PortfolioContext';
+} from "lucide-react";
+import { useState } from "react";
+import { useLocation } from "wouter";
+import { usePortfolioContext } from "@/contexts/PortfolioContext";
 
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(true);
@@ -25,18 +25,18 @@ export default function Sidebar() {
     usePortfolioContext();
 
   const navItems = [
-    { label: '홈', path: '/', icon: Home },
-    { label: '세계관', path: '/worlds', icon: Globe2 },
-    { label: '캐릭터', path: '/characters', icon: UserRound },
-    { label: '크리쳐', path: '/creatures', icon: Sparkles },
-    { label: '프로필', path: '/profile', icon: IdCard },
+    { label: "홈", path: "/", icon: Home },
+    { label: "세계관", path: "/worlds", icon: Globe2 },
+    { label: "캐릭터", path: "/characters", icon: UserRound },
+    { label: "크리쳐", path: "/creatures", icon: Sparkles },
+    { label: "프로필", path: "/profile", icon: IdCard },
   ];
 
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       importFromJSON(file);
-      e.target.value = '';
+      e.target.value = "";
     }
   };
 
@@ -57,18 +57,17 @@ export default function Sidebar() {
           bg-background border-r border-border
           transition-all duration-300 ease-in-out
           z-30
-          ${isOpen ? (isCollapsed ? 'w-20' : 'w-64') : 'w-0 md:w-20'}
+          ${isOpen ? (isCollapsed ? "w-20" : "w-64") : "w-0 md:w-20"}
           overflow-hidden
         `}
       >
         <div className="h-full flex flex-col p-3">
-
           {/* 상단 로고 */}
           <div className="flex items-center justify-between h-14 px-2">
             <div
               className={`
                 overflow-hidden transition-all duration-200
-                ${isCollapsed ? 'max-w-0 opacity-0' : 'max-w-[200px] opacity-100'}
+                ${isCollapsed ? "max-w-0 opacity-0" : "max-w-[200px] opacity-100"}
               `}
             >
               <h1 className="text-lg font-semibold whitespace-nowrap">
@@ -81,19 +80,20 @@ export default function Sidebar() {
 
             <button
               onClick={() => setIsCollapsed(!isCollapsed)}
-              className="p-1 rounded hover:bg-secondary transition-colors hidden md:block"
+              className="p-1 rounded hover:bg-zinc-200 transition-colors hidden md:block"
             >
               <ChevronLeft
                 size={18}
-                className={`transition-transform duration-300 ${isCollapsed ? 'rotate-180' : ''
-                  }`}
+                className={`w-8 transition-transform duration-300 ${
+                  isCollapsed ? "rotate-180" : ""
+                }`}
               />
             </button>
           </div>
 
           {/* 네비게이션 */}
           <nav className="flex-1 mt-6 space-y-1">
-            {navItems.map((item) => {
+            {navItems.map(item => {
               const Icon = item.icon;
               const active = location === item.path;
 
@@ -105,23 +105,28 @@ export default function Sidebar() {
                     w-full flex items-center
                     px-3 py-2 rounded-md
                     transition-colors duration-150
-                    ${active
-                      ? 'bg-secondary font-medium'
-                      : 'hover:bg-secondary/70'}
+                    gyeol-navigation-item
+                    ${
+                      active
+                        ? "bg-black text-white"
+                        : "text-muted-foreground hover:bg-zinc-200 hover:text-black"
+                    }
                   `}
                 >
                   {/* 아이콘 고정 영역 */}
-                  <div className="w-6 flex justify-center flex-shrink-0">
+                  <div className="w-8 flex justify-center flex-shrink-0">
                     <Icon size={18} />
                   </div>
 
                   {/* 텍스트 영역 */}
                   <div
                     className={`
-                      ml-3 overflow-hidden transition-all duration-200
-                      ${isCollapsed
-                        ? 'max-w-0 opacity-0'
-                        : 'max-w-[200px] opacity-100'}
+                      overflow-hidden transition-all duration-200
+                      ${
+                        isCollapsed
+                          ? "max-w-0 opacity-0"
+                          : "ml-3 max-w-[200px] opacity-100"
+                      }
                     `}
                   >
                     <span className="whitespace-nowrap text-sm">
@@ -135,24 +140,33 @@ export default function Sidebar() {
 
           {/* 모드 토글 */}
           <div className="mt-4">
-            <button
-              onClick={() => setEditMode(!editMode)}
-              className="w-full flex items-center px-3 py-2 rounded-md hover:bg-secondary transition-colors"
-            >
-              <div className="w-6 flex justify-center flex-shrink-0">
+              <button
+                onClick={() => setEditMode(!editMode)}
+                className={`
+                  w-full flex items-center px-3 py-2 rounded-md
+                  transition-all duration-150
+                  hover:brightness-95
+                  ${editMode
+                    ? "bg-zinc-900 text-white"
+                    : "bg-zinc-200 text-black"}
+                `}
+              >
+              <div className="w-8 flex justify-center flex-shrink-0">
                 {editMode ? <Pencil size={18} /> : <Eye size={18} />}
               </div>
 
               <div
                 className={`
-                  ml-3 overflow-hidden transition-all duration-200
-                  ${isCollapsed
-                    ? 'max-w-0 opacity-0'
-                    : 'max-w-[200px] opacity-100'}
+                  overflow-hidden transition-all duration-200
+                  ${
+                    isCollapsed
+                      ? "max-w-0 opacity-0"
+                      : "ml-3 max-w-[200px] opacity-100"
+                  }
                 `}
               >
                 <span className="whitespace-nowrap text-sm">
-                  {editMode ? '편집 모드' : '감상 모드'}
+                  {editMode ? "편집 모드" : "감상 모드"}
                 </span>
               </div>
             </button>
@@ -162,18 +176,18 @@ export default function Sidebar() {
           {editMode && (
             <div className="mt-3 space-y-1">
               {[
-                { icon: Download, label: '내보내기', action: exportToJSON },
+                { icon: Download, label: "내보내기", action: exportToJSON },
                 {
                   icon: Upload,
-                  label: '가져오기',
+                  label: "가져오기",
                   action: undefined,
                   isImport: true,
                 },
                 {
                   icon: RotateCcw,
-                  label: '초기화',
+                  label: "초기화",
                   action: () => {
-                    if (window.confirm('정말 초기화하시겠습니까?')) {
+                    if (window.confirm("정말 초기화하시겠습니까?")) {
                       resetData();
                     }
                   },
@@ -185,18 +199,20 @@ export default function Sidebar() {
                   return (
                     <label
                       key={idx}
-                      className="w-full flex items-center px-3 py-2 rounded-md hover:bg-secondary transition-colors cursor-pointer"
+                      className="w-full flex items-center px-3 py-2 rounded-md hover:bg-zinc-200 transition-colors cursor-pointer"
                     >
-                      <div className="w-6 flex justify-center flex-shrink-0">
+                      <div className="w-8 flex justify-center flex-shrink-0">
                         <Icon size={18} />
                       </div>
 
                       <div
                         className={`
-                          ml-3 overflow-hidden transition-all duration-200
-                          ${isCollapsed
-                            ? 'max-w-0 opacity-0'
-                            : 'max-w-[200px] opacity-100'}
+                          overflow-hidden transition-all duration-200
+                          ${
+                            isCollapsed
+                              ? "max-w-0 opacity-0"
+                              : "ml-3 max-w-[200px] opacity-100"
+                          }
                         `}
                       >
                         <span className="whitespace-nowrap text-sm">
@@ -218,18 +234,20 @@ export default function Sidebar() {
                   <button
                     key={idx}
                     onClick={tool.action}
-                    className="w-full flex items-center px-3 py-2 rounded-md hover:bg-secondary transition-colors"
+                    className="w-full flex items-center px-3 py-2 rounded-md hover:bg-zinc-200 transition-colors"
                   >
-                    <div className="w-6 flex justify-center flex-shrink-0">
+                    <div className="w-8 flex justify-center flex-shrink-0">
                       <Icon size={18} />
                     </div>
 
                     <div
                       className={`
-                        ml-3 overflow-hidden transition-all duration-200
-                        ${isCollapsed
-                          ? 'max-w-0 opacity-0'
-                          : 'max-w-[200px] opacity-100'}
+                        overflow-hidden transition-all duration-200
+                        ${
+                          isCollapsed
+                            ? "max-w-0 opacity-0"
+                            : "ml-3 max-w-[200px] opacity-100"
+                        }
                       `}
                     >
                       <span className="whitespace-nowrap text-sm">
@@ -249,7 +267,7 @@ export default function Sidebar() {
         className={`
           hidden md:block
           transition-all duration-300 ease-in-out
-          ${isCollapsed ? 'w-20' : 'w-64'}
+          ${isCollapsed ? "w-20" : "w-64"}
         `}
       />
     </>
