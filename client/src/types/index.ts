@@ -54,11 +54,14 @@ export interface WorldCreature {
 export interface CharacterData {
   id: string;
   name: string;
-  mainCategory: string;
-  subCategory: string;
-  mainImage: string;
-  subImages: CharacterImage[];
+
+  // ✅ 서브만 멀티
+  subCategories: string[];
+
   profileImage: string;
+  mainImage: string;
+  mainImageDesc?: string;
+  subImages: { image: string; description: string }[];
   tags: string[];
   description: string;
 }
@@ -68,17 +71,20 @@ export interface CharacterImage {
   description: string;
 }
 
-export interface CreatureData {
+export type CreatureData = {
   id: string;
   name: string;
-  mainCategory: string;
-  subCategory: string;
-  mainImage: string;
-  subImages: CreatureImage[];
+
+  // ✅ 서브만 멀티
+  subCategories: string[];
+
   profileImage: string;
+  mainImage: string;
+  mainImageDesc?: string;
+  subImages: { image: string; description: string }[];
   tags: string[];
   description: string;
-}
+};
 
 export interface CreatureImage {
   image: string;

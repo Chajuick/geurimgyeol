@@ -8,6 +8,7 @@ interface PortfolioContextType {
   editMode: boolean;
   setEditMode: (mode: boolean) => void;
   exportToJSON: () => void;
+  exportToSingleJSON: () => void;
   importFromJSON: (file: File) => void;
   resetData: () => void;
 }

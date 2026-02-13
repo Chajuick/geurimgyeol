@@ -1,243 +1,373 @@
-import { usePortfolioContext } from '@/contexts/PortfolioContext';
-import { Edit2, Plus, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { usePortfolioContext } from "@/contexts/PortfolioContext";
+import { Edit2, Instagram, Twitter, Globe, Plus, Trash2 } from "lucide-react";
+import { SiPixiv } from "react-icons/si";
+import { useEffect, useState } from "react";
+import ImageUpload from "@/components/ImageUpload";
+import GButton from "@/components/ui/gyeol-button";
+import Modal from "@/components/ui/modal";
+import { useResolvedImage } from "@/hooks/useResolvedImage";
+import { FaXTwitter } from "react-icons/fa6";
+
+const SOCIAL_ICON_MAP: Record<string, React.ReactNode> = {
+  instagram: <Instagram className="w-5 h-5" />,
+  x: <FaXTwitter className="w-5 h-5" />,
+  twitter: <FaXTwitter className="w-5 h-5" />,
+  pixiv: <SiPixiv className="w-5 h-5" />,
+  globe: <Globe className="w-5 h-5" />,
+};
+
+const normalizePlatform = (platform: string) => (platform || "").trim().toLowerCase();
+
+const getSocialIconNode = (link: { platform: string; icon?: string }) => {
+  const key = normalizePlatform(link.icon || link.platform);
+  return SOCIAL_ICON_MAP[key] ?? SOCIAL_ICON_MAP.globe;
+};
+
+type SocialLink = {
+  platform: string;
+  url: string;
+  icon?: string;
+};
+
+const getIcon = (platform: string) => {
+  const p = (platform || "").toLowerCase();
+  if (p.includes("twitter") || p === "x") return Twitter;
+  if (p.includes("instagram")) return Instagram;
+  if (p.includes("pixiv")) return SiPixiv;
+  return Globe;
+};
+
+function normalizeUrl(url: string) {
+  const u = (url || "").trim();
+  if (!u) return "";
+  // http(s) 없으면 자동으로 https 붙여주기
+  if (/^https?:\/\//i.test(u)) return u;
+  return `https://${u}`;
+}
+
+function emptyLink(): SocialLink {
+  return { platform: "", url: "", icon: "" };
+}
 
 export default function Profile() {
   const { data, setData, editMode } = usePortfolioContext();
+
+  const resolvedProfileImg = useResolvedImage(data.profile?.profileImage || "");
+
   const [isEditing, setIsEditing] = useState(false);
   const [editedProfile, setEditedProfile] = useState(data.profile);
-  const [newLink, setNewLink] = useState({ platform: '', url: '', icon: '' });
 
-  const handleProfileChange = (field: string, value: string) => {
-    setEditedProfile({
-      ...editedProfile,
-      [field]: value,
-    });
+  // ✅ data.profile이 외부에서 바뀌어도 편집 draft가 맞게 따라가도록
+  useEffect(() => {
+    if (!isEditing) setEditedProfile(data.profile);
+  }, [data.profile, isEditing]);
+
+  const openEdit = () => {
+    setEditedProfile(data.profile);
+    setIsEditing(true);
+  };
+
+  const closeEdit = () => setIsEditing(false);
+
+  const handleProfileChange = (field: keyof typeof editedProfile, value: any) => {
+    setEditedProfile((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSaveProfile = () => {
-    const newData = {
+    // url 정리 + 빈 링크 제거
+    const cleanedLinks = (editedProfile.socialLinks || [])
+      .map((l) => ({
+        platform: (l.platform || "").trim(),
+        url: normalizeUrl(l.url),
+        icon: (l.icon || "").trim(),
+      }))
+      .filter((l) => l.platform && l.url);
+
+    setData({
       ...data,
-      profile: editedProfile,
-    };
-    setData(newData);
+      profile: {
+        ...editedProfile,
+        socialLinks: cleanedLinks,
+      },
+    });
+
     setIsEditing(false);
   };
 
-  const handleAddLink = () => {
-    if (newLink.platform && newLink.url) {
-      const updated = {
-        ...editedProfile,
-        socialLinks: [...editedProfile.socialLinks, newLink],
-      };
-      setEditedProfile(updated);
-      setNewLink({ platform: '', url: '', icon: '' });
-    }
+  // ===== social links helpers =====
+  const updateLink = (idx: number, patch: Partial<SocialLink>) => {
+    setEditedProfile((prev) => {
+      const next = [...(prev.socialLinks || [])];
+      next[idx] = { ...next[idx], ...patch };
+      return { ...prev, socialLinks: next };
+    });
   };
 
-  const handleRemoveLink = (index: number) => {
-    const updated = {
-      ...editedProfile,
-      socialLinks: editedProfile.socialLinks.filter((_, i) => i !== index),
-    };
-    setEditedProfile(updated);
+  const addLink = () => {
+    setEditedProfile((prev) => ({
+      ...prev,
+      socialLinks: [...(prev.socialLinks || []), emptyLink()],
+    }));
   };
+
+  const removeLink = (idx: number) => {
+    setEditedProfile((prev) => ({
+      ...prev,
+      socialLinks: (prev.socialLinks || []).filter((_, i) => i !== idx),
+    }));
+  };
+
+  // ===== view =====
+  const profile = data.profile;
 
   return (
-    <div className="min-h-screen bg-background py-12 md:ml-64">
-      <div className="container max-w-4xl">
-        {/* Profile Header */}
-        <div className="flex flex-col md:flex-row gap-8 mb-12">
+    <div className="min-h-screen w-full overflow-x-hidden text-white gyeol-bg">
+      <div className="px-6 md:px-12 py-16 md:py-20">
+        {/* ===== Profile Header ===== */}
+        <div className="flex flex-col md:flex-row gap-10 md:gap-12 mb-16 md:mb-20">
           {/* Profile Image */}
           <div className="flex-shrink-0">
-            <div className="w-48 h-48 rounded-lg overflow-hidden bg-muted shadow-lg">
-              {editedProfile.profileImage ? (
+            <div className="w-52 h-52 rounded-2xl overflow-hidden bg-white/5 border border-white/10 backdrop-blur-sm">
+              {resolvedProfileImg ? (
                 <img
-                  src={editedProfile.profileImage}
-                  alt={editedProfile.name}
+                  src={resolvedProfileImg}
+                  alt={profile.name}
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-muted-foreground text-5xl">
-                  👤
+                <div className="w-full h-full text-sm flex items-center justify-center text-white/40">
+                  이미지 없음
                 </div>
               )}
             </div>
+
             {editMode && (
-              <button
-                onClick={() => setIsEditing(true)}
-                className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2 bg-foreground text-background rounded-lg hover:opacity-90 transition-opacity"
-              >
-                <Edit2 className="w-4 h-4" />
-                수정
-              </button>
+              <div className="mt-5">
+                <GButton
+                  variant="ghost"
+                  text="프로필 수정"
+                  onClick={openEdit}
+                  className="w-full"
+                />
+              </div>
             )}
           </div>
 
           {/* Profile Info */}
-          <div className="flex-1">
-            <h1 className="text-5xl font-bold mb-4">{editedProfile.name}</h1>
-            <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-              {editedProfile.bio}
+          <div className="flex-1 min-w-0">
+            <h1 className="text-4xl text-white/90 font-bold tracking-tight mb-5">
+              {profile.name || "그림결"}
+            </h1>
+
+            <p className="text-white/70 leading-relaxed mb-10 max-w-2xl whitespace-pre-wrap">
+              {profile.bio || "나만의 세계관을 만들어보세요"}
             </p>
 
             {/* Social Links */}
-            <div className="space-y-3">
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                연결
-              </h3>
+            <div className="space-y-4">
+              <p className="text-xs uppercase tracking-widest text-white/40">
+                Connect
+              </p>
+
               <div className="flex flex-wrap gap-3">
-                {editedProfile.socialLinks.map((link, index) => (
-                  <a
-                    key={index}
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-4 py-2 bg-secondary rounded-lg hover:bg-border transition-colors duration-200"
-                  >
-                    {link.icon && <span>{link.icon}</span>}
-                    <span className="text-sm font-medium">{link.platform}</span>
-                  </a>
-                ))}
+                {(profile.socialLinks || []).length === 0 ? (
+                  <div className="text-sm text-white/40">
+                    등록된 링크가 없습니다.
+                  </div>
+                ) : (
+                  profile.socialLinks.map((link, index) => {
+                    const Icon = getIcon(link.platform);
+                    const href = normalizeUrl(link.url);
+
+                    return (
+                      <a
+                        key={index}
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="
+                          group w-11 h-11 flex items-center justify-center rounded-full
+                          bg-white/5 border border-white/10
+                          text-white/70 hover:text-white
+                          hover:bg-white/10 hover:shadow-[0_0_15px_rgba(255,255,255,0.2)]
+                          transition duration-300
+                        "
+                      >
+                        {getSocialIconNode(link)}
+                      </a>
+                    );
+                  })
+                )}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Edit Modal */}
-        {isEditing && editMode && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <div className="bg-card rounded-lg shadow-xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <h2 className="text-3xl font-bold mb-6">프로필 편집</h2>
+        {/* ===== Edit Modal (Modal + GButton 통일) ===== */}
+        <Modal
+          open={isEditing && editMode}
+          onClose={closeEdit}
+          title="프로필 편집"
+          maxWidthClassName="max-w-2xl"
+          footer={
+            <div className="flex justify-end gap-2">
+              <GButton variant="default" text="취소" onClick={closeEdit} />
+              <GButton variant="dark" text="저장" onClick={handleSaveProfile} />
+            </div>
+          }
+        >
+          <div className="space-y-8">
+            {/* 프로필 이미지 */}
+            <div>
+              <p className="mb-2 text-xs font-medium text-foreground">
+                프로필 이미지
+              </p>
+              <ImageUpload
+                value={editedProfile.profileImage}
+                onChange={(value) => handleProfileChange("profileImage", value)}
+              />
+            </div>
 
-              {/* Profile Image URL */}
-              <div className="mb-6">
-                <label className="block text-sm font-semibold mb-2">
-                  프로필 이미지 URL
-                </label>
-                <input
-                  type="text"
-                  value={editedProfile.profileImage}
-                  onChange={(e) =>
-                    handleProfileChange('profileImage', e.target.value)
-                  }
-                  placeholder="이미지 URL을 입력하세요"
-                  className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-foreground"
+            {/* 이름 */}
+            <div>
+              <p className="mb-2 text-xs font-medium text-foreground">이름</p>
+              <input
+                type="text"
+                value={editedProfile.name}
+                onChange={(e) => handleProfileChange("name", e.target.value)}
+                className="
+                  w-full h-10 rounded-xl px-3 text-sm
+                  border border-border bg-background text-foreground
+                  focus:outline-none focus:ring-2 focus:ring-white/20
+                "
+              />
+            </div>
+
+            {/* 소개 */}
+            <div>
+              <p className="mb-2 text-xs font-medium text-foreground">소개</p>
+              <textarea
+                rows={5}
+                value={editedProfile.bio}
+                onChange={(e) => handleProfileChange("bio", e.target.value)}
+                className="
+                  w-full rounded-xl px-3 py-2 text-sm
+                  border border-border bg-background text-foreground
+                  resize-none
+                  focus:outline-none focus:ring-2 focus:ring-white/20
+                "
+              />
+            </div>
+
+            {/* 소셜 링크 편집 */}
+            <div className="rounded-2xl border border-border bg-secondary/20 p-5 space-y-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-foreground">소셜 링크</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    플랫폼 + URL을 입력하면 아이콘이 자동으로 매칭돼요.
+                    (예: instagram, twitter/x, pixiv)
+                  </p>
+                </div>
+
+                <GButton
+                  variant="default"
+                  icon={<Plus className="w-4 h-4" />}
+                  text="추가"
+                  onClick={addLink}
                 />
               </div>
 
-              {/* Name */}
-              <div className="mb-6">
-                <label className="block text-sm font-semibold mb-2">이름</label>
-                <input
-                  type="text"
-                  value={editedProfile.name}
-                  onChange={(e) => handleProfileChange('name', e.target.value)}
-                  className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-foreground"
-                />
-              </div>
+              {(editedProfile.socialLinks || []).length === 0 ? (
+                <div className="text-sm text-muted-foreground">
+                  링크가 없습니다. “추가” 버튼으로 링크를 등록하세요.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {(editedProfile.socialLinks || []).map((link, idx) => {
+                    const Icon = getIcon(link.platform);
 
-              {/* Bio */}
-              <div className="mb-6">
-                <label className="block text-sm font-semibold mb-2">소개</label>
-                <textarea
-                  value={editedProfile.bio}
-                  onChange={(e) => handleProfileChange('bio', e.target.value)}
-                  rows={4}
-                  className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-foreground"
-                />
-              </div>
-
-              {/* Social Links */}
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-4">소셜 링크</h3>
-
-                {/* Existing Links */}
-                <div className="space-y-3 mb-4">
-                  {editedProfile.socialLinks.map((link, index) => (
-                    <div key={index} className="flex gap-2 items-center">
-                      <input
-                        type="text"
-                        value={link.platform}
-                        readOnly
-                        className="flex-1 px-3 py-2 bg-muted rounded-lg text-sm"
-                      />
-                      <input
-                        type="text"
-                        value={link.url}
-                        readOnly
-                        className="flex-1 px-3 py-2 bg-muted rounded-lg text-sm"
-                      />
-                      <button
-                        onClick={() => handleRemoveLink(index)}
-                        className="p-2 text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+                    return (
+                      <div
+                        key={idx}
+                        className="
+                          rounded-2xl border border-border bg-background/40
+                          p-4 flex flex-col gap-3
+                        "
                       >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="h-10 w-10 rounded-xl bg-black grid place-items-center border border-border">
+                              {/* @ts-expect-error */}
+                              <Icon className="w-5 h-5 text-white" />
+                            </div>
+                            <div className="min-w-0">
+                              <div className="text-xs text-muted-foreground">
+                                링크 #{idx + 1}
+                              </div>
+                              <div className="text-sm text-foreground truncate">
+                                {link.platform || "플랫폼 미입력"}
+                              </div>
+                            </div>
+                          </div>
 
-                {/* Add New Link */}
-                <div className="border-t border-border pt-4">
-                  <h4 className="text-sm font-semibold mb-3">새 링크 추가</h4>
-                  <div className="space-y-3">
-                    <input
-                      type="text"
-                      value={newLink.platform}
-                      onChange={(e) =>
-                        setNewLink({ ...newLink, platform: e.target.value })
-                      }
-                      placeholder="플랫폼 이름 (예: Twitter)"
-                      className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-foreground"
-                    />
-                    <input
-                      type="text"
-                      value={newLink.url}
-                      onChange={(e) =>
-                        setNewLink({ ...newLink, url: e.target.value })
-                      }
-                      placeholder="URL"
-                      className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-foreground"
-                    />
-                    <input
-                      type="text"
-                      value={newLink.icon}
-                      onChange={(e) =>
-                        setNewLink({ ...newLink, icon: e.target.value })
-                      }
-                      placeholder="아이콘 (이모지 또는 텍스트)"
-                      className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-foreground"
-                    />
-                    <button
-                      onClick={handleAddLink}
-                      className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-secondary text-foreground rounded-lg hover:bg-border transition-colors"
-                    >
-                      <Plus className="w-4 h-4" />
-                      링크 추가
-                    </button>
-                  </div>
-                </div>
-              </div>
+                          <GButton
+                            variant="danger"
+                            size="icon"
+                            icon={<Trash2 className="w-4 h-4" />}
+                            onClick={() => removeLink(idx)}
+                            title="삭제"
+                          />
+                        </div>
 
-              {/* Action Buttons */}
-              <div className="flex gap-3">
-                <button
-                  onClick={handleSaveProfile}
-                  className="flex-1 px-4 py-2 bg-foreground text-background rounded-lg font-semibold hover:opacity-90 transition-opacity"
-                >
-                  저장
-                </button>
-                <button
-                  onClick={() => setIsEditing(false)}
-                  className="flex-1 px-4 py-2 bg-muted text-foreground rounded-lg font-semibold hover:bg-border transition-colors"
-                >
-                  취소
-                </button>
-              </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          <div className="md:col-span-1">
+                            <div className="mb-1 text-[11px] text-muted-foreground">
+                              플랫폼
+                            </div>
+                            <input
+                              value={link.platform}
+                              onChange={(e) =>
+                                updateLink(idx, { platform: e.target.value })
+                              }
+                              placeholder="instagram / twitter / pixiv ..."
+                              className="
+                                w-full h-10 px-3 rounded-xl
+                                border border-border bg-background text-foreground
+                                focus:outline-none focus:ring-2 focus:ring-white/20
+                              "
+                            />
+                          </div>
+
+                          <div className="md:col-span-2">
+                            <div className="mb-1 text-[11px] text-muted-foreground">
+                              URL
+                            </div>
+                            <input
+                              value={link.url}
+                              onChange={(e) =>
+                                updateLink(idx, { url: e.target.value })
+                              }
+                              placeholder="https://..."
+                              className="
+                                w-full h-10 px-3 rounded-xl
+                                border border-border bg-background text-foreground
+                                focus:outline-none focus:ring-2 focus:ring-white/20
+                              "
+                            />
+                          </div>
+                        </div>
+
+                        {/* (선택) icon 필드가 필요하면 여기에 추가 가능 */}
+                        {/* <input ... /> */}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
-        )}
+        </Modal>
       </div>
     </div>
   );

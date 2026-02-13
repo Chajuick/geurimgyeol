@@ -2,6 +2,7 @@ import {
   Menu,
   X,
   Download,
+  Save,
   Upload,
   RotateCcw,
   ChevronLeft,
@@ -21,7 +22,7 @@ export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(true);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [location, setLocation] = useLocation();
-  const { editMode, setEditMode, exportToJSON, importFromJSON, resetData } =
+  const { editMode, setEditMode, exportToJSON, exportToSingleJSON, importFromJSON, resetData } =
     usePortfolioContext();
 
   const navItems = [
@@ -176,7 +177,8 @@ export default function Sidebar() {
           {editMode && (
             <div className="mt-3 space-y-1">
               {[
-                { icon: Download, label: "내보내기", action: exportToJSON },
+                { icon: Save, label: "백업", action: exportToJSON },
+                { icon: Download, label: "내보내기", action: exportToSingleJSON },
                 {
                   icon: Upload,
                   label: "가져오기",
@@ -277,7 +279,7 @@ export default function Sidebar() {
       {/* 데스크탑 spacer */}
       <div
         className={`
-          hidden md:block w-20
+          hidden md:block ${isCollapsed ? "w-20" : "w-20"}
           transition-all duration-300 ease-in-out
         `}
       />
