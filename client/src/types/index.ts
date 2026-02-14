@@ -1,10 +1,52 @@
-// Portfolio Data Types
-export interface PortfolioData {
-  profile: ProfileData;
-  worlds: WorldData[];
-  characters: CharacterData[];
-  creatures: CreatureData[];
-  settings: SettingsData;
+/* =========================================================
+   🎨 Basic / Utility Types
+========================================================= */
+
+type ColorHex = `#${string}`;
+
+
+/* =========================================================
+   🧩 Shared / Reusable Types
+========================================================= */
+
+export type SubImage = {
+  image: string;
+  description: string;
+};
+
+export type SymbolColor = {
+  name?: string;
+  hex: ColorHex;
+};
+
+/** 캐릭터/크리쳐 공용 베이스 */
+export type EntityBase = {
+  id: string;
+  name: string;
+
+  subCategories: string[];
+
+  profileImage: string;
+  mainImage: string;
+  mainImageDesc?: string;
+
+  subImages: SubImage[];
+
+  tags: string[];
+  description: string;
+
+  symbolColors?: SymbolColor[];
+};
+
+
+/* =========================================================
+   👤 Profile Domain
+========================================================= */
+
+export interface SocialLink {
+  platform: string;
+  url: string;
+  icon?: string;
 }
 
 export interface ProfileData {
@@ -14,25 +56,10 @@ export interface ProfileData {
   socialLinks: SocialLink[];
 }
 
-export interface SocialLink {
-  platform: string;
-  url: string;
-  icon?: string;
-}
 
-export interface WorldData {
-  id: string;
-  name: string;
-  description: string;
-  iconImage: string;
-  mainImage: string;
-  backgroundImage: string;
-  creatures: WorldCreature[];
-  relatedCharacters: string[];
-  relatedCreatures: string[];
-  worldCharacters: WorldCharacterRef[];
-  worldCreatures: WorldCreatureRef[];
-}
+/* =========================================================
+   🌍 World Domain
+========================================================= */
 
 export interface WorldCharacterRef {
   id: string;
@@ -51,45 +78,42 @@ export interface WorldCreature {
   description: string;
 }
 
-export interface CharacterData {
+export interface WorldData {
   id: string;
   name: string;
+  description: string;
 
-  // ✅ 서브만 멀티
-  subCategories: string[];
-
-  profileImage: string;
+  iconImage: string;
   mainImage: string;
-  mainImageDesc?: string;
-  subImages: { image: string; description: string }[];
-  tags: string[];
-  description: string;
+  backgroundImage: string;
+
+  creatures: WorldCreature[];
+
+  relatedCharacters: string[];
+  relatedCreatures: string[];
+
+  worldCharacters: WorldCharacterRef[];
+  worldCreatures: WorldCreatureRef[];
 }
 
-export interface CharacterImage {
-  image: string;
-  description: string;
-}
 
-export type CreatureData = {
-  id: string;
-  name: string;
+/* =========================================================
+   🧙 Character Domain
+========================================================= */
 
-  // ✅ 서브만 멀티
-  subCategories: string[];
+export interface CharacterData extends EntityBase {}
 
-  profileImage: string;
-  mainImage: string;
-  mainImageDesc?: string;
-  subImages: { image: string; description: string }[];
-  tags: string[];
-  description: string;
-};
 
-export interface CreatureImage {
-  image: string;
-  description: string;
-}
+/* =========================================================
+   🐉 Creature Domain
+========================================================= */
+
+export interface CreatureData extends EntityBase {}
+
+
+/* =========================================================
+   🏷️ Settings Domain
+========================================================= */
 
 export interface CategoryItem {
   main: string;
@@ -98,14 +122,41 @@ export interface CategoryItem {
 
 export interface SettingsData {
   heroBackgroundImage: string;
+
   characterCategories: CategoryItem[];
   creatureCategories: CategoryItem[];
+
   editMode: boolean;
 }
 
+
+/* =========================================================
+   📦 Root Portfolio Data
+========================================================= */
+
+export interface PortfolioData {
+  profile: ProfileData;
+  worlds: WorldData[];
+  characters: CharacterData[];
+  creatures: CreatureData[];
+  settings: SettingsData;
+}
+
+
+/* =========================================================
+   🖥️ UI State (Client Only)
+========================================================= */
+
 export interface UIState {
-  currentPage: 'home' | 'worlds' | 'characters' | 'creatures' | 'profile';
+  currentPage:
+    | "home"
+    | "worlds"
+    | "characters"
+    | "creatures"
+    | "profile";
+
   editMode: boolean;
+
   selectedWorldId?: string;
   selectedCharacterId?: string;
   selectedCreatureId?: string;

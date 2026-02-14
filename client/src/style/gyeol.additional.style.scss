@@ -5,11 +5,96 @@
     linear-gradient(135deg, #0b0b0c 0%, #121214 40%, #0a0a0b 100%);
 }
 
+.entityFxWrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  overflow: visible;
+}
+
+.entityInner{
+  position: relative;
+  display: inline-block;
+}
+
+/* 1) 이미지: 오른쪽에서 나오는 느낌 */
+.entityImg {
+  width: 100%;
+  height: calc(100vh - 160px);
+  object-fit: contain;
+  padding-bottom: 40px;
+
+  animation: entitySlideIn 240ms cubic-bezier(.2, .9, .2, 1) both;
+}
+
+@keyframes entitySlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(26px) scale(0.995);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+/* 2) 글로우 레이어: 마스크로 “이미지 모양만” 칠하고, 스윕 */
+.entityGlow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+
+  /* ✅ 마스크 설정 */
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+
+  /* ✅ 상징색 */
+  background: var(--glow, rgba(0, 255, 200, .35));
+
+  /* ✅ 글로우 느낌 */
+  filter: blur(10px);
+  opacity: 0;
+
+  /* ✅ 스윕 시작 위치(오른쪽) */
+  transform: translateX(44px);
+}
+
+/* 이미지 슬라이드 이후에 켜짐 */
+.entityGlow--on {
+  animation: glowSweep 380ms cubic-bezier(.2, .9, .2, 1) both;
+}
+
+@keyframes glowSweep {
+  0% {
+    opacity: 0;
+    transform: translateX(44px);
+  }
+
+  35% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate(-42px, -42px);;
+  }
+}
+
 /* ===== Dark clean scrollbar ===== */
 .scroll-dark {
-  scrollbar-gutter: stable both-edges; /* 스크롤 생겨도 레이아웃 흔들림 최소화 */
-  scrollbar-width: thin;               /* Firefox */
-  scrollbar-color: rgba(255,255,255,.16) transparent; /* Firefox */
+  scrollbar-gutter: stable both-edges;
+  /* 스크롤 생겨도 레이아웃 흔들림 최소화 */
+  scrollbar-width: thin;
+  /* Firefox */
+  scrollbar-color: rgba(255, 255, 255, .16) transparent;
+  /* Firefox */
 }
 
 .scroll-dark::-webkit-scrollbar {
@@ -24,7 +109,8 @@
 .scroll-dark::-webkit-scrollbar-thumb {
   background-color: rgba(255, 255, 255, 0.12);
   border-radius: 999px;
-  border: 2px solid transparent; /* thumb를 얇게 보이게 */
+  border: 2px solid transparent;
+  /* thumb를 얇게 보이게 */
   background-clip: content-box;
 }
 
@@ -37,21 +123,63 @@
 }
 
 @keyframes grain {
-  0%, 100% { transform: translate(0,0); }
-  10% { transform: translate(-2%, -3%); }
-  20% { transform: translate(-4%, 2%); }
-  30% { transform: translate(3%, -2%); }
-  40% { transform: translate(2%, 4%); }
-  50% { transform: translate(-3%, 2%); }
-  60% { transform: translate(4%, 0%); }
-  70% { transform: translate(0%, 3%); }
-  80% { transform: translate(-2%, 0%); }
-  90% { transform: translate(3%, 1%); }
+
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+
+  10% {
+    transform: translate(-2%, -3%);
+  }
+
+  20% {
+    transform: translate(-4%, 2%);
+  }
+
+  30% {
+    transform: translate(3%, -2%);
+  }
+
+  40% {
+    transform: translate(2%, 4%);
+  }
+
+  50% {
+    transform: translate(-3%, 2%);
+  }
+
+  60% {
+    transform: translate(4%, 0%);
+  }
+
+  70% {
+    transform: translate(0%, 3%);
+  }
+
+  80% {
+    transform: translate(-2%, 0%);
+  }
+
+  90% {
+    transform: translate(3%, 1%);
+  }
 }
-.animate-grain { animation: grain 6s steps(6) infinite; }
+
+.animate-grain {
+  animation: grain 6s steps(6) infinite;
+}
 
 @keyframes scanline {
-  0% { transform: translateY(-10%); }
-  100% { transform: translateY(10%); }
+  0% {
+    transform: translateY(-10%);
+  }
+
+  100% {
+    transform: translateY(10%);
+  }
 }
-.animate-scanline { animation: scanline 3.2s linear infinite; }
+
+.animate-scanline {
+  animation: scanline 3.2s linear infinite;
+}
