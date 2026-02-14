@@ -17,6 +17,7 @@ import {
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { usePortfolioContext } from "@/contexts/PortfolioContext";
+import GButton from "./ui/gyeol-button";
 
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(true);
@@ -44,12 +45,14 @@ export default function Sidebar() {
   return (
     <>
       {/* 모바일 토글 */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="fixed top-4 left-6 z-40 p-2 rounded-lg bg-foreground text-background md:hidden"
-      >
-        {isOpen ? <X size={18} /> : <Menu size={18} />}
-      </button>
+      <GButton
+        onClick={() => setIsOpen((v) => !v)}
+        variant={isOpen ? "dark" : "ghost"}
+        size="icon"
+        className="fixed top-4 right-6 z-40 md:hidden p-2 h-auto w-auto"
+        icon={isOpen ? <X size={18} /> : <Menu size={18} />}
+        title={isOpen ? "닫기" : "메뉴"}
+      />
 
       {/* 사이드바 */}
       <aside
@@ -58,7 +61,13 @@ export default function Sidebar() {
           bg-background border-r border-border
           transition-all duration-300 ease-in-out
           z-30
-          ${isOpen ? (isCollapsed ? "w-20" : "w-64") : "w-0 md:w-20"}
+          ${
+            isOpen
+              ? isCollapsed
+                ? "w-full md:w-20"
+                : "w-full md:w-64"
+              : "w-0 md:w-20"
+          }
           overflow-hidden
         `}
       >
@@ -85,9 +94,8 @@ export default function Sidebar() {
             >
               <ChevronLeft
                 size={18}
-                className={`w-8 transition-transform duration-300 ${
-                  isCollapsed ? "rotate-180" : ""
-                }`}
+                className={`w-8 transition-transform duration-300 ${isCollapsed ? "rotate-180" : ""
+                  }`}
               />
             </button>
           </div>
@@ -107,10 +115,9 @@ export default function Sidebar() {
                     px-3 py-2 rounded-md
                     transition-colors duration-150
                     gyeol-navigation-item
-                    ${
-                      active
-                        ? "bg-black text-white"
-                        : "text-muted-foreground hover:bg-zinc-200 hover:text-black"
+                    ${active
+                      ? "bg-black text-white"
+                      : "text-muted-foreground hover:bg-zinc-200 hover:text-black"
                     }
                   `}
                 >
@@ -123,10 +130,9 @@ export default function Sidebar() {
                   <div
                     className={`
                       overflow-hidden transition-all duration-200
-                      ${
-                        isCollapsed
-                          ? "max-w-0 opacity-0"
-                          : "ml-3 max-w-[200px] opacity-100"
+                      ${isCollapsed
+                        ? "max-w-0 opacity-0"
+                        : "ml-3 max-w-[200px] opacity-100"
                       }
                     `}
                   >
@@ -141,17 +147,17 @@ export default function Sidebar() {
 
           {/* 모드 토글 */}
           <div className="mt-4">
-              <button
-                onClick={() => setEditMode(!editMode)}
-                className={`
+            <button
+              onClick={() => setEditMode(!editMode)}
+              className={`
                   w-full flex items-center px-3 py-2 rounded-md
                   transition-all duration-150
                   hover:brightness-95
                   ${editMode
-                    ? "bg-zinc-900 text-white"
-                    : "bg-zinc-200 text-black"}
+                  ? "bg-zinc-900 text-white"
+                  : "bg-zinc-200 text-black"}
                 `}
-              >
+            >
               <div className="w-8 flex justify-center flex-shrink-0">
                 {editMode ? <Pencil size={18} /> : <Eye size={18} />}
               </div>
@@ -159,10 +165,9 @@ export default function Sidebar() {
               <div
                 className={`
                   overflow-hidden transition-all duration-200
-                  ${
-                    isCollapsed
-                      ? "max-w-0 opacity-0"
-                      : "ml-3 max-w-[200px] opacity-100"
+                  ${isCollapsed
+                    ? "max-w-0 opacity-0"
+                    : "ml-3 max-w-[200px] opacity-100"
                   }
                 `}
               >
@@ -216,10 +221,9 @@ export default function Sidebar() {
                       <div
                         className={`
                           overflow-hidden transition-all duration-200
-                          ${
-                            isCollapsed
-                              ? "max-w-0 opacity-0"
-                              : "ml-3 max-w-[200px] opacity-100"
+                          ${isCollapsed
+                            ? "max-w-0 opacity-0"
+                            : "ml-3 max-w-[200px] opacity-100"
                           }
                         `}
                       >
@@ -257,10 +261,9 @@ export default function Sidebar() {
                     <div
                       className={`
                         overflow-hidden transition-all duration-200
-                        ${
-                          isCollapsed
-                            ? "max-w-0 opacity-0"
-                            : "ml-3 max-w-[200px] opacity-100"
+                        ${isCollapsed
+                          ? "max-w-0 opacity-0"
+                          : "ml-3 max-w-[200px] opacity-100"
                         }
                       `}
                     >

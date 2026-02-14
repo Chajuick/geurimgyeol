@@ -4,8 +4,6 @@ import {
   Plus,
   Trash2,
   X,
-  ChevronLeft,
-  ChevronRight,
   Pencil,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -13,6 +11,7 @@ import ImageUpload from "@/components/ImageUpload";
 import Modal from "@/components/ui/modal";
 import GButton from "@/components/ui/gyeol-button";
 import { useResolvedImage } from "@/hooks/useResolvedImage";
+import ProfileCard from "@/components/ui/profile-card";
 
 type SubImage = { image: string; description: string };
 
@@ -204,10 +203,11 @@ export default function Characters() {
   };
 
   return (
-    <div className="min-h-screen gyeol-bg text-white">
+    <div className={`min-h-screen gyeol-bg text-white ${!editMode && viewModalChar && "max-h-[100vh] overflow-hidden"}`}>
       {/* ✅ HERO / HEADER */}
-      <div className="relative overflow-hidden">
-        <div className="relative px-12 py-12">
+      {/* ✅ FIXED HEADER + FILTER BAR */}
+      <div className="fixed top-0 inset-x-0 z-20 bg-zinc-950/80 backdrop-blur border-b border-white/5 ml-0 md:ml-20">
+        <div className="px-12 pt-12 pb-8">
           <div className="flex items-end justify-between gap-6">
             <div>
               <p className="text-lg text-white/60 mb-2">CHARACTERS</p>
@@ -234,188 +234,94 @@ export default function Characters() {
             )}
           </div>
 
-          {/* ✅ 필터 바 */}
-          {!isEditingCategory ? (
-            <div className="mt-12 space-y-6">
+          {/* ✅ 필터 바 (항상 한 줄 가로 스크롤) */}
+          {!isEditingCategory && (
+            <div className="mt-8 space-y-4">
               {/* 메인 */}
-              <div className="flex flex-wrap gap-3">
-                <button
-                  onClick={() => {
-                    setActiveMain(ALL);
-                    setActiveSub(ALL);
-                  }}
-                  className={[
-                    "px-5 h-10 rounded-full text-sm font-medium transition-all duration-200",
-                    activeMain === ALL
-                      ? "bg-white/10 text-white border border-white/20 shadow-md"
-                      : "bg-zinc-900 text-zinc-300 border border-zinc-600 hover:bg-zinc-800 hover:text-white",
-                  ].join(" ")}
-                >
-                  전체
-                </button>
-
-                {categories.map((c) => {
-                  const active = c.main === activeMain;
-                  return (
-                    <button
-                      key={c.main}
-                      onClick={() => {
-                        setActiveMain(c.main);
-                        setActiveSub(ALL);
-                      }}
-                      className={[
-                        "px-5 h-10 rounded-full text-sm font-medium transition-all duration-200",
-                        active
-                          ? "bg-white/10 text-white border border-white/20 shadow-md"
-                          : "bg-zinc-900 text-zinc-300 border border-zinc-600 hover:bg-zinc-800 hover:text-white",
-                      ].join(" ")}
-                    >
-                      {c.main}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* 서브 */}
-              <div className="flex flex-wrap gap-2">
-                {subsOfActiveMain.map((s) => {
-                  const active = s === activeSub;
-                  return (
-                    <button
-                      key={s}
-                      onClick={() => setActiveSub(s)}
-                      className={[
-                        "px-4 h-8 rounded-full text-xs transition-all duration-200",
-                        active
-                          ? "bg-zinc-700 text-white"
-                          : "bg-zinc-900 text-zinc-400 border border-zinc-800 hover:bg-zinc-800 hover:text-white",
-                      ].join(" ")}
-                    >
-                      {s}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ) : (
-            <div className="mt-14 rounded-2xl border border-zinc-800 bg-zinc-900/80 backdrop-blur p-6 space-y-6 shadow-[0_0_0_1px_rgba(255,255,255,0.02)]">
-              <div className="flex items-center justify-between">
-                <p className="text-xl font-semibold text-white tracking-tight">
-                  카테고리 편집
-                </p>
-
-                <div className="flex gap-2">
-                  <GButton
-                    variant="ghost"
-                    text="취소"
+              <div className="overflow-x-auto whitespace-nowrap no-scrollbar scroll-dark pb-2">
+                <div className="flex flex-nowrap gap-3 min-w-max">
+                  <button
                     onClick={() => {
-                      setDraftCategories(categories);
-                      setIsEditingCategory(false);
+                      setActiveMain(ALL);
+                      setActiveSub(ALL);
                     }}
-                  />
-                  <GButton variant="primary" text="저장" onClick={saveCategories} />
+                    className={[
+                      "px-5 h-10 rounded-full text-sm font-medium transition-all duration-200 flex-shrink-0",
+                      activeMain === ALL
+                        ? "bg-white/10 text-white border border-white/20 shadow-md"
+                        : "bg-zinc-900 text-zinc-300 border border-zinc-600 hover:bg-zinc-800 hover:text-white",
+                    ].join(" ")}
+                  >
+                    전체
+                  </button>
+
+                  {categories.map((c) => {
+                    const active = c.main === activeMain;
+                    return (
+                      <button
+                        key={c.main}
+                        onClick={() => {
+                          setActiveMain(c.main);
+                          setActiveSub(ALL);
+                        }}
+                        className={[
+                          "px-5 h-10 rounded-full text-sm font-medium transition-all duration-200 flex-shrink-0",
+                          active
+                            ? "bg-white/10 text-white border border-white/20 shadow-md"
+                            : "bg-zinc-900 text-zinc-300 border border-zinc-600 hover:bg-zinc-800 hover:text-white",
+                        ].join(" ")}
+                      >
+                        {c.main}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
-              <div className="space-y-6">
-                {draftCategories.map((cg, idx) => (
-                  <div
-                    key={idx}
-                    className="rounded-2xl border border-zinc-800 bg-zinc-950/70 p-6 space-y-4"
-                  >
-                    <div className="flex items-center gap-3">
-                      <input
-                        value={cg.main}
-                        onChange={(e) => {
-                          const next = [...draftCategories];
-                          next[idx] = { ...next[idx], main: e.target.value };
-                          setDraftCategories(next);
-                        }}
-                        className="h-10 px-4 rounded-xl bg-zinc-950 border border-zinc-800 text-white w-56
-                          focus:outline-none focus:ring-2 focus:ring-white/20 transition-all"
-                        placeholder="메인 카테고리"
-                      />
-
-                      <GButton
-                        variant="danger"
-                        text="삭제"
-                        onClick={() => {
-                          const next = draftCategories.filter((_, i) => i !== idx);
-                          setDraftCategories(next);
-                        }}
-                      />
-                    </div>
-
-                    <div className="space-y-3">
-                      {cg.subs.map((s, sidx) => (
-                        <div key={sidx} className="flex items-center gap-3">
-                          <input
-                            value={s}
-                            onChange={(e) => {
-                              const next = [...draftCategories];
-                              const subs = [...next[idx].subs];
-                              subs[sidx] = e.target.value;
-                              next[idx] = { ...next[idx], subs };
-                              setDraftCategories(next);
-                            }}
-                            className="h-9 px-4 rounded-xl bg-zinc-950 border border-zinc-800 text-white w-72
-                              focus:outline-none focus:ring-2 focus:ring-white/20 transition-all"
-                            placeholder="서브 카테고리"
-                          />
-
-                          <GButton
-                            variant="ghost"
-                            text="제거"
-                            onClick={() => {
-                              const next = [...draftCategories];
-                              next[idx] = {
-                                ...next[idx],
-                                subs: next[idx].subs.filter((_, i) => i !== sidx),
-                              };
-                              setDraftCategories(next);
-                            }}
-                          />
-                        </div>
-                      ))}
-
+              {/* 서브 */}
+              <div className="overflow-x-auto whitespace-nowrap no-scrollbar scroll-dark pb-2">
+                <div className="flex flex-nowrap gap-2 min-w-max">
+                  {subsOfActiveMain.map((s) => {
+                    const active = s === activeSub;
+                    return (
                       <button
-                        onClick={() => {
-                          const next = [...draftCategories];
-                          next[idx] = { ...next[idx], subs: [...next[idx].subs, ""] };
-                          setDraftCategories(next);
-                        }}
-                        className="h-9 px-4 rounded-xl border border-dashed border-zinc-700 text-zinc-400
-                          hover:bg-zinc-800 hover:text-white transition-all"
+                        key={s}
+                        onClick={() => setActiveSub(s)}
+                        className={[
+                          "px-4 h-8 rounded-full text-xs transition-all duration-200 flex-shrink-0",
+                          active
+                            ? "bg-zinc-700 text-white"
+                            : "bg-zinc-900 text-zinc-400 border border-zinc-800 hover:bg-zinc-800 hover:text-white",
+                        ].join(" ")}
                       >
-                        + 서브 추가
+                        {s}
                       </button>
-                    </div>
-                  </div>
-                ))}
-
-                <button
-                  onClick={() =>
-                    setDraftCategories([...draftCategories, { main: "", subs: [""] }])
-                  }
-                  className="h-11 px-6 rounded-2xl border border-dashed border-zinc-700
-                    text-zinc-400 hover:bg-zinc-800 hover:text-white transition-all duration-200"
-                >
-                  + 메인 카테고리 추가
-                </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           )}
         </div>
       </div>
+      {/* ✅ 카테고리 편집 모달 */}
+      {editMode && isEditingCategory && (
+        <CategoryEditModal
+          draft={draftCategories}
+          setDraft={setDraftCategories}
+          onClose={() => setIsEditingCategory(false)}
+          onSave={saveCategories}
+        />
+      )}
 
       {/* ✅ GRID */}
-      <div className="px-14 py-10 min-h-screen">
+      <div className="px-14 py-10 min-h-screen pt-[340px]">
         {filtered.length === 0 ? (
           <div className="py-32 text-center text-zinc-500 text-sm tracking-wide">
             해당 카테고리에 캐릭터가 없습니다.
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-6">
             {filtered.map((c) => (
               <CharacterGridCard
                 key={c.id}
@@ -543,35 +449,17 @@ export default function Characters() {
       </div>
 
       {/* ✅ 감상 모드 상세 모달(더블클릭) */}
-      <Modal
-        open={!editMode && !!viewModalChar}
-        onClose={() => {
-          setViewModalId(null);
-          setViewSubIndex(0);
-        }}
-        title={viewModalChar ? viewModalChar.name : "상세"}
-        maxWidthClassName="max-w-3xl"
-        footer={
-          <div className="flex justify-end">
-            <GButton
-              variant="dark"
-              text="닫기"
-              onClick={() => {
-                setViewModalId(null);
-                setViewSubIndex(0);
-              }}
-            />
-          </div>
-        }
-      >
-        {viewModalChar && (
-          <ViewCharacterContent
-            char={viewModalChar}
-            viewSubIndex={viewSubIndex}
-            setViewSubIndex={setViewSubIndex}
-          />
-        )}
-      </Modal>
+      {!editMode && viewModalChar && (
+        <DetailViewFullscreen
+          char={viewModalChar}
+          viewSubIndex={viewSubIndex}
+          setViewSubIndex={setViewSubIndex}
+          onClose={() => {
+            setViewModalId(null);
+            setViewSubIndex(0);
+          }}
+        />
+      )}
 
       {/* ✅ 추가/수정 모달 (editMode) */}
       {editMode && editingTarget && (
@@ -662,115 +550,291 @@ function CharacterGridCard(props: {
 /* -------------------------------------------
  * View Content (감상 모달 내부)
  * ------------------------------------------- */
-function ViewCharacterContent(props: {
+function DetailViewFullscreen(props: {
   char: Character;
   viewSubIndex: number;
   setViewSubIndex: React.Dispatch<React.SetStateAction<number>>;
+  onClose: () => void;
 }) {
-  const { char, viewSubIndex, setViewSubIndex } = props;
+  const { char, viewSubIndex, setViewSubIndex, onClose } = props;
 
   const main = useResolvedImage(char.mainImage || "");
   const sub = useResolvedImage(char.subImages?.[viewSubIndex]?.image || "");
+  const profile = useResolvedImage(char.profileImage || "");
+
+  // ✅ 프로필 클릭으로 메인/서브 토글
+  const [showSubOnMain, setShowSubOnMain] = useState(false);
+
+  // ✅ 마운트 애니메이션 트리거
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    const t = requestAnimationFrame(() => setMounted(true));
+    return () => cancelAnimationFrame(t);
+  }, []);
+
+  // 서브가 없으면 항상 메인
+  useEffect(() => {
+    if (!char.subImages?.length) setShowSubOnMain(false);
+  }, [char.subImages?.length]);
+
+  const displayed = showSubOnMain && sub ? sub : main;
+
+  const onClickProfile = () => {
+    if (!char.subImages?.length) return;
+    setShowSubOnMain((v) => !v);
+  };
+
+  // ✅ (선택) ESC 닫기
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
 
   return (
-    <div className="space-y-6">
-      {/* Main */}
-      <div className="space-y-2 text-black">
-        <p className="text-sm font-semibold">메인 이미지</p>
-        <div className="aspect-video rounded-xl border border-border overflow-hidden bg-white/10">
-          {main ? (
-            <img
-              src={main}
-              className="w-full h-full object-contain"
-              alt="main"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-              이미지 없음
-            </div>
-          )}
+    <div className="fixed inset-0 z-[9999]">
+      {/* backdrop */}
+      <div
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        onClick={onClose}
+      />
+
+      {/* panel */}
+      <div className="absolute inset-0 bg-zinc-950 text-white overflow-hidden">
+        {/* ===== Character symbolic background ===== */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          {/* 4) 하단 쉐도우 */}
+          <div
+            className="absolute bottom-0 left-0 right-0 h-[45%]"
+            style={{
+              background:
+                "linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.6), transparent)",
+            }}
+          />
+
         </div>
-        {!!char.mainImageDesc && (
-          <p className="text-sm text-muted-foreground">{char.mainImageDesc}</p>
-        )}
-      </div>
-
-      {!!char.description && (
-        <div>
-          <p className="text-sm font-semibold mb-2">설명</p>
-          <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
-            {char.description}
-          </p>
+        {/* header */}
+        <div
+          className={[
+            "px-6 h-[60px] flex items-end justify-end relative",
+            "transition-all duration-500",
+            mounted ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2",
+          ].join(" ")}
+        >
+          <GButton
+            variant="onlyText"
+            onClick={onClose}
+            text="돌아가기"
+            className="text-white/90 hover:text-white/50 text-xl"
+          />
         </div>
-      )}
 
-      {/* Subs */}
-      {char.subImages?.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold">서브 이미지</p>
-            <p className="text-xs text-muted-foreground">
-              {viewSubIndex + 1} / {char.subImages.length}
-            </p>
-          </div>
+        {/* body */}
+        <div className="relative h-[calc(100vh-60px)] py-6">
+          <div className="h-full max-h-[100vh] grid grid-cols-12 gap-6">
+            {/* LEFT */}
+            <div className="col-span-1 hidden lg:block" />
 
-          <div className="flex items-center gap-3">
-            <GButton
-              variant="default"
-              size="icon"
-              icon={<ChevronLeft className="w-5 h-5" />}
-              onClick={() =>
-                setViewSubIndex(
-                  (p) => (p - 1 + char.subImages.length) % char.subImages.length
-                )
-              }
-              title="이전"
-            />
-
-            <div className="flex-1 aspect-video rounded-xl border border-border overflow-hidden bg-secondary/10">
-              {sub ? (
-                <img
-                  src={sub}
-                  className="w-full h-full object-contain"
-                  alt="sub"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                  이미지 없음
+            <div
+              className={[
+                "h-full col-span-12 lg:col-span-5 flex flex-col justify-start",
+                "transition-all duration-700",
+                mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3",
+              ].join(" ")}
+              style={{ transitionDelay: "60ms" }}
+            >
+              <div className="relative overflow-hidden">
+                <div
+                  className="w-full flex items-center justify-center h-[calc(100vh-120px)]"
+                  style={{
+                    WebkitMaskImage: `
+                      linear-gradient(to bottom, transparent, black 20%, black 80%, transparent),
+                      linear-gradient(to right,  transparent, black 20%, black 80%, transparent)
+                    `,
+                    maskImage: `
+                      linear-gradient(to bottom, transparent, black 20%, black 80%, transparent),
+                      linear-gradient(to right,  transparent, black 20%, black 80%, transparent)
+                    `,
+                    WebkitMaskComposite: "destination-in",
+                    maskComposite: "intersect",
+                  }}
+                >
+                  {displayed ? (
+                    <img
+                      src={displayed}
+                      alt="main"
+                      className={[
+                        "w-full h-auto object-contain pb-[40px] max-h-[calc(100vh-160px)]",
+                        "transition-all duration-300",
+                      ].join(" ")}
+                      // ✅ displayed 바뀔 때 살짝 “스왑” 느낌
+                      key={displayed}
+                    />
+                  ) : (
+                    <div className="text-sm text-white/40">이미지 없음</div>
+                  )}
+                  {/* floor shadow */}
+                  <div
+                    className="
+                      absolute left-1/2 bottom-6
+                      -translate-x-1/2
+                      w-[420px] h-[80px]
+                      rounded-full
+                      blur-2xl
+                      opacity-60
+                    "
+                    style={{
+                      background:
+                        "radial-gradient(ellipse at center, rgba(0,0,0,0.8), transparent)",
+                    }}
+                  />
                 </div>
-              )}
+
+                <div className="absolute left-0 bottom-0 p-4 space-y-3 translate-x-[20%]">
+                  <div className="text-3xl font-semibold tracking-tight">
+                    {char.name}
+                  </div>
+
+                  {/* tags */}
+                  <div className="flex flex-wrap gap-2">
+                    {(char.subCategories || []).map((t) => (
+                      <span
+                        key={t}
+                        className="px-3 h-7 inline-flex items-center rounded-full
+                          bg-white/10 border border-white/10 text-xs text-white/80"
+                      >
+                        {t}
+                      </span>
+                    ))}
+                    {(char.subCategories || []).length === 0 && (
+                      <span className="text-xs text-white/35">태그 없음</span>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <GButton
-              variant="default"
-              size="icon"
-              icon={<ChevronRight className="w-5 h-5" />}
-              onClick={() => setViewSubIndex((p) => (p + 1) % char.subImages.length)}
-              title="다음"
-            />
+            {/* MIDDLE: profile */}
+            <div
+              className={[
+                "col-span-12 lg:col-span-2 flex flex-col justify-end",
+                "transition-all duration-700",
+                mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3",
+              ].join(" ")}
+              style={{ transitionDelay: "140ms" }}
+            >
+              <button
+                type="button"
+                onClick={onClickProfile}
+                className="text-left"
+                title={char.subImages?.length ? "클릭: 메인/서브 토글" : ""}
+              >
+                <ProfileCard
+                  name={char.name}
+                  imageUrl={profile}
+                  className="mb-[40px] max-w-50"
+                />
+              </button>
+            </div>
+
+            {/* RIGHT */}
+            <div
+              className={[
+                "col-span-12 lg:col-span-4",
+                "transition-all duration-700",
+                mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3",
+              ].join(" ")}
+              style={{ transitionDelay: "220ms" }}
+            >
+              <div className="shrink-0 lg:max-h-[240px] lg:min-h-[180px] lg:overflow-auto lg:pr-1 scroll-dark">
+                <p
+                  className="text-sm text-white/70 text-left leading-relaxed whitespace-pre-wrap
+                    max-h-[180px] lg:max-h-none overflow-auto lg:overflow-visible"
+                >
+                  {char.mainImageDesc || "설명이 없습니다"}
+                </p>
+              </div>
+
+              {/* subs strip */}
+              <div className="mt-6 space-y-4">
+                {char.subImages?.length > 0 ? (
+                  <>
+                    <div className="overflow-x-auto pb-2 scroll-dark">
+                      <div className="flex gap-3 min-w-max">
+                        {char.subImages.map((s, idx) => {
+                          const active = idx === viewSubIndex;
+                          return (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => {
+                                // ✅ BUG FIX: 썸네일 누르면 displayed가 즉시 바뀌게
+                                setViewSubIndex(idx);
+                                setShowSubOnMain(true);
+                              }}
+                              className={[
+                                "w-32 rounded-xl overflow-hidden border transition flex-shrink-0",
+                                active
+                                  ? "border-white/40 bg-white/10"
+                                  : "border-white/10 bg-white/5 hover:border-white/25",
+                              ].join(" ")}
+                              title="클릭: 메인에 표시"
+                            >
+                              <div className="aspect-[4/4] bg-black/30 flex items-center justify-center">
+                                <SubThumbInner image={s.image} alt={`sub-${idx}`} />
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="shrink-0 lg:max-h-[240px] lg:min-h-[180px] lg:overflow-auto lg:pr-1 scroll-dark mt-10">
+                      <p
+                        className="text-sm text-white/70 text-left leading-relaxed whitespace-pre-wrap
+                        max-h-[180px] lg:max-h-none overflow-auto lg:overflow-visible"
+                      >
+                        {char.subImages[viewSubIndex]?.description || "설명이 없습니다"}
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-white/40 text-sm">
+                    서브 이미지가 없습니다.
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
-          {!!char.subImages[viewSubIndex]?.description && (
-            <p className="text-sm text-muted-foreground">
-              {char.subImages[viewSubIndex].description}
-            </p>
-          )}
-
-          <div className="flex gap-2 overflow-x-auto pb-2">
-            {char.subImages.map((s, idx) => (
-              <SubThumb
-                key={idx}
-                image={s.image}
-                active={idx === viewSubIndex}
-                onClick={() => setViewSubIndex(idx)}
-                alt={`thumb-${idx}`}
-              />
-            ))}
+          {/* ✅ bottom hint */}
+          <div
+            className={[
+              "absolute left-1/2 -translate-x-1/2 top-[-12px] text-xs text-white/25",
+              "transition-opacity duration-700",
+              mounted ? "opacity-100" : "opacity-0",
+            ].join(" ")}
+          >
+            ESC 로 닫기
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
+}
+
+/** ✅ 썸네일은 훅 없이(안전), 내부에서 useResolvedImage 쓰지 않음 */
+function SubThumbInner(props: { image: string; alt?: string }) {
+  const { image, alt = "sub" } = props;
+  const resolved = useResolvedImage(image || "");
+
+  if (!resolved) {
+    return <div className="w-full h-full grid place-items-center text-white/30 text-xs">NO</div>;
+  }
+
+  return <img src={resolved} alt={alt} className="w-full h-full object-contain" />;
 }
 
 /* -------------------------------------------
@@ -1009,29 +1073,118 @@ function CharacterEditModal(props: {
   );
 }
 
-
-function SubThumb(props: {
-  image: string;
-  alt?: string;
-  active: boolean;
-  onClick: () => void;
+function CategoryEditModal(props: {
+  draft: CategoryGroup[];
+  setDraft: React.Dispatch<React.SetStateAction<CategoryGroup[]>>;
+  onClose: () => void;
+  onSave: () => void;
 }) {
-  const { image, active, onClick, alt = "thumb" } = props;
-  const thumb = useResolvedImage(image || "");
+  const { draft, setDraft, onClose, onSave } = props;
+
+  const addMain = () => {
+    setDraft((d) => [...d, { main: "새 메인", subs: [] }]);
+  };
+
+  const renameMain = (idx: number, v: string) => {
+    setDraft((d) => d.map((x, i) => (i === idx ? { ...x, main: v } : x)));
+  };
+
+  const removeMain = (idx: number) => {
+    setDraft((d) => d.filter((_, i) => i !== idx));
+  };
+
+  const addSub = (idx: number) => {
+    const sub = prompt("추가할 서브 카테고리 이름")?.trim();
+    if (!sub) return;
+    setDraft((d) =>
+      d.map((x, i) => {
+        if (i !== idx) return x;
+        const subs = Array.from(new Set([...(x.subs || []), sub]));
+        return { ...x, subs };
+      })
+    );
+  };
+
+  const removeSub = (mainIdx: number, sub: string) => {
+    setDraft((d) =>
+      d.map((x, i) => {
+        if (i !== mainIdx) return x;
+        return { ...x, subs: (x.subs || []).filter((s) => s !== sub) };
+      })
+    );
+  };
 
   return (
-    <button
-      onClick={onClick}
-      className={[
-        "w-14 h-14 rounded-xl overflow-hidden border-2 flex-shrink-0 transition",
-        active ? "border-foreground" : "border-border hover:border-muted-foreground",
-      ].join(" ")}
+    <Modal
+      open
+      onClose={onClose}
+      title="캐릭터 카테고리 편집"
+      maxWidthClassName="max-w-3xl"
+      footer={
+        <div className="flex items-center gap-2 w-full">
+          <GButton
+            variant="default"
+            text="닫기"
+            onClick={onClose}
+            className="flex-1"
+          />
+          <GButton
+            variant="dark"
+            text="저장"
+            onClick={onSave}
+            className="flex-1"
+          />
+        </div>
+      }
     >
-      {thumb ? (
-        <img src={thumb} className="w-full h-full object-cover" alt={alt} />
-      ) : (
-        <div className="w-full h-full bg-secondary" />
-      )}
-    </button>
+      <div className="space-y-5 text-black">
+        <div className="flex justify-end">
+          <GButton variant="dark" icon={<Plus className="w-4 h-4" />} text="메인 추가" onClick={addMain} />
+        </div>
+
+        {draft.length === 0 ? (
+          <div className="text-sm text-muted-foreground">카테고리가 없습니다. “메인 추가”를 눌러주세요.</div>
+        ) : (
+          <div className="space-y-4">
+            {draft.map((cg, idx) => (
+              <div key={idx} className="rounded-2xl border border-border bg-background/50 p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <input
+                    value={cg.main}
+                    onChange={(e) => renameMain(idx, e.target.value)}
+                    className="flex-1 h-10 px-3 rounded-xl border border-border bg-background"
+                    placeholder="메인 카테고리 이름"
+                  />
+                  <GButton variant="dark" text="서브 추가" onClick={() => addSub(idx)} />
+                  <GButton variant="danger" text="메인 삭제" onClick={() => removeMain(idx)} />
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  {(cg.subs || []).length === 0 ? (
+                    <span className="text-xs text-muted-foreground">서브 카테고리가 없습니다.</span>
+                  ) : (
+                    (cg.subs || []).map((s) => (
+                      <span
+                        key={s}
+                        className="inline-flex items-center gap-2 px-3 h-8 rounded-full bg-zinc-950 text-zinc-200 border border-zinc-800 text-xs"
+                      >
+                        {s}
+                        <button
+                          type="button"
+                          onClick={() => removeSub(idx, s)}
+                          className="opacity-70 hover:opacity-100"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </Modal>
   );
 }

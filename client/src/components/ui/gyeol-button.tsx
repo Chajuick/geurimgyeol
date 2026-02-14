@@ -1,7 +1,7 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-type GButtonVariant = "default" | "danger" | "primary" | "dark" | "ghost";
+type GButtonVariant = "onlyText" | "default" | "danger" | "primary" | "dark" | "ghost";
 type GButtonSize = "sm" | "md" | "icon";
 
 type Props = {
@@ -18,6 +18,8 @@ type Props = {
 
 const variantClass: Record<GButtonVariant, string> = {
   // 기본(밝은 회색)
+  onlyText: 
+    "bg-none",
   default:
     "bg-white/90 text-zinc-900 border border-white/60 backdrop-blur " +
     "shadow-[0_2px_4px_rgba(0,0,0,0.20)] hover:shadow-[0_2px_6px_rgba(0,0,0,0.22)]",
@@ -31,7 +33,7 @@ const variantClass: Record<GButtonVariant, string> = {
     "shadow-[0_10px_24px_rgba(0,0,0,0.18)]",
   // 검정 버튼
   dark:
-    "bg-zinc-950 text-white border border-white/10 " +
+    "bg-zinc-950 text-white " +
     "shadow-[0_10px_24px_rgba(0,0,0,0.22)]",
   // 투명(배경 위 글래스 느낌)
   ghost:

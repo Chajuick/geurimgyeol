@@ -35,3 +35,23 @@
 .scroll-dark::-webkit-scrollbar-thumb:active {
   background-color: rgba(255, 255, 255, 0.32);
 }
+
+@keyframes grain {
+  0%, 100% { transform: translate(0,0); }
+  10% { transform: translate(-2%, -3%); }
+  20% { transform: translate(-4%, 2%); }
+  30% { transform: translate(3%, -2%); }
+  40% { transform: translate(2%, 4%); }
+  50% { transform: translate(-3%, 2%); }
+  60% { transform: translate(4%, 0%); }
+  70% { transform: translate(0%, 3%); }
+  80% { transform: translate(-2%, 0%); }
+  90% { transform: translate(3%, 1%); }
+}
+.animate-grain { animation: grain 6s steps(6) infinite; }
+
+@keyframes scanline {
+  0% { transform: translateY(-10%); }
+  100% { transform: translateY(10%); }
+}
+.animate-scanline { animation: scanline 3.2s linear infinite; }
