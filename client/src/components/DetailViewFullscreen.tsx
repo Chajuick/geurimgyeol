@@ -240,14 +240,14 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
                                     className="text-left"
                                     title={entity.subImages?.length ? "클릭: 메인/서브 토글" : ""}
                                 >
-                                    <ProfileCard name={entity.name} imageUrl={profile} className="mb-[40px] max-w-45" />
+                                    <ProfileCard name={entity.name} imageUrl={profile} className="mb-12 max-w-45" />
                                 </button>
                             </div>
 
                             {/* RIGHT */}
                             <div
                                 className={[
-                                    "col-span-12 lg:col-span-4 mr-6",
+                                    "col-span-12 lg:col-span-4 mr-6 mb-12",
                                     "relative overflow-hidden rounded-3xl",
                                     "bg-zinc-950/35 backdrop-blur-2xl",
                                     "border border-white/10 ring-1 ring-white/5",
