@@ -9,6 +9,8 @@ import {
 import GButton from "@/components/ui/gyeol-button";
 import { X } from "lucide-react";
 
+type ImageUploadAspect = "video" | "square";
+
 type ImageUploadProps = {
   value: string;
   onChange: (value: string) => void;
@@ -16,8 +18,23 @@ type ImageUploadProps = {
   placeholder?: string;
   accept?: string;
   className?: string;
+
+  /**
+   * ✅ 추가: 미리보기 비율 프리셋
+   * - 기본값: "video"
+   */
+  aspect?: ImageUploadAspect;
+
+  /**
+   * ✅ 기존 유지: 커스텀 클래스(우선 적용)
+   * - aspect보다 우선순위가 높음
+   */
   previewClassName?: string;
 };
+
+function aspectToClass(aspect: ImageUploadAspect) {
+  return aspect === "square" ? "aspect-square" : "aspect-video";
+}
 
 export default function ImageUpload({
   value,
@@ -26,7 +43,12 @@ export default function ImageUpload({
   placeholder = "이미지 URL을 입력하세요",
   accept = "image/*",
   className,
-  previewClassName = "aspect-video",
+
+  // ✅ 기본 aspect는 video
+  aspect = "video",
+
+  // ✅ 커스텀 프리뷰 클래스 (있으면 이게 우선)
+  previewClassName,
 }: ImageUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string>("");
@@ -100,30 +122,24 @@ export default function ImageUpload({
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
+  const finalPreviewClassName = previewClassName ?? aspectToClass(aspect);
+
   return (
     <div className={className}>
-      {label && (
-        <div className="mb-2 text-xs text-muted-foreground">{label}</div>
-      )}
+      {label && <div className="mb-2 text-xs text-muted-foreground">{label}</div>}
 
       {/* ✅ Preview Frame */}
       <div
         className={[
           "relative mb-3 rounded-xl border border-border overflow-hidden",
           "bg-secondary/30 p-2",
-          previewClassName,
+          finalPreviewClassName,
         ].join(" ")}
       >
         {preview ? (
           <>
-            {/* 🔥 이미지 가로 100% 꽉 채움 */}
-            <img
-              src={preview}
-              alt="preview"
-              className="w-full h-full object-contain"
-            />
+            <img src={preview} alt="preview" className="w-full h-full object-contain" />
 
-            {/* 🔥 이미지 있을 때만 X 버튼 표시 */}
             <div className="absolute top-2 right-2">
               <GButton
                 variant="danger"
@@ -149,7 +165,6 @@ export default function ImageUpload({
         className="hidden"
       />
 
-      {/* ✅ URL 입력 (width 100%) */}
       <input
         type="text"
         placeholder={placeholder}
@@ -158,14 +173,12 @@ export default function ImageUpload({
         className="w-full px-3 h-10 rounded-lg border border-border bg-background text-black"
       />
 
-      {/* ✅ 파일 선택 버튼 (width 100%) */}
       <GButton
         variant="default"
         text="파일 선택"
         onClick={() => fileInputRef.current?.click()}
         className="w-full mb-2"
       />
-
     </div>
   );
 }

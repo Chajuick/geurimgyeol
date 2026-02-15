@@ -51,7 +51,7 @@ export default function Modal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* backdrop */}
       <div
-        className="absolute inset-0 bg-black/45 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
         onClick={() => closeOnBackdrop && onClose()}
       />
 
@@ -60,8 +60,8 @@ export default function Modal({
         className={cn(
           "relative w-full",
           maxWidthClassName,
-          "rounded-2xl bg-white dark:bg-zinc-950",
-          "shadow-2xl border border-zinc-200 dark:border-zinc-800",
+          "rounded-2xl bg-zinc-950 text-white",
+          "shadow-2xl border border-white/10 ring-1 ring-white/5",
           "max-h-[85vh] flex flex-col overflow-hidden",
           className
         )}
@@ -69,10 +69,10 @@ export default function Modal({
         aria-modal="true"
       >
         {/* header (fixed) */}
-        <div className="shrink-0 flex items-center justify-between px-5 py-4 border-b border-zinc-200 dark:border-zinc-800">
+        <div className="shrink-0 flex items-center justify-between px-5 py-4 border-b border-white/10">
           <div className="min-w-0">
             {title ? (
-              <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate">
+              <h2 className="text-sm font-semibold text-white/90 truncate">
                 {title}
               </h2>
             ) : (
@@ -81,8 +81,9 @@ export default function Modal({
           </div>
 
           <button
+            type="button"
             onClick={onClose}
-            className="h-9 w-9 rounded-lg grid place-items-center text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-900"
+            className="h-9 w-9 rounded-lg grid place-items-center text-white/70 hover:bg-white/10 transition"
             aria-label="닫기"
           >
             <X className="w-4 h-4" />
@@ -90,13 +91,13 @@ export default function Modal({
         </div>
 
         {/* body (scroll only here) */}
-        <div className="flex-1 min-h-0 overflow-y-auto px-5 py-6">
+        <div className="flex-1 min-h-0 overflow-y-auto px-5 py-6 scroll-dark">
           {children}
         </div>
 
         {/* footer (fixed, optional) */}
         {footer ? (
-          <div className="shrink-0 px-5 py-4 border-t border-zinc-200 dark:border-zinc-800">
+          <div className="shrink-0 px-5 py-4 border-t border-white/10">
             {footer}
           </div>
         ) : null}

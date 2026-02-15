@@ -12,7 +12,6 @@ type ProfileCardProps = {
 export default function ProfileCard({
   imageUrl,
   name,
-  onClick,
   selected = false,
   className = "",
 }: ProfileCardProps) {
@@ -21,7 +20,6 @@ export default function ProfileCard({
 
   return (
     <div
-      onClick={onClick}
       className={[
         "group relative w-full overflow-hidden rounded-2xl",
         "bg-zinc-950/70 text-left",

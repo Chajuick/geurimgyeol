@@ -2,38 +2,91 @@ import React, { useEffect, useMemo, useState } from "react";
 import ProfileCard from "@/components/ui/profile-card";
 import { useResolvedImage } from "@/hooks/useResolvedImage";
 import type { EntityBase } from "@/types";
+import {
+    X,
+    Pencil,
+    Plus,
+    Trash2,
+    Palette,
+    Image as ImageIcon,
+    Tags,
+    FileText,
+    Check,
+    Search,
+} from "lucide-react";
+import ImageUpload from "@/components/ImageUpload";
 
 function getPrimaryColor(symbolColors: any): string | null {
     if (!symbolColors) return null;
-
-    // 배열인 경우
     if (Array.isArray(symbolColors)) {
         const c = symbolColors.find((v) => v?.hex);
         return c?.hex ?? null;
     }
-
-    // 객체 하나인 경우
     if (typeof symbolColors === "object") {
         if ("hex" in symbolColors) return (symbolColors as any).hex ?? null;
     }
-
     return null;
 }
+
+type SymbolColorDraft = { id: string; name: string; hex: string };
+type SubImageDraft = { image: string; description: string };
+
+// ✅ rgb helpers
+function clamp255(n: number) {
+    return Math.max(0, Math.min(255, n));
+}
+function hexToRgb(hex: string) {
+    const m = hex.trim().match(/^#?([0-9a-f]{6})$/i);
+    if (!m) return null;
+    const v = m[1];
+    const r = parseInt(v.slice(0, 2), 16);
+    const g = parseInt(v.slice(2, 4), 16);
+    const b = parseInt(v.slice(4, 6), 16);
+    return { r, g, b };
+}
+function rgbToHex(r: number, g: number, b: number) {
+    const rr = clamp255(r).toString(16).padStart(2, "0");
+    const gg = clamp255(g).toString(16).padStart(2, "0");
+    const bb = clamp255(b).toString(16).padStart(2, "0");
+    return `#${rr}${gg}${bb}`.toUpperCase();
+}
+function isHex6(v: string) {
+    return /^#([0-9a-f]{6})$/i.test(v.trim());
+}
+
+type EditPanel = null | "basic" | "profileImage" | "symbolColors" | "subImages";
 
 export default function EntityDetailFullscreen<T extends EntityBase>(props: {
     entity: T;
     viewSubIndex: number;
     setViewSubIndex: React.Dispatch<React.SetStateAction<number>>;
     onClose: () => void;
-    backText?: string;
+
+    editable?: boolean;
+    onDelete?: () => void;
+
+    // ✅ 부모가 실제 저장 반영
+    onPatch?: (patch: Partial<T>) => void;
+
+    // ✅ 태그 데이터(서브태그들) 전달
+    tagOptions?: string[]; // ex) ["불", "얼음", "근접", "원거리", ...]
 }) {
-    const { entity, viewSubIndex, setViewSubIndex, onClose } = props;
+    const {
+        entity,
+        viewSubIndex,
+        setViewSubIndex,
+        onClose,
+        editable = false,
+        onDelete,
+        onPatch,
+        tagOptions = [],
+    } = props;
 
     const main = useResolvedImage(entity.mainImage || "");
     const sub = useResolvedImage(entity.subImages?.[viewSubIndex]?.image || "");
     const profile = useResolvedImage(entity.profileImage || "");
 
-    const primaryHex = getPrimaryColor(entity.symbolColors);
+    const primaryHex = getPrimaryColor((entity as any).symbolColors);
 
     const [showSubOnMain, setShowSubOnMain] = useState(false);
     const [mounted, setMounted] = useState(false);
@@ -43,25 +96,74 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
 
     const displayed = showSubOnMain && sub ? sub : main;
 
+    // ✅ right sheet
+    const [editPanel, setEditPanel] = useState<EditPanel>(null);
+
+    // entity change -> close sheet
+    useEffect(() => {
+        setEditPanel(null);
+    }, [entity.id]);
+
+    // ✅ helper patch
+    const patch = (p: Partial<T>) => onPatch?.(p);
+
+    // drafts
+    const [nameDraft, setNameDraft] = useState(entity.name || "");
+    const [descDraft, setDescDraft] = useState((entity as any).description || "");
+    const [mainDescDraft, setMainDescDraft] = useState(
+        (entity as any).mainImageDesc || ""
+    );
+    const [mainImageDraft, setMainImageDraft] = useState(
+        (entity as any).mainImage || ""
+    );
+
+    // tags draft (subCategories)
+    const [tagDraft, setTagDraft] = useState<string[]>(
+        ((entity as any).subCategories || []) as string[]
+    );
+
+    useEffect(() => {
+        setNameDraft(entity.name || "");
+        setDescDraft((entity as any).description || "");
+        setMainDescDraft((entity as any).mainImageDesc || "");
+        setMainImageDraft((entity as any).mainImage || "");
+        setTagDraft((((entity as any).subCategories || []) as string[]) ?? []);
+    }, [entity.id]);
+
+    // symbol colors normalize
+    const symbolColors = useMemo<SymbolColorDraft[]>(() => {
+        const raw: any = (entity as any).symbolColors;
+        if (!raw) return [];
+        const arr = Array.isArray(raw) ? raw : raw?.hex ? [raw] : [];
+        return arr
+            .filter((c) => c?.hex)
+            .map((c, idx) => ({
+                id: c.id || `${c.hex}-${idx}-${Math.random().toString(16).slice(2)}`,
+                name: c.name || "",
+                hex: (c.hex || "#444444").toUpperCase(),
+            }));
+    }, [entity]);
+
+    const subImages = useMemo<SubImageDraft[]>(() => {
+        return Array.isArray((entity as any).subImages) ? (entity as any).subImages : [];
+    }, [entity]);
+
     useEffect(() => {
         const t = requestAnimationFrame(() => setMounted(true));
         return () => cancelAnimationFrame(t);
     }, []);
 
     useEffect(() => {
-        // displayed가 바뀔 때마다: 1) 이미지 슬라이드 2) 그림자 스윕
         if (!displayed) return;
         setShadowOn(false);
         setImgAnimKey((k) => k + 1);
-
-        const t = window.setTimeout(() => setShadowOn(true), 260); // ✅ 이미지 들어온 뒤
+        const t = window.setTimeout(() => setShadowOn(true), 260);
         return () => window.clearTimeout(t);
     }, [displayed]);
 
     useEffect(() => {
-        if (!entity.subImages?.length) setShowSubOnMain(false);
-    }, [entity.subImages?.length]);
-
+        if (!(entity as any).subImages?.length) setShowSubOnMain(false);
+    }, [(entity as any).subImages?.length]);
 
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
@@ -71,31 +173,71 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
         return () => window.removeEventListener("keydown", onKey);
     }, [onClose]);
 
+    // sheet open -> body lock
+    useEffect(() => {
+        if (!editPanel) return;
+        const prev = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        return () => {
+            document.body.style.overflow = prev;
+        };
+    }, [editPanel]);
+
     const onClickProfile = () => {
-        if (!entity.subImages?.length) return;
+        if (!(entity as any).subImages?.length) return;
         setShowSubOnMain((v) => !v);
     };
 
-    // symbolColors가 배열/객체 섞여도 안전하게: "배지 리스트"는 배열일 때만
-    const symbolColors = useMemo(() => {
-        if (!entity.symbolColors) return [];
-        if (Array.isArray(entity.symbolColors)) return entity.symbolColors.filter((c) => c?.hex);
-        if (typeof entity.symbolColors === "object" && (entity.symbolColors as any).hex) return [entity.symbolColors];
-        return [];
-    }, [entity.symbolColors]);
+    // symbol helpers
+    const addSymbolColor = () => {
+        const next = [...symbolColors, { id: `sc-${Date.now()}`, name: "", hex: "#444444" }];
+        patch({ symbolColors: next } as any);
+    };
+    const updateSymbolColor = (id: string, p: Partial<SymbolColorDraft>) => {
+        const next = symbolColors.map((c) => (c.id === id ? { ...c, ...p } : c));
+        patch({ symbolColors: next } as any);
+    };
+    const removeSymbolColor = (id: string) => {
+        patch({ symbolColors: symbolColors.filter((c) => c.id !== id) } as any);
+    };
+
+    // sub image helpers
+    const addSubImage = () => {
+        const next = [...subImages, { image: "", description: "" }];
+        patch({ subImages: next } as any);
+        setViewSubIndex(next.length - 1);
+        setShowSubOnMain(true);
+    };
+    const updateSubImage = (idx: number, p: Partial<SubImageDraft>) => {
+        const next = subImages.map((s, i) => (i === idx ? { ...s, ...p } : s));
+        patch({ subImages: next } as any);
+    };
+    const removeSubImage = (idx: number) => {
+        const next = subImages.filter((_, i) => i !== idx);
+        patch({ subImages: next } as any);
+
+        const nextIndex = Math.max(0, Math.min(viewSubIndex, next.length - 1));
+        setViewSubIndex(nextIndex);
+        if (!next.length) setShowSubOnMain(false);
+    };
+
+    // tags
+    const subCategories: string[] = ((entity as any).subCategories || []) as string[];
 
     return (
         <div className="fixed inset-0 z-[9999]">
-            {/* 클릭 닫기 */}
-            <div className="absolute inset-0" onClick={onClose} />
+            {/* backdrop */}
+            <div className="absolute inset-0 bg-black/30" onClick={onClose} />
 
-            <div className="absolute inset-0 text-white overflow-hidden">
-                {/* ✅ 배경(사선 애니) */}
+            {/* content */}
+            <div
+                className="absolute inset-0 text-white overflow-hidden"
+                onClick={(e) => e.stopPropagation()}
+            >
+                {/* bg */}
                 <div className="absolute inset-0 pointer-events-none">
-                    {/* base */}
                     <div className="absolute inset-0 bg-zinc-900" />
 
-                    {/* 사선 1 (진회색) - 먼저 */}
                     <div
                         className={[
                             "absolute inset-0 transition-all duration-500 ease-out will-change-transform",
@@ -108,7 +250,6 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
                         }}
                     />
 
-                    {/* 사선 2 (더 진한) - 다음 */}
                     <div
                         className={[
                             "absolute inset-0 transition-all duration-500 ease-out will-change-transform",
@@ -121,7 +262,6 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
                         }}
                     />
 
-                    {/* 은은한 깊이감 */}
                     <div
                         className="absolute inset-0"
                         style={{
@@ -133,7 +273,6 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
                     />
                 </div>
 
-                {/* ✅ 컨텐츠 래퍼: 사선 깔린 뒤 올라오게 */}
                 <div
                     className={[
                         "relative z-10 transition-all duration-700",
@@ -141,7 +280,7 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
                     ].join(" ")}
                     style={{ transitionDelay: "520ms" }}
                 >
-                    {/* 하단 그라데이션 */}
+                    {/* bottom gradient */}
                     <div className="absolute inset-0 pointer-events-none overflow-hidden">
                         <div
                             className="absolute bottom-0 left-0 right-0 h-[45%]"
@@ -152,10 +291,43 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
                         />
                     </div>
 
-                    {/* 상단바(현재 비어있음) */}
-                    <div className="px-6 h-[60px] flex items-end justify-end relative" />
+                    {/* top bar */}
+                    <div className="px-6 h-[60px] flex items-end justify-end relative gap-2">
+                        {editable && (
+                            <>
+                                <button
+                                    type="button"
+                                    onClick={() => setEditPanel("basic")}
+                                    className="h-10 px-4 rounded-xl bg-white/10 border border-white/10 hover:bg-white/15 transition inline-flex items-center gap-2"
+                                    title="기본 정보 편집"
+                                >
+                                    <FileText className="w-4 h-4" />
+                                    <span className="text-sm">편집</span>
+                                </button>
 
-                    {/* 본문 */}
+                                <button
+                                    type="button"
+                                    onClick={onDelete}
+                                    className="h-10 px-4 rounded-xl bg-red-500/15 border border-red-500/25 hover:bg-red-500/20 transition inline-flex items-center gap-2"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                    <span className="text-sm">삭제</span>
+                                </button>
+                            </>
+                        )}
+
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="h-10 w-10 rounded-xl bg-white/10 border border-white/10 hover:bg-white/15 transition grid place-items-center"
+                            aria-label="닫기"
+                            title="닫기"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
+                    </div>
+
+                    {/* body */}
                     <div className="relative h-[calc(100vh-60px)] py-6">
                         <div className="h-full max-h-[100vh] grid grid-cols-12 gap-6">
                             <div className="col-span-1 hidden lg:block" />
@@ -163,34 +335,28 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
                             {/* LEFT */}
                             <div className="h-full col-span-12 lg:col-span-5 flex flex-col justify-start">
                                 <div className="relative">
-                                    <div className="w-full flex items-center justify-center h-[calc(100vh-120px)]" key={displayed}>
+                                    <div
+                                        className="w-full flex items-center justify-center h-[calc(100vh-120px)]"
+                                        key={displayed}
+                                    >
                                         {displayed ? (
                                             <div
-                                                key={imgAnimKey} // ✅ 바뀔 때마다 애니메이션 재실행
+                                                key={imgAnimKey}
                                                 className="entityFxWrap"
                                                 style={
                                                     primaryHex
-                                                        ? ({
-                                                            ["--glow" as any]: `${primaryHex}55`, // 좀 더 진하게(원하면 33)
-                                                        } as React.CSSProperties)
+                                                        ? ({ ["--glow" as any]: `${primaryHex}55` } as React.CSSProperties)
                                                         : undefined
                                                 }
                                             >
                                                 <div className="entityInner">
-                                                    {/* ✅ 글로우(그림자) 레이어 */}
                                                     <div
-                                                        className={[
-                                                            "entityGlow",
-                                                            shadowOn ? "entityGlow--on" : "",
-                                                        ].join(" ")}
+                                                        className={["entityGlow", shadowOn ? "entityGlow--on" : ""].join(" ")}
                                                         style={{
-                                                            // ✅ 이미지 모양대로 마스킹 (displayed가 base64든 url이든 OK)
                                                             WebkitMaskImage: `url("${displayed}")`,
                                                             maskImage: `url("${displayed}")`,
                                                         }}
                                                     />
-
-                                                    {/* ✅ 실제 이미지 */}
                                                     <img
                                                         src={displayed}
                                                         alt="main"
@@ -212,11 +378,25 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
                                         />
                                     </div>
 
-                                    <div className="absolute left-0 bottom-0 p-4 space-y-3 translate-x-[20%]">
-                                        <div className="text-3xl font-semibold tracking-tight">{entity.name}</div>
+                                    <div className="absolute left-0 bottom-0 p-4 space-y-3 translate-x-[20%] w-[520px] max-w-[80vw]">
+                                        <div className="flex items-center gap-2">
+                                            <div className="text-3xl font-semibold tracking-tight">{entity.name}</div>
+
+                                            {/* ✅ 이름 옆 수정: 기본정보(이름/설명/태그/메인이미지) */}
+                                            {editable && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setEditPanel("basic")}
+                                                    className="h-9 w-9 rounded-xl bg-white/10 border border-white/10 hover:bg-white/15 transition grid place-items-center"
+                                                    title="이름/태그/설명/메인 이미지 편집"
+                                                >
+                                                    <Pencil className="w-4 h-4 text-white/80" />
+                                                </button>
+                                            )}
+                                        </div>
 
                                         <div className="flex flex-wrap gap-2">
-                                            {(entity.subCategories || []).map((t) => (
+                                            {(subCategories || []).map((t: string) => (
                                                 <span
                                                     key={t}
                                                     className="px-3 h-7 inline-flex items-center rounded-full bg-white/10 border border-white/10 text-xs text-white/80"
@@ -224,7 +404,7 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
                                                     {t}
                                                 </span>
                                             ))}
-                                            {(entity.subCategories || []).length === 0 && (
+                                            {(subCategories || []).length === 0 && (
                                                 <span className="text-xs text-white/35">태그 없음</span>
                                             )}
                                         </div>
@@ -234,14 +414,35 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
 
                             {/* MIDDLE */}
                             <div className="col-span-12 lg:col-span-2 flex flex-col justify-end">
-                                <button
-                                    type="button"
-                                    onClick={onClickProfile}
-                                    className="text-left"
-                                    title={entity.subImages?.length ? "클릭: 메인/서브 토글" : ""}
-                                >
-                                    <ProfileCard name={entity.name} imageUrl={profile} className="mb-12 max-w-45" />
-                                </button>
+                                <div className="relative mb-12 max-w-45">
+                                    <button
+                                        type="button"
+                                        onClick={onClickProfile}
+                                        className="text-left w-full"
+                                        title={(entity as any).subImages?.length ? "클릭: 메인/서브 토글" : ""}
+                                    >
+                                        <ProfileCard name={entity.name} imageUrl={profile} />
+                                        {/* ✅ 프로필 이미지 편집 버튼: 카드 우상단 겹침 */}
+                                        {editable && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setEditPanel("profileImage")}
+                                                className={[
+                                                    "absolute top-2 right-2",
+                                                    "h-10 w-10 rounded-2xl",
+                                                    "bg-white/10 border border-white/10",
+                                                    "hover:bg-white/15 transition",
+                                                    "grid place-items-center",
+                                                    "shadow-[0_10px_30px_rgba(0,0,0,0.45)]",
+                                                ].join(" ")}
+                                                title="프로필 이미지 편집"
+                                                aria-label="프로필 이미지 편집"
+                                            >
+                                                <ImageIcon className="w-4 h-4 text-white/85" />
+                                            </button>
+                                        )}
+                                    </button>
+                                </div>
                             </div>
 
                             {/* RIGHT */}
@@ -254,39 +455,94 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
                                     "shadow-[0_18px_70px_rgba(0,0,0,0.65)]",
                                 ].join(" ")}
                             >
-                                {symbolColors.length > 0 && (
-                                    <div className="mb-5 rounded-2xl p-4">
-                                        <div className="mt-3 flex flex-wrap gap-2">
-                                            {symbolColors.map((c: any, idx: number) => (
-                                                <div
-                                                    key={c.hex || `${c.hex}-${idx}`}
-                                                    className="flex items-center gap-2 rounded-full border border-white/10 bg-black/20 px-3 h-9"
-                                                    title={c.name ? `${c.name} (${c.hex})` : c.hex}
-                                                >
-                                                    <span
-                                                        className="w-4 h-4 rounded-full border border-white/20"
-                                                        style={{ backgroundColor: c.hex }}
-                                                    />
-                                                    <span className="text-xs text-white/85">{c.name || "이름 없음"}</span>
-                                                    <span className="text-[11px] text-white/35">{c.hex}</span>
-                                                </div>
-                                            ))}
-                                        </div>
+                                {/* ✅ description (감상 유지 + 길이 초과 스크롤) */}
+                                <div className="px-4 pt-5">
+                                    <div className="flex items-center justify-between">
+                                        <p className="text-xs text-white/60">설명</p>
+                                        {editable && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setEditPanel("basic")}
+                                                className="h-9 w-9 rounded-xl bg-white/10 border border-white/10 hover:bg-white/15 transition grid place-items-center"
+                                                title="설명/태그/메인 이미지 편집"
+                                            >
+                                                <FileText className="w-4 h-4 text-white/80" />
+                                            </button>
+                                        )}
                                     </div>
-                                )}
 
-                                <div className="px-4 shrink-0 lg:max-h-[240px] lg:min-h-[180px] lg:overflow-auto lg:pr-1 scroll-dark">
-                                    <p className="text-sm text-white/70 text-left leading-relaxed whitespace-pre-wrap max-h-[180px] lg:max-h-none overflow-auto lg:overflow-visible">
-                                        {entity.description || "설명이 없습니다"}
-                                    </p>
+                                    <div className="mt-3 max-h-[150px] overflow-y-auto pr-1 scroll-dark">
+                                        <p className="text-sm text-white/70 text-left leading-relaxed whitespace-pre-wrap">
+                                            {(entity as any).description || "설명이 없습니다"}
+                                        </p>
+                                    </div>
                                 </div>
 
-                                <div className="px-4 mt-6 space-y-4 pb-6">
-                                    {entity.subImages?.length > 0 ? (
+                                {/* ✅ symbol colors (감상 유지 + 편집은 Sheet) */}
+                                <div className="px-4 mt-6">
+                                    <div className="flex items-center justify-between">
+                                        <p className="text-xs text-white/60">상징색</p>
+                                        {editable && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setEditPanel("symbolColors")}
+                                                className="h-9 w-9 rounded-xl bg-white/10 border border-white/10 hover:bg-white/15 transition grid place-items-center"
+                                                title="상징색 편집"
+                                            >
+                                                <Palette className="w-4 h-4 text-white/80" />
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {symbolColors.length === 0 ? (
+                                        <p className="text-sm text-white/35 mt-3">상징색이 없습니다.</p>
+                                    ) : (
+                                        <div className="overflow-x-auto pb-2 scroll-dark mt-3">
+                                            <div className="flex gap-2 min-w-max flex-nowrap">
+                                                {symbolColors.map((c) => (
+                                                    <div
+                                                        key={c.id}
+                                                        className="flex items-center gap-2 rounded-full border border-white/10 bg-black/20 px-3 h-9 flex-shrink-0"
+                                                        title={c.name ? `${c.name} (${c.hex})` : c.hex}
+                                                    >
+                                                        <span
+                                                            className="w-4 h-4 rounded-full border border-white/20"
+                                                            style={{ backgroundColor: c.hex }}
+                                                        />
+                                                        <span className="text-xs text-white/85 whitespace-nowrap">
+                                                            {c.name || "이름 없음"}
+                                                        </span>
+                                                        <span className="text-[11px] text-white/35 font-mono whitespace-nowrap">
+                                                            {c.hex}
+                                                        </span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* ✅ sub images (감상 유지 + 편집은 Sheet) */}
+                                <div className="px-4 mt-4 pb-6">
+                                    <div className="flex items-center justify-between">
+                                        <p className="text-xs text-white/60">서브 이미지</p>
+                                        {editable && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setEditPanel("subImages")}
+                                                className="h-9 w-9 rounded-xl bg-white/10 border border-white/10 hover:bg-white/15 transition grid place-items-center"
+                                                title="서브 이미지 편집"
+                                            >
+                                                <Tags className="w-4 h-4 text-white/80" />
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {subImages.length > 0 ? (
                                         <>
-                                            <div className="overflow-x-auto pb-2 scroll-dark">
+                                            <div className="overflow-x-auto pb-2 scroll-dark mt-3">
                                                 <div className="flex gap-3 min-w-max">
-                                                    {entity.subImages.map((s, idx) => {
+                                                    {subImages.map((s, idx) => {
                                                         const active = idx === viewSubIndex;
                                                         return (
                                                             <button
@@ -297,8 +553,10 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
                                                                     setShowSubOnMain(true);
                                                                 }}
                                                                 className={[
-                                                                    "w-32 rounded-xl overflow-hidden border transition flex-shrink-0",
-                                                                    active ? "border-white/40 bg-white/10" : "border-white/10 bg-white/5 hover:border-white/25",
+                                                                    "w-28 rounded-xl overflow-hidden border transition flex-shrink-0",
+                                                                    active
+                                                                        ? "border-white/40 bg-white/10"
+                                                                        : "border-white/10 bg-white/5 hover:border-white/25",
                                                                 ].join(" ")}
                                                                 title="클릭: 메인에 표시"
                                                             >
@@ -311,14 +569,15 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
                                                 </div>
                                             </div>
 
-                                            <div className="shrink-0 lg:max-h-[240px] lg:min-h-[180px] lg:overflow-auto lg:pr-1 scroll-dark mt-10">
-                                                <p className="text-sm text-white/70 text-left leading-relaxed whitespace-pre-wrap max-h-[180px] lg:max-h-none overflow-auto lg:overflow-visible">
-                                                    {entity.subImages[viewSubIndex]?.description || "설명이 없습니다"}
+                                            {/* ✅ 서브 설명: 길이 초과 스크롤 */}
+                                            <div className="mt-4 max-h-[180px] overflow-y-auto pr-1 scroll-dark">
+                                                <p className="text-sm text-white/70 text-left leading-relaxed whitespace-pre-wrap">
+                                                    {subImages[viewSubIndex]?.description || "설명이 없습니다"}
                                                 </p>
                                             </div>
                                         </>
                                     ) : (
-                                        <div className="text-white/40 text-sm">서브 이미지가 없습니다.</div>
+                                        <div className="text-white/40 text-sm mt-3">서브 이미지가 없습니다.</div>
                                     )}
                                 </div>
                             </div>
@@ -328,10 +587,322 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
                             className="absolute left-1/2 -translate-x-1/2 top-[-12px] text-xs text-white transition-opacity duration-700 cursor-pointer opacity-40 hover:opacity-80"
                             onClick={onClose}
                         >
-                            ESC를 누르거나 클릭하여 돌아가기
+                            ESC를 누르거나 상단 X를 눌러 돌아가기
                         </div>
                     </div>
                 </div>
+
+                {/* ✅ RIGHT SLIDE SHEET */}
+                {editable && editPanel && (
+                    <div className="fixed inset-0 z-[10000]">
+                        <div
+                            className="absolute inset-0 bg-black/55 backdrop-blur-sm"
+                            onClick={() => setEditPanel(null)}
+                        />
+                        <div
+                            className={[
+                                "absolute right-0 top-0 h-full w-[420px] max-w-[92vw]",
+                                "bg-zinc-950/95 border-l border-white/10",
+                                "shadow-[0_0_0_1px_rgba(255,255,255,0.06),-20px_0_80px_rgba(0,0,0,0.55)]",
+                                "backdrop-blur-2xl",
+                                "translate-x-0",
+                            ].join(" ")}
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            {/* header */}
+                            <div className="h-16 px-5 flex items-center justify-between border-b border-white/10">
+                                <div className="text-sm font-semibold text-white">
+                                    {editPanel === "basic" && "기본 정보"}
+                                    {editPanel === "profileImage" && "프로필 이미지"}
+                                    {editPanel === "symbolColors" && "상징색 편집"}
+                                    {editPanel === "subImages" && "서브 이미지 편집"}
+                                </div>
+                                <button
+                                    className="h-10 w-10 rounded-xl bg-white/10 border border-white/10 hover:bg-white/15 transition grid place-items-center"
+                                    onClick={() => setEditPanel(null)}
+                                    title="닫기"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+
+                            {/* body */}
+                            <div className="h-[calc(100%-64px)] overflow-y-auto p-5 space-y-6 scroll-dark">
+                                {/* BASIC: 이름/설명/태그/메인이미지 */}
+                                {editPanel === "basic" && (
+                                    <>
+                                        <div className="rounded-2xl border border-white/10 bg-black/20 p-4 space-y-3">
+                                            <p className="text-xs text-white/60">이름</p>
+                                            <input
+                                                value={nameDraft}
+                                                onChange={(e) => {
+                                                    const v = e.target.value;
+                                                    setNameDraft(v);
+                                                    patch({ name: v } as any);
+                                                }}
+                                                className="w-full h-11 px-4 rounded-xl bg-black/25 border border-white/10 text-white outline-none focus:ring-2 focus:ring-white/20"
+                                                placeholder="이름"
+                                            />
+                                        </div>
+
+                                        <div className="rounded-2xl border border-white/10 bg-black/20 p-4 space-y-3">
+                                            <p className="text-xs text-white/60">설명</p>
+                                            <textarea
+                                                value={descDraft}
+                                                onChange={(e) => {
+                                                    const v = e.target.value;
+                                                    setDescDraft(v);
+                                                    patch({ description: v } as any);
+                                                }}
+                                                className="w-full h-48 p-4 rounded-2xl bg-black/25 border border-white/10 text-white outline-none focus:ring-2 focus:ring-white/20 resize-none overflow-y-auto"
+                                                placeholder="설명"
+                                            />
+                                            <p className="text-[11px] text-white/35">길이가 길어지면 내부 스크롤이 생깁니다.</p>
+                                        </div>
+
+                                        {/* ✅ TAGS SELECTOR */}
+                                        <TagMultiSelect
+                                            label="태그(서브태그 선택)"
+                                            options={tagOptions}
+                                            value={tagDraft}
+                                            onChange={(next) => {
+                                                setTagDraft(next);
+                                                patch({ subCategories: next } as any);
+                                            }}
+                                        />
+
+                                        {/* ✅ MAIN IMAGE moved here */}
+                                        <div className="rounded-2xl border border-white/10 bg-black/20 p-4 space-y-3">
+                                            <p className="text-xs text-white/60">메인 이미지</p>
+                                            <ImageUpload
+                                                value={mainImageDraft || ""}
+                                                onChange={(v) => {
+                                                    setMainImageDraft(v);
+                                                    patch({ mainImage: v } as any);
+                                                }}
+                                                aspect="video"
+                                            />
+
+                                            <p className="text-xs text-white/60 mt-2">메인 이미지 설명</p>
+                                            <textarea
+                                                value={mainDescDraft}
+                                                onChange={(e) => {
+                                                    const v = e.target.value;
+                                                    setMainDescDraft(v);
+                                                    patch({ mainImageDesc: v } as any);
+                                                }}
+                                                className="w-full h-36 p-4 rounded-2xl bg-black/25 border border-white/10 text-white outline-none focus:ring-2 focus:ring-white/20 resize-none overflow-y-auto"
+                                                placeholder="메인 이미지 설명"
+                                            />
+                                        </div>
+                                    </>
+                                )}
+
+                                {/* PROFILE IMAGE only */}
+                                {editPanel === "profileImage" && (
+                                    <div className="rounded-2xl border border-white/10 bg-black/20 p-4 space-y-3">
+                                        <p className="text-xs text-white/60">프로필 이미지</p>
+                                        <ImageUpload
+                                            value={(entity as any).profileImage || ""}
+                                            onChange={(v) => patch({ profileImage: v } as any)}
+                                            aspect="square"
+                                        />
+                                        <p className="text-[11px] text-white/35">
+                                            이 이미지는 ProfileCard에 사용됩니다.
+                                        </p>
+                                    </div>
+                                )}
+
+                                {/* SYMBOL COLORS */}
+                                {editPanel === "symbolColors" && (
+                                    <div className="space-y-3">
+                                        <button
+                                            type="button"
+                                            onClick={addSymbolColor}
+                                            className="h-10 px-4 rounded-xl bg-white/10 border border-white/10 hover:bg-white/15 transition inline-flex items-center gap-2"
+                                        >
+                                            <Plus className="w-4 h-4" />
+                                            <span className="text-sm">상징색 추가</span>
+                                        </button>
+
+                                        {symbolColors.length === 0 ? (
+                                            <p className="text-sm text-white/40">상징색이 없습니다.</p>
+                                        ) : (
+                                            <div className="space-y-2">
+                                                {symbolColors.map((c) => {
+                                                    const rgb = hexToRgb(c.hex) || { r: 68, g: 68, b: 68 };
+                                                    const safeHex = isHex6(c.hex) ? c.hex : "#444444";
+
+                                                    return (
+                                                        <div
+                                                            key={c.id}
+                                                            className="rounded-2xl border border-white/10 bg-black/20 p-3 space-y-3"
+                                                        >
+                                                            <div>
+                                                                <p className="text-xs text-white/60 mb-2">이름</p>
+                                                                <input
+                                                                    value={c.name}
+                                                                    onChange={(e) => updateSymbolColor(c.id, { name: e.target.value })}
+                                                                    className="w-full h-10 px-3 rounded-xl bg-black/25 border border-white/10 text-white outline-none focus:ring-2 focus:ring-white/20"
+                                                                    placeholder="이름"
+                                                                />
+                                                            </div>
+
+                                                            {/* palette + hex */}
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="flex items-center gap-2">
+                                                                    <span
+                                                                        className="w-6 h-6 rounded-full border border-white/20"
+                                                                        style={{ backgroundColor: safeHex }}
+                                                                        title={safeHex}
+                                                                    />
+                                                                    <input
+                                                                        type="color"
+                                                                        value={safeHex}
+                                                                        onChange={(e) =>
+                                                                            updateSymbolColor(c.id, { hex: e.target.value.toUpperCase() })
+                                                                        }
+                                                                        className="h-10 w-12 rounded-lg bg-transparent border border-white/10"
+                                                                        title="팔레트로 선택"
+                                                                    />
+                                                                </div>
+
+                                                                <div className="flex-1">
+                                                                    <p className="text-xs text-white/60 mb-2">HEX</p>
+                                                                    <input
+                                                                        value={c.hex}
+                                                                        onChange={(e) =>
+                                                                            updateSymbolColor(c.id, { hex: e.target.value.toUpperCase() })
+                                                                        }
+                                                                        className="w-full h-10 px-3 rounded-xl bg-black/25 border border-white/10 text-white outline-none focus:ring-2 focus:ring-white/20 font-mono text-xs"
+                                                                        placeholder="#RRGGBB"
+                                                                    />
+                                                                </div>
+
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => removeSymbolColor(c.id)}
+                                                                    className="h-10 w-10 rounded-xl bg-red-500/15 border border-red-500/25 hover:bg-red-500/20 transition grid place-items-center self-end"
+                                                                    title="삭제"
+                                                                >
+                                                                    <Trash2 className="w-4 h-4 text-white/80" />
+                                                                </button>
+                                                            </div>
+
+                                                            {/* rgb */}
+                                                            <div className="grid grid-cols-3 gap-2">
+                                                                {(["r", "g", "b"] as const).map((k) => (
+                                                                    <div key={k}>
+                                                                        <p className="text-xs text-white/60 mb-2">{k.toUpperCase()}</p>
+                                                                        <input
+                                                                            type="number"
+                                                                            min={0}
+                                                                            max={255}
+                                                                            value={rgb[k]}
+                                                                            onChange={(e) => {
+                                                                                const v = clamp255(Number(e.target.value || 0));
+                                                                                const next = { ...rgb, [k]: v };
+                                                                                updateSymbolColor(c.id, {
+                                                                                    hex: rgbToHex(next.r, next.g, next.b),
+                                                                                });
+                                                                            }}
+                                                                            className="w-full h-10 px-3 rounded-xl bg-black/25 border border-white/10 text-white outline-none focus:ring-2 focus:ring-white/20"
+                                                                        />
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* SUB IMAGES */}
+                                {editPanel === "subImages" && (
+                                    <div className="space-y-4">
+                                        <button
+                                            type="button"
+                                            onClick={addSubImage}
+                                            className="h-10 px-4 rounded-xl bg-white/10 border border-white/10 hover:bg-white/15 transition inline-flex items-center gap-2"
+                                        >
+                                            <Plus className="w-4 h-4" />
+                                            <span className="text-sm">서브 이미지 추가</span>
+                                        </button>
+
+                                        {subImages.length === 0 ? (
+                                            <p className="text-sm text-white/40">서브 이미지가 없습니다.</p>
+                                        ) : (
+                                            <>
+                                                <div className="overflow-x-auto pb-2 scroll-dark">
+                                                    <div className="flex gap-3 min-w-max">
+                                                        {subImages.map((s, idx) => {
+                                                            const active = idx === viewSubIndex;
+                                                            return (
+                                                                <div
+                                                                    key={idx}
+                                                                    className={[
+                                                                        "w-28 rounded-xl overflow-hidden border transition flex-shrink-0",
+                                                                        active
+                                                                            ? "border-white/40 bg-white/10"
+                                                                            : "border-white/10 bg-white/5 hover:border-white/25",
+                                                                    ].join(" ")}
+                                                                >
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => setViewSubIndex(idx)}
+                                                                        className="w-full"
+                                                                        title="선택"
+                                                                    >
+                                                                        <div className="aspect-square bg-black/30 flex items-center justify-center">
+                                                                            <SubThumbInner image={s.image} alt={`sub-${idx}`} />
+                                                                        </div>
+                                                                    </button>
+
+                                                                    <div className="p-2 border-t border-white/10 bg-black/20">
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => removeSubImage(idx)}
+                                                                            className="w-full h-9 rounded-xl bg-red-500/15 border border-red-500/25 hover:bg-red-500/20 transition text-sm"
+                                                                        >
+                                                                            삭제
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+
+                                                <div className="rounded-2xl border border-white/10 bg-black/20 p-4 space-y-3">
+                                                    <p className="text-xs text-white/60">서브 이미지 업로드</p>
+                                                    <ImageUpload
+                                                        value={subImages[viewSubIndex]?.image || ""}
+                                                        onChange={(v) => updateSubImage(viewSubIndex, { image: v })}
+                                                        aspect="square"
+                                                    />
+                                                </div>
+
+                                                <div className="rounded-2xl border border-white/10 bg-black/20 p-4 space-y-3">
+                                                    <p className="text-xs text-white/60">서브 이미지 설명</p>
+                                                    <textarea
+                                                        value={subImages[viewSubIndex]?.description || ""}
+                                                        onChange={(e) =>
+                                                            updateSubImage(viewSubIndex, { description: e.target.value })
+                                                        }
+                                                        className="w-full h-48 p-4 rounded-2xl bg-black/25 border border-white/10 text-white outline-none focus:ring-2 focus:ring-white/20 resize-none overflow-y-auto"
+                                                        placeholder="서브 이미지 설명"
+                                                    />
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -345,5 +916,134 @@ function SubThumbInner(props: { image: string; alt?: string }) {
         return <div className="w-full h-full grid place-items-center text-white/30 text-xs">NO</div>;
     }
 
-    return <img src={resolved} alt={alt} loading="lazy" decoding="async" className="w-full h-full object-contain" />;
+    return (
+        <img
+            src={resolved}
+            alt={alt}
+            loading="lazy"
+            decoding="async"
+            className="w-full h-full object-contain"
+        />
+    );
+}
+
+/** ✅ 태그 데이터에서 선택(검색/체크/멀티) */
+function TagMultiSelect(props: {
+    label?: string;
+    options: string[];
+    value: string[];
+    onChange: (next: string[]) => void;
+}) {
+    const { label = "태그", options, value, onChange } = props;
+    const [open, setOpen] = useState(false);
+    const [q, setQ] = useState("");
+
+    const filtered = useMemo(() => {
+        const qq = q.trim().toLowerCase();
+        const base = (options || []).filter(Boolean);
+        if (!qq) return base.slice(0, 200);
+        return base.filter((t) => t.toLowerCase().includes(qq)).slice(0, 200);
+    }, [options, q]);
+
+    const toggle = (t: string) => {
+        const has = value.includes(t);
+        const next = has ? value.filter((x) => x !== t) : [...value, t];
+        onChange(next);
+    };
+
+    const remove = (t: string) => onChange(value.filter((x) => x !== t));
+
+    return (
+        <div className="rounded-2xl border border-white/10 bg-black/20 p-4 space-y-3">
+            <div className="flex items-center justify-between">
+                <p className="text-xs text-white/60">{label}</p>
+                <button
+                    type="button"
+                    onClick={() => setOpen((v) => !v)}
+                    className="h-9 px-3 rounded-xl bg-white/10 border border-white/10 hover:bg-white/15 transition text-xs inline-flex items-center gap-2"
+                    title="태그 선택"
+                >
+                    <Tags className="w-4 h-4" />
+                    {open ? "닫기" : "선택"}
+                </button>
+            </div>
+
+            {/* selected chips */}
+            <div className="flex flex-wrap gap-2">
+                {value.length === 0 ? (
+                    <span className="text-xs text-white/35">선택된 태그 없음</span>
+                ) : (
+                    value.map((t) => (
+                        <button
+                            key={t}
+                            type="button"
+                            onClick={() => remove(t)}
+                            className="px-3 h-8 rounded-full bg-white/10 border border-white/10 hover:bg-white/15 transition inline-flex items-center gap-2 text-xs"
+                            title="클릭: 제거"
+                        >
+                            <span className="text-white/85">{t}</span>
+                            <X className="w-3.5 h-3.5 text-white/60" />
+                        </button>
+                    ))
+                )}
+            </div>
+
+            {open && (
+                <div className="mt-2 rounded-2xl border border-white/10 bg-black/25 overflow-hidden">
+                    <div className="p-3 border-b border-white/10 flex items-center gap-2">
+                        <Search className="w-4 h-4 text-white/50" />
+                        <input
+                            value={q}
+                            onChange={(e) => setQ(e.target.value)}
+                            className="w-full h-10 px-3 rounded-xl bg-black/25 border border-white/10 text-white outline-none focus:ring-2 focus:ring-white/20"
+                            placeholder="태그 검색"
+                        />
+                    </div>
+
+                    {options.length === 0 ? (
+                        <div className="p-4 text-sm text-white/40">
+                            카테고리가 존재 하지 않습니다! 서브 카테고리를 추가해주세요.
+                        </div>
+                    ) : (
+                        <div className="max-h-[260px] overflow-y-auto p-2 scroll-dark">
+                            {filtered.length === 0 ? (
+                                <div className="p-4 text-sm text-white/40">검색 결과 없음</div>
+                            ) : (
+                                <div className="space-y-1">
+                                    {filtered.map((t) => {
+                                        const checked = value.includes(t);
+                                        return (
+                                            <button
+                                                key={t}
+                                                type="button"
+                                                onClick={() => toggle(t)}
+                                                className={[
+                                                    "w-full h-11 px-3 rounded-xl",
+                                                    "flex items-center justify-between",
+                                                    "border transition",
+                                                    checked
+                                                        ? "bg-white/10 border-white/25"
+                                                        : "bg-black/20 border-white/10 hover:border-white/20 hover:bg-white/5",
+                                                ].join(" ")}
+                                            >
+                                                <span className="text-sm text-white/85">{t}</span>
+                                                <span
+                                                    className={[
+                                                        "h-6 w-6 rounded-lg grid place-items-center border",
+                                                        checked ? "border-white/30 bg-white/10" : "border-white/10 bg-black/20",
+                                                    ].join(" ")}
+                                                >
+                                                    {checked && <Check className="w-4 h-4 text-white/85" />}
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            )}
+        </div>
+    );
 }
