@@ -19,16 +19,7 @@ type ImageUploadProps = {
   accept?: string;
   className?: string;
 
-  /**
-   * ✅ 추가: 미리보기 비율 프리셋
-   * - 기본값: "video"
-   */
   aspect?: ImageUploadAspect;
-
-  /**
-   * ✅ 기존 유지: 커스텀 클래스(우선 적용)
-   * - aspect보다 우선순위가 높음
-   */
   previewClassName?: string;
 };
 
@@ -43,17 +34,12 @@ export default function ImageUpload({
   placeholder = "이미지 URL을 입력하세요",
   accept = "image/*",
   className,
-
-  // ✅ 기본 aspect는 video
   aspect = "video",
-
-  // ✅ 커스텀 프리뷰 클래스 (있으면 이게 우선)
   previewClassName,
 }: ImageUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string>("");
 
-  // ✅ preview 생성
   useEffect(() => {
     let url = "";
     let alive = true;
@@ -124,15 +110,31 @@ export default function ImageUpload({
 
   const finalPreviewClassName = previewClassName ?? aspectToClass(aspect);
 
+  // ✅ 다크 톤 공통 클래스
+  const inputCls = [
+    "w-full h-11 px-3 rounded-xl",
+    "bg-black/25 text-white",
+    "border border-white/10",
+    "placeholder:text-white/30",
+    "outline-none",
+    "focus:ring-2 focus:ring-white/15 focus:border-white/20",
+    "transition",
+  ].join(" ");
+
+  const softBtnWrap = [
+    "rounded-xl border border-white/10 bg-white/5",
+    "hover:bg-white/10 transition",
+  ].join(" ");
+
   return (
     <div className={className}>
-      {label && <div className="mb-2 text-xs text-muted-foreground">{label}</div>}
+      {label && <div className="mb-2 text-xs text-white/55">{label}</div>}
 
       {/* ✅ Preview Frame */}
       <div
         className={[
-          "relative mb-3 rounded-xl border border-border overflow-hidden",
-          "bg-secondary/30 p-2",
+          "relative mb-3 rounded-2xl border border-white/10 overflow-hidden",
+          "bg-black/20 p-2",
           finalPreviewClassName,
         ].join(" ")}
       >
@@ -151,7 +153,7 @@ export default function ImageUpload({
             </div>
           </>
         ) : (
-          <div className="w-full h-full grid place-items-center text-xs text-muted-foreground">
+          <div className="w-full h-full grid place-items-center text-xs text-white/35">
             미리보기
           </div>
         )}
@@ -165,20 +167,29 @@ export default function ImageUpload({
         className="hidden"
       />
 
+      {/* ✅ URL 입력 */}
       <input
         type="text"
         placeholder={placeholder}
         value={value?.startsWith("img:") ? "" : value}
         onChange={handleUrlChange}
-        className="w-full px-3 h-10 rounded-lg border border-border bg-background text-black"
+        className={inputCls}
       />
 
-      <GButton
-        variant="default"
-        text="파일 선택"
-        onClick={() => fileInputRef.current?.click()}
-        className="w-full mb-2"
-      />
+      {/* ✅ 파일 선택 버튼도 다크톤으로 “박스” 안에 넣어서 튀는 느낌 제거 */}
+      <div className={["mt-3 p-2", softBtnWrap].join(" ")}>
+        <GButton
+          // 가능하면 ghost/secondary가 더 예쁨. 없으면 default 유지해도 래핑으로 톤이 맞음.
+          variant="default"
+          text="파일 선택"
+          onClick={() => fileInputRef.current?.click()}
+          className={[
+            "w-full",
+            // ✅ 버튼 자체도 다크 톤으로 덮어쓰기 (GButton이 className 반영한다는 가정)
+            "bg-white/10 hover:bg-white/15 text-white border border-white/10",
+          ].join(" ")}
+        />
+      </div>
     </div>
   );
 }

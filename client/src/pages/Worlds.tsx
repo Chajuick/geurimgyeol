@@ -18,7 +18,6 @@ export default function Worlds() {
   const { data, setData, editMode } = usePortfolioContext();
 
   const [currentWorldIndex, setCurrentWorldIndex] = useState(0);
-  const [currentDisplayIndex, setCurrentDisplayIndex] = useState(0);
 
   const [isAddingWorld, setIsAddingWorld] = useState(false);
   const [isAddingItem, setIsAddingItem] = useState(false);
@@ -59,17 +58,6 @@ export default function Worlds() {
       })) || []),
     ].filter((it) => !!it.data); // 안전: 없는 참조 제거
   }, [currentWorld, data.characters, data.creatures]);
-
-  // ✅ display index 안전장치
-  useEffect(() => {
-    if (displayItems.length === 0) {
-      setCurrentDisplayIndex(0);
-      return;
-    }
-    setCurrentDisplayIndex((prev) =>
-      Math.min(Math.max(prev, 0), displayItems.length - 1)
-    );
-  }, [displayItems.length]);
 
   useEffect(() => {
     if (!worlds.length) return;
@@ -131,7 +119,6 @@ export default function Worlds() {
 
     setIsAddingWorld(false);
     setCurrentWorldIndex(worlds.length);
-    setCurrentDisplayIndex(0);
   };
 
   const handleDeleteWorld = () => {
@@ -139,17 +126,14 @@ export default function Worlds() {
     const newWorlds = worlds.filter((_, i) => i !== currentWorldIndex);
     setData({ ...data, worlds: newWorlds });
     setCurrentWorldIndex(Math.max(0, currentWorldIndex - 1));
-    setCurrentDisplayIndex(0);
   };
 
   const handleNextWorld = () => {
     setCurrentWorldIndex((prev) => (prev + 1) % worlds.length);
-    setCurrentDisplayIndex(0);
   };
 
   const handlePrevWorld = () => {
     setCurrentWorldIndex((prev) => (prev - 1 + worlds.length) % worlds.length);
-    setCurrentDisplayIndex(0);
   };
 
   const handleAddItem = (characterId?: string, creatureId?: string) => {
@@ -169,7 +153,6 @@ export default function Worlds() {
 
     setIsAddingItem(false);
     setSearch("");
-    setCurrentDisplayIndex(displayItems.length);
   };
 
   const handleDeleteItemByRefId = (
@@ -189,8 +172,6 @@ export default function Worlds() {
       );
       handleUpdateWorld({ worldCreatures: newCreatures });
     }
-
-    setCurrentDisplayIndex((prev) => Math.max(0, prev - 1));
   };
 
   // ✅ img: 키 렌더용 변환
@@ -478,9 +459,7 @@ export default function Worlds() {
                           key={it.id}
                           name={it.data?.name}
                           image={it.data?.profileImage}
-                          active={idx === currentDisplayIndex}
                           editMode={editMode}
-                          onClick={() => setCurrentDisplayIndex(idx)}
                           onDelete={() => handleDeleteItemByRefId(it.id, it.type)}
                         />
                       ))}
@@ -529,6 +508,7 @@ export default function Worlds() {
               <ImageUpload
                 value={newWorldIconImage}
                 onChange={setNewWorldIconImage}
+                aspect="square"
               />
             </div>
 

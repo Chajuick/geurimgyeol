@@ -86,11 +86,11 @@ export default function EntityCategoryBar(props: {
     <>
       <div
         className={[
-          "fixed top-0 inset-x-0 z-20 gyeol-bg backdrop-blur border-b border-white/5 opacity-95",
+          "gyeol-bg backdrop-blur border-b border-white/5 opacity-95",
           className || "",
         ].join(" ")}
       >
-        <div className="px-12 pt-12 pb-8">
+        <div className="p-12 pb-8">
           <div className="flex items-end justify-between gap-6">
             <div>
               <p className="text-lg text-white/60 mb-2">{titleTop}</p>

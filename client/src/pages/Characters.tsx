@@ -107,10 +107,11 @@ export default function Characters() {
     [charactersNormalized, viewModalId]
   );
 
+  // ✅ sub categories only -> tagOptions
   const subTagOptions = useMemo(() => {
     const set = new Set<string>();
     for (const cg of categories) {
-      for (const s of (cg.subs || [])) {
+      for (const s of cg.subs || []) {
         const v = (s || "").trim();
         if (v) set.add(v);
       }
@@ -172,7 +173,7 @@ export default function Characters() {
     };
     updateCharacters([...charactersNormalized, payload]);
     setSelectedId(payload.id);
-    openDetail(payload.id); // ✅ 추가하자마자 상세에서 편집
+    openDetail(payload.id);
   }, [charactersNormalized, updateCharacters, openDetail]);
 
   const deleteCharacter = useCallback(
@@ -187,7 +188,7 @@ export default function Characters() {
     [charactersNormalized, updateCharacters]
   );
 
-  // ✅ Detail에서 patch 들어오면 즉시 저장
+  // ✅ Detail patch -> 즉시 저장
   const patchCharacter = useCallback(
     (id: string, patch: Partial<Character>) => {
       const next = charactersNormalized.map((c) =>
@@ -201,8 +202,9 @@ export default function Characters() {
   return (
     <div
       className={[
-        "min-h-screen gyeol-bg text-white",
-        viewModalChar ? "max-h-[100vh] overflow-hidden" : "",
+        // ✅ 앱 전체 스크롤 막고, 그리드 영역만 스크롤
+        "h-screen overflow-hidden gyeol-bg text-white flex flex-col",
+        viewModalChar ? "max-h-[100vh]" : "",
       ].join(" ")}
     >
       <EntityCategoryBar
@@ -215,7 +217,6 @@ export default function Characters() {
         setActiveMain={setActiveMain}
         setActiveSub={setActiveSub}
         onSaveCategories={handleSaveCategories}
-        className="ml-0 md:ml-20"
         rightActions={
           editMode ? (
             <GButton
@@ -228,34 +229,37 @@ export default function Characters() {
         }
       />
 
-      <div className="px-14 py-10 min-h-screen pt-[340px]">
-        {filtered.length === 0 ? (
-          <div className="py-32 text-center text-zinc-500 text-sm tracking-wide">
-            해당 카테고리에 캐릭터가 없습니다.
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-6">
-            {filtered.map((c) => (
-              <EntityGridCard
-                key={c.id}
-                id={c.id}
-                name={c.name}
-                subCategories={c.subCategories}
-                image={c.profileImage}
-                symbolColors={c.symbolColors}
-                selected={c.id === selectedId}
-                editMode={editMode}
-                onSelect={(id) => setSelectedId(id)}
-                onOpen={(id) => openDetail(id)}
-                onEdit={(id) => openDetail(id)} // ✅ 편집=상세로 (상세에서 편집)
-                onDelete={(id) => setConfirmDeleteId(id)}
-              />
-            ))}
-          </div>
-        )}
+      {/* ✅ 그리드 영역만 스크롤 */}
+      <div className="flex-1 min-h-0 overflow-y-auto scroll-dark">
+        <div className="px-14 py-10 min-h-full">
+          {filtered.length === 0 ? (
+            <div className="py-32 text-center text-zinc-500 text-sm tracking-wide">
+              해당 카테고리에 캐릭터가 없습니다.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-6">
+              {filtered.map((c) => (
+                <EntityGridCard
+                  key={c.id}
+                  id={c.id}
+                  name={c.name}
+                  subCategories={c.subCategories}
+                  image={c.profileImage}
+                  symbolColors={c.symbolColors}
+                  selected={c.id === selectedId}
+                  editMode={editMode}
+                  onSelect={(id) => setSelectedId(id)}
+                  onOpen={(id) => openDetail(id)}
+                  onEdit={(id) => openDetail(id)}
+                  onDelete={(id) => setConfirmDeleteId(id)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* ✅ 상세 (감상 유지 + editMode일 때만 편집 버튼들 노출) */}
+      {/* ✅ 상세 */}
       {viewModalChar && (
         <EntityDetailFullscreen
           entity={viewModalChar}

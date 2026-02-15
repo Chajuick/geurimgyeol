@@ -297,16 +297,6 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
                             <>
                                 <button
                                     type="button"
-                                    onClick={() => setEditPanel("basic")}
-                                    className="h-10 px-4 rounded-xl bg-white/10 border border-white/10 hover:bg-white/15 transition inline-flex items-center gap-2"
-                                    title="기본 정보 편집"
-                                >
-                                    <FileText className="w-4 h-4" />
-                                    <span className="text-sm">편집</span>
-                                </button>
-
-                                <button
-                                    type="button"
                                     onClick={onDelete}
                                     className="h-10 px-4 rounded-xl bg-red-500/15 border border-red-500/25 hover:bg-red-500/20 transition inline-flex items-center gap-2"
                                 >
@@ -662,7 +652,7 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
 
                                         {/* ✅ TAGS SELECTOR */}
                                         <TagMultiSelect
-                                            label="태그(서브태그 선택)"
+                                            label="카테고리"
                                             options={tagOptions}
                                             value={tagDraft}
                                             onChange={(next) => {
@@ -913,7 +903,7 @@ function SubThumbInner(props: { image: string; alt?: string }) {
     const resolved = useResolvedImage(image || "");
 
     if (!resolved) {
-        return <div className="w-full h-full grid place-items-center text-white/30 text-xs">NO</div>;
+        return <div className="w-full h-full grid place-items-center text-white/30 text-xs">NO IMAGE</div>;
     }
 
     return (
@@ -996,7 +986,7 @@ function TagMultiSelect(props: {
                             value={q}
                             onChange={(e) => setQ(e.target.value)}
                             className="w-full h-10 px-3 rounded-xl bg-black/25 border border-white/10 text-white outline-none focus:ring-2 focus:ring-white/20"
-                            placeholder="태그 검색"
+                            placeholder="카테고리 검색"
                         />
                     </div>
 

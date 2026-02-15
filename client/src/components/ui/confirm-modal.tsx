@@ -37,14 +37,23 @@ export default function ConfirmModal(props: {
       <div className="absolute inset-0 grid place-items-center p-6">
         <div className="w-full max-w-md rounded-3xl border border-white/10 bg-zinc-950/95 shadow-[0_20px_80px_rgba(0,0,0,.65)] overflow-hidden">
           <div className="px-6 py-5 flex flex-col items-center gap-4">
-            <p className="text-lg font-semibold text-white">{title}</p>
-            <p className="mt-1 text-sm text-white/60 leading-relaxed">
+            <p className="text-lg font-semibold text-white text-center">
+              {title}
+            </p>
+
+            {/* ✅ 줄바꿈 + 가운데 정렬 적용 */}
+            <p className="mt-1 text-sm text-white/60 leading-relaxed text-center whitespace-pre-line max-w-prose mx-auto break-words">
               {description}
             </p>
           </div>
 
           <div className="px-6 pt-2 pb-4 flex items-center justify-center gap-2">
-            <GButton variant="ghost" text={cancelText} onClick={onClose} className="px-6" />
+            <GButton
+              variant="ghost"
+              text={cancelText}
+              onClick={onClose}
+              className="px-6"
+            />
             <GButton
               variant={danger ? "danger" : "primary"}
               text={confirmText}

@@ -112,7 +112,7 @@ const EntityGridCard = memo(function EntityGridCard({
 
       {/* ✅ edit overlay buttons */}
       {editMode && (
-        <div className="absolute top-2 right-2 flex gap-2">
+        <div className="absolute top-2 right-2 flex gap-1">
           <button
             type="button"
             onClick={handleEdit}
