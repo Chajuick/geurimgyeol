@@ -1,6 +1,6 @@
 import type { PortfolioData } from "@/types";
 
-export const DEFAULT_PORTFOLIO_DATA: PortfolioData = {
+export const INIT_PORTFOLIO_DATA: PortfolioData = {
   /* =========================================================
      👤 Profile
   ========================================================= */

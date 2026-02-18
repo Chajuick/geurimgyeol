@@ -62,7 +62,7 @@ const EntityGridCard = memo(function EntityGridCard({
   );
 
   return (
-    <button
+    <div
       onClick={handleClick}
       style={{
         boxShadow: selected ? `0 0 8px ${c1}CC, 0 0 12px ${c1}99` : undefined,
@@ -134,7 +134,7 @@ const EntityGridCard = memo(function EntityGridCard({
           </button>
         </div>
       )}
-    </button>
+    </div>
   );
 });
 

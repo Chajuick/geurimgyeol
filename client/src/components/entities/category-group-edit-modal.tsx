@@ -155,7 +155,7 @@ export default function CategoryGroupEditModal({
             )}
           >
             <div className="flex items-center justify-between gap-3">
-              <div className="text-xs text-white/60">
+              <div className="px-3 text-xs text-white/60">
                 {mainLabel}/{subLabel}를 추가/삭제/이름 변경할 수 있어요.
               </div>
 
@@ -174,7 +174,7 @@ export default function CategoryGroupEditModal({
                 카테고리가 없습니다. 상단의 “{mainLabel} 추가”를 눌러주세요.
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-4 px-4">
                 {draft.map((cg, idx) => {
                   const subs = cg.subs || [];
                   const curSub = subDraft[idx] ?? "";

@@ -13,6 +13,28 @@ import { useMemo, useState, useEffect } from "react";
 import { useResolvedImage } from "@/hooks/useResolvedImage";
 import WorldThumbCard from "@/components/worlds/WorldThumbCard";
 import AddItemCard from "@/components/worlds/AddItemCard";
+import { cx } from "class-variance-authority";
+
+const inputCls = cx(
+  "w-full h-10 px-3 rounded-xl",
+  "bg-black/25 text-white",
+  "border border-white/10",
+  "placeholder:text-white/30",
+  "outline-none",
+  "focus:ring-2 focus:ring-white/15 focus:border-white/20",
+  "transition"
+);
+
+const textareaCls = cx(
+  "w-full min-h-28 p-3 rounded-xl",
+  "bg-black/25 text-white",
+  "border border-white/10",
+  "placeholder:text-white/30",
+  "outline-none",
+  "focus:ring-2 focus:ring-white/15 focus:border-white/20",
+  "transition",
+  "resize-none"
+);
 
 export default function Worlds() {
   const { data, setData, editMode } = usePortfolioContext();
@@ -253,8 +275,7 @@ export default function Worlds() {
                 value={newWorldName}
                 onChange={(e) => setNewWorldName(e.target.value)}
                 placeholder="세계관 이름"
-                className="w-full h-10 px-3 rounded-xl border border-border bg-background text-foreground
-                  focus:outline-none focus:ring-2 focus:ring-white/20 transition"
+                className={inputCls}
                 onKeyDown={(e) => e.key === "Enter" && handleAddWorld()}
               />
             </div>
@@ -265,8 +286,7 @@ export default function Worlds() {
                 value={newWorldDesc}
                 onChange={(e) => setNewWorldDesc(e.target.value)}
                 placeholder="세계관 설정을 입력하세요"
-                className="w-full min-h-28 p-3 rounded-xl border border-border bg-background text-foreground resize-none
-                  focus:outline-none focus:ring-2 focus:ring-white/20 transition"
+                className={textareaCls}
               />
             </div>
           </div>
@@ -408,15 +428,13 @@ export default function Worlds() {
               </div>
 
               {/* ✅ DESCRIPTION: 일정 높이 + 스크롤 (lg 이상) */}
-              <div className="shrink-0 lg:max-h-[240px] lg:min-h-[180px] lg:overflow-auto lg:pr-1 scroll-dark">
+              <div className="shrink-0 lg:max-h-[250px] lg:min-h-[180px] lg:overflow-auto lg:pr-1 scroll-dark pt-6">
                 {editMode && <div className="text-left text-xs text-white/60 mb-3">설정</div>}
                 {editMode ? (
                   <textarea
                     value={currentWorld.description}
                     onChange={(e) => handleUpdateWorld({ description: e.target.value })}
-                    className="w-full bg-white/10 border border-white/0 rounded-xl px-3 py-2 text-sm text-white
-            focus:outline-none focus:ring-2 focus:ring-white/20 resize-none
-            h-[180px] lg:h-full"
+                    className={textareaCls}
                     placeholder="세계관 설정을 입력하세요"
                   />
                 ) : (
@@ -529,8 +547,7 @@ export default function Worlds() {
                 value={newWorldName}
                 onChange={(e) => setNewWorldName(e.target.value)}
                 placeholder="세계관 이름"
-                className="w-full h-10 px-3 rounded-xl border border-border bg-background text-foreground
-                  focus:outline-none focus:ring-2 focus:ring-white/20 transition"
+                className={inputCls}
                 onKeyDown={(e) => e.key === "Enter" && handleAddWorld()}
               />
             </div>
@@ -541,8 +558,7 @@ export default function Worlds() {
                 value={newWorldDesc}
                 onChange={(e) => setNewWorldDesc(e.target.value)}
                 placeholder="세계관 설정을 입력하세요"
-                className="w-full min-h-28 p-3 rounded-xl border border-border bg-background text-foreground resize-none
-                  focus:outline-none focus:ring-2 focus:ring-white/20 transition"
+                className={textareaCls}
               />
             </div>
           </div>

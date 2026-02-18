@@ -89,7 +89,7 @@
 
 /* ===== Dark clean scrollbar ===== */
 .scroll-dark {
-  scrollbar-gutter: stable both-edges;
+  scrollbar-gutter: stable;
   /* 스크롤 생겨도 레이아웃 흔들림 최소화 */
   scrollbar-width: thin;
   /* Firefox */

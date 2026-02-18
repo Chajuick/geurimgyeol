@@ -4,14 +4,19 @@
 
 type ColorHex = `#${string}`;
 
+/** ✅ 캐릭터/크리쳐 등급 */
+export type EntityRank = "S" | "A" | "B" | "C" | "D";
+
 
 /* =========================================================
    🧩 Shared / Reusable Types
 ========================================================= */
 
+/** ✅ 서브이미지 설명: 요약/설명 분리 */
 export type SubImage = {
   image: string;
-  description: string;
+  summary: string;       // 짧은 한줄/두줄
+  description: string;   // 상세 설명(플레이버/서술)
 };
 
 export type SymbolColor = {
@@ -19,23 +24,27 @@ export type SymbolColor = {
   hex: ColorHex;
 };
 
-/** 캐릭터/크리쳐 공용 베이스 */
+/** ✅ 캐릭터/크리쳐 공용 베이스 */
 export type EntityBase = {
   id: string;
   name: string;
+
+  /** ✅ 등급 추가 */
+  rank: EntityRank;
 
   subCategories: string[];
 
   profileImage: string;
   mainImage: string;
-  mainImageDesc?: string;
+  // ❌ mainImageDesc 제거
 
   subImages: SubImage[];
 
   tags: string[];
-  description: string;
 
-  symbolColors?: SymbolColor[];
+  /** ✅ 기존 description 분리 */
+  summary: string;       // 카드/리스트용 요약
+  description: string;   // 상세 본문
 };
 
 
@@ -75,6 +84,19 @@ export interface WorldCreature {
   id: string;
   name: string;
   image: string;
+
+  /** (선택) 월드 내부 크리쳐도 동일하게 나누고 싶다면 아래처럼 */
+  summary: string;
+  description: string;
+}
+
+export interface WorldCharacter {
+  id: string;
+  name: string;
+  image: string;
+
+  /** (선택) 월드 내부 크리쳐도 동일하게 나누고 싶다면 아래처럼 */
+  summary: string;
   description: string;
 }
 
@@ -87,6 +109,7 @@ export interface WorldData {
   mainImage: string;
   backgroundImage: string;
 
+  characters: WorldCharacter[];
   creatures: WorldCreature[];
 
   relatedCharacters: string[];
@@ -148,13 +171,7 @@ export interface PortfolioData {
 ========================================================= */
 
 export interface UIState {
-  currentPage:
-    | "home"
-    | "worlds"
-    | "characters"
-    | "creatures"
-    | "profile";
-
+  currentPage: "home" | "worlds" | "characters" | "creatures" | "profile";
   editMode: boolean;
 
   selectedWorldId?: string;

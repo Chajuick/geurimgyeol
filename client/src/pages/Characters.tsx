@@ -3,12 +3,12 @@ import { usePortfolioContext } from "@/contexts/PortfolioContext";
 import { Plus } from "lucide-react";
 import GButton from "@/components/ui/gyeol-button";
 import EntityGridCard from "@/components/entities/entity-grid-card";
-import EntityDetailFullscreen from "@/components/DetailViewFullscreen";
+import EntityDetailFullscreen from "@/components/entities/entity-detail-view-fullscreen";
 import EntityCategoryBar from "@/components/entities/entity-category-bar";
 import ConfirmModal from "@/components/ui/confirm-modal";
 import type { CategoryGroup } from "@/components/entities/category-group-edit-modal";
+import { EntityRank, SubImage } from "@/types";
 
-type SubImage = { image: string; description: string };
 type ColorHex = `#${string}`;
 
 type SymbolColor = {
@@ -20,12 +20,13 @@ type SymbolColor = {
 type Character = {
   id: string;
   name: string;
+  rank : EntityRank;
   subCategories: string[];
   profileImage: string;
   mainImage: string;
-  mainImageDesc?: string;
   subImages: SubImage[];
   tags: string[];
+  summary: string;
   description: string;
   symbolColors?: SymbolColor[];
 };
@@ -43,6 +44,7 @@ export default function Characters() {
   const charactersNormalized: Character[] = useMemo(() => {
     return (data.characters || []).map((c: any) => ({
       ...c,
+      rank: c.rank || "S",
       subCategories: Array.isArray(c.subCategories)
         ? c.subCategories
         : c.subCategory
@@ -50,9 +52,9 @@ export default function Characters() {
           : [],
       profileImage: c.profileImage || "",
       mainImage: c.mainImage || "",
-      mainImageDesc: c.mainImageDesc || "",
       subImages: Array.isArray(c.subImages) ? c.subImages : [],
       tags: Array.isArray(c.tags) ? c.tags : [],
+      summary: c.summary || "",
       description: c.description || "",
       symbolColors: Array.isArray(c.symbolColors) ? c.symbolColors : [],
     }));
@@ -126,12 +128,13 @@ export default function Characters() {
         characters: next.map((c) => ({
           id: c.id,
           name: c.name,
+          rank: c.rank || "S",
           subCategories: c.subCategories || [],
           profileImage: c.profileImage || "",
           mainImage: c.mainImage || "",
-          mainImageDesc: c.mainImageDesc || "",
           subImages: c.subImages || [],
           tags: c.tags || [],
+          summary: c.summary || "",
           description: c.description || "",
           symbolColors: c.symbolColors || [],
         })),
@@ -162,12 +165,13 @@ export default function Characters() {
     const payload: Character = {
       id: Date.now().toString(),
       name: "새 캐릭터",
+      rank: "S",
       subCategories: [],
       profileImage: "",
       mainImage: "",
-      mainImageDesc: "",
       subImages: [],
       tags: [],
+      summary: "",
       description: "",
       symbolColors: [],
     };

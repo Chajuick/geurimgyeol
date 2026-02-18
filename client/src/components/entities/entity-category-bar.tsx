@@ -192,8 +192,8 @@ export default function EntityCategoryBar(props: {
           setDraft={setDraftCategories}
           onClose={() => setIsEditingCategory(false)}
           onSave={saveCategories}
-          mainLabel="메인"
-          subLabel="서브"
+          mainLabel="메인 카테고리"
+          subLabel="서브 카테고리"
         />
       )}
     </>

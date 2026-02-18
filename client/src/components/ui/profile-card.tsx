@@ -62,25 +62,6 @@ export default function ProfileCard({
             </div>
           </div>
         )}
-
-        {/* ========================= */}
-        {/* NAME PLATE (only if name exists) */}
-        {/* ========================= */}
-        {hasImage && hasName && (
-          <div className="absolute inset-x-0 bottom-0 p-3">
-            <div className="rounded-xl border border-white/10 bg-black/45 backdrop-blur px-3 py-2">
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-sm font-semibold text-white/90 truncate">
-                  {name}
-                </p>
-                <div className="h-2 w-2 rounded-full bg-emerald-300/80 shadow-[0_0_18px_rgba(52,211,153,.35)]" />
-              </div>
-
-              <div className="mt-1 h-px w-full bg-gradient-to-r from-transparent via-white/15 to-transparent" />
-
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
