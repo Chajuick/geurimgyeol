@@ -20,6 +20,7 @@ export type SubImage = {
 };
 
 export type SymbolColor = {
+  id?: string;
   name?: string;
   hex: ColorHex;
 };
@@ -41,6 +42,8 @@ export type EntityBase = {
   subImages: SubImage[];
 
   tags: string[];
+
+  symbolColors: SymbolColor[];
 
   /** ✅ 기존 description 분리 */
   summary: string;       // 카드/리스트용 요약
@@ -109,8 +112,8 @@ export interface WorldData {
   mainImage: string;
   backgroundImage: string;
 
-  characters: WorldCharacter[];
-  creatures: WorldCreature[];
+  characters?: WorldCharacter[];
+  creatures?: WorldCreature[];
 
   relatedCharacters: string[];
   relatedCreatures: string[];
