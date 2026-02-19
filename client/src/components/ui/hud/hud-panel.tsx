@@ -25,7 +25,7 @@ export default function HUDPanel({
   return (
     <div
       className={cn(
-        "relative rounded-3xl overflow-hidden",
+        "relative rounded-2xl overflow-hidden",
         "border border-white/10 bg-white/[0.04]",
         "shadow-[0_18px_60px_rgba(0,0,0,0.55)]",
         className

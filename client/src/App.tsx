@@ -4,7 +4,7 @@ import NotFound from "@/pages/NotFound";
 import Home from "@/pages/Home";
 import Profile from "@/pages/Profile";
 import Worlds from "@/pages/Worlds";
-import WorldDetail from "@/pages/WorldDetail";
+import WorldDetail from "@/pages/world-detail/WorldDetail";
 import Characters from "@/pages/Characters";
 import Creatures from "@/pages/Creatures";
 import Sidebar from "@/components/sidebar/Sidebar";

@@ -1,7 +1,7 @@
 import Modal from "@/components/ui/modal";
 import GButton from "@/components/ui/gyeol-button";
 import ImageUpload from "@/components/ImageUpload";
-import { inputCls, textareaCls } from "@/components/ui/form";
+import { uiInput, uiTextarea } from "@/components/ui/form/presets";
 
 type Props = {
   open: boolean;
@@ -74,7 +74,7 @@ export default function AddWorldModal(props: Props) {
             value={name}
             onChange={e => setName(e.target.value)}
             placeholder="세계관 이름"
-            className={inputCls}
+            className={uiInput}
             onKeyDown={e => e.key === "Enter" && onSubmit()}
           />
         </div>
@@ -85,7 +85,7 @@ export default function AddWorldModal(props: Props) {
             value={desc}
             onChange={e => setDesc(e.target.value)}
             placeholder="세계관 설정을 입력하세요"
-            className={textareaCls}
+            className={uiTextarea}
           />
         </div>
       </div>
