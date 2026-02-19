@@ -1,40 +1,53 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { loadImageBlob } from "@/lib/imageStore";
 
-/**
- * src가
- * - "img:..."면 IndexedDB에서 blob 로드 → objectURL 반환
- * - 일반 URL/dataURL이면 그대로 반환
- * - 없으면 "" 반환
- */
+const IMG_PREFIX = "img:";
+
 export function useResolvedImage(src?: string) {
   const [resolved, setResolved] = useState<string>("");
+  const lastObjectUrlRef = useRef<string>("");
 
   useEffect(() => {
-    let url = "";
+    let cancelled = false;
+
+    // src가 바뀌는 즉시 이전 objectURL 정리
+    if (lastObjectUrlRef.current) {
+      URL.revokeObjectURL(lastObjectUrlRef.current);
+      lastObjectUrlRef.current = "";
+    }
+
+    // src 없으면 초기화
+    if (!src) {
+      setResolved("");
+      return;
+    }
+
+    // 일반 URL/dataURL이면 그대로
+    if (!src.startsWith(IMG_PREFIX)) {
+      setResolved(src);
+      return;
+    }
 
     (async () => {
-      if (!src) {
+      const blob = await loadImageBlob(src);
+      if (cancelled) return;
+
+      if (!blob) {
         setResolved("");
         return;
       }
 
-      if (src.startsWith("img:")) {
-        const blob = await loadImageBlob(src);
-        if (!blob) {
-          setResolved("");
-          return;
-        }
-        url = URL.createObjectURL(blob);
-        setResolved(url);
-        return;
-      }
-
-      setResolved(src);
+      const objectUrl = URL.createObjectURL(blob);
+      lastObjectUrlRef.current = objectUrl;
+      setResolved(objectUrl);
     })();
 
     return () => {
-      if (url) URL.revokeObjectURL(url);
+      cancelled = true;
+      if (lastObjectUrlRef.current) {
+        URL.revokeObjectURL(lastObjectUrlRef.current);
+        lastObjectUrlRef.current = "";
+      }
     };
   }, [src]);
 

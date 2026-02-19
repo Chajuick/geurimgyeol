@@ -1,8 +1,13 @@
+/* === GYEOL BACKGROUND SYSTEM === */
 .gyeol-bg {
-  background:
-    radial-gradient(1200px 800px at 20% 10%, #1a1a1f 0%, transparent 60%),
-    radial-gradient(900px 600px at 80% 90%, #141418 0%, transparent 60%),
-    linear-gradient(135deg, #0b0b0c 0%, #121214 40%, #0a0a0b 100%);
+  position: relative;
+  background-image:
+    var(--gyeol-bg-image, none),
+    linear-gradient(135deg, #0b0b0f 0%, #121218 50%, #0b0b0f 100%);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  overflow: hidden;
 }
 
 .entityFxWrap {
@@ -89,7 +94,6 @@
 
 /* ===== Dark clean scrollbar ===== */
 .scroll-dark {
-  scrollbar-gutter: stable;
   /* 스크롤 생겨도 레이아웃 흔들림 최소화 */
   scrollbar-width: thin;
   /* Firefox */

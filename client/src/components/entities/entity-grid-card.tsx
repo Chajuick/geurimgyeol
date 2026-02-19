@@ -34,8 +34,9 @@ const EntityGridCard = memo(function EntityGridCard({
 }: Props) {
   const resolved = useResolvedImage(image);
 
-  const colors = (symbolColors || []).map((c) => c.hex).filter(Boolean);
+  const colors = (symbolColors || []).map(c => c.hex).filter(Boolean);
   const c1 = colors[0] || "#444444";
+  const c2 = colors[1] || c1;
 
   // ✅ 클릭 UX:
   // - 선택 안된 카드 클릭: select
@@ -74,6 +75,7 @@ const EntityGridCard = memo(function EntityGridCard({
         hover:scale-[1.02]
       "
     >
+      {selected && <div className="rune-border pointer-events-none" />}
       <div className="absolute inset-0 bg-zinc-900">
         {resolved ? (
           <img

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   saveImageBlob,
   loadImageBlob,
@@ -7,9 +7,13 @@ import {
   removeImage,
 } from "@/lib/imageStore";
 import GButton from "@/components/ui/gyeol-button";
-import { X } from "lucide-react";
+import { X, Image as ImageIcon, Link2, Upload } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-type ImageUploadAspect = "video" | "square";
+type ImageUploadAspect = "video" | "square" | "free";
+
+/** ✅ 이미지 용도에 따라 압축/리사이즈 정책 적용 */
+export type ImageKind = "profile" | "illustration" | "background";
 
 type ImageUploadProps = {
   value: string;
@@ -21,25 +25,109 @@ type ImageUploadProps = {
 
   aspect?: ImageUploadAspect;
   previewClassName?: string;
+
+  /** ✅ 추가: 이미지 종류 (압축 정책 선택) */
+  kind?: ImageKind;
+
+  /** ✅ 추가: URL 입력란 표시 여부 */
+  allowUrl?: boolean;
 };
 
 function aspectToClass(aspect: ImageUploadAspect) {
-  return aspect === "square" ? "aspect-square" : "aspect-video";
+  if (aspect === "square") return "aspect-square";
+  if (aspect === "video") return "aspect-video";
+  return ""; // free
+}
+
+/** ✅ kind별 목표 리사이즈/압축 정책 */
+function getCompressPolicy(kind: ImageKind) {
+  switch (kind) {
+    case "profile":
+      return {
+        maxDim: 640,          // 긴 변 기준
+        quality: 0.82,        // webp 품질
+        maxBytes: 220_000,    // 목표 용량(대략)
+      };
+    case "illustration":
+      return {
+        maxDim: 1600,
+        quality: 0.84,
+        maxBytes: 900_000,
+      };
+    case "background":
+      return {
+        maxDim: 2200,
+        quality: 0.82,
+        maxBytes: 1_200_000,
+      };
+  }
+}
+
+/** ✅ 파일/블롭 -> 압축된 Blob(webp)로 변환 */
+async function compressToWebp(input: Blob, kind: ImageKind): Promise<Blob> {
+  const policy = getCompressPolicy(kind);
+
+  // 이미 충분히 작은 경우는 그대로 저장(불필요 변환 방지)
+  // (그래도 압축을 "항상" 하고 싶으면 이 early return 지우면 됨)
+  if (input.size <= policy.maxBytes) return input;
+
+  const bitmap = await createImageBitmap(input);
+  const { width, height } = bitmap;
+
+  const long = Math.max(width, height);
+  const scale = long > policy.maxDim ? policy.maxDim / long : 1;
+
+  const outW = Math.max(1, Math.round(width * scale));
+  const outH = Math.max(1, Math.round(height * scale));
+
+  const canvas = document.createElement("canvas");
+  canvas.width = outW;
+  canvas.height = outH;
+
+  const ctx = canvas.getContext("2d", { alpha: true });
+  if (!ctx) return input;
+
+  // 리사이즈 품질
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+
+  ctx.clearRect(0, 0, outW, outH);
+  ctx.drawImage(bitmap, 0, 0, outW, outH);
+
+  // toBlob은 비동기
+  const blob: Blob | null = await new Promise((resolve) => {
+    canvas.toBlob(
+      (b) => resolve(b),
+      "image/webp",
+      policy.quality
+    );
+  });
+
+  // webp 변환 실패 시 원본
+  if (!blob) return input;
+
+  // 변환 결과가 원본보다 커지는 케이스 방지
+  if (blob.size >= input.size) return input;
+
+  return blob;
 }
 
 export default function ImageUpload({
   value,
   onChange,
   label,
-  placeholder = "이미지 URL을 입력하세요",
   accept = "image/*",
   className,
   aspect = "video",
   previewClassName,
+  kind = "illustration",
+  allowUrl = true,
 }: ImageUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string>("");
+  const [busy, setBusy] = useState(false);
 
+  // preview resolve
   useEffect(() => {
     let url = "";
     let alive = true;
@@ -64,6 +152,7 @@ export default function ImageUpload({
         return;
       }
 
+      // 외부 URL은 그대로
       setPreview(value);
     })();
 
@@ -73,74 +162,121 @@ export default function ImageUpload({
     };
   }, [value]);
 
+  const finalPreviewClassName = useMemo(() => {
+    const base = previewClassName ?? aspectToClass(aspect);
+    return [
+      "relative rounded-2xl overflow-hidden",
+      "border border-white/10",
+      "bg-black/25",
+      "p-2",
+      base,
+    ].join(" ");
+  }, [previewClassName, aspect]);
+
+  const inputCls = useMemo(
+    () =>
+      [
+        "w-full h-11 px-3 rounded-xl",
+        "bg-black/25 text-white",
+        "border border-white/10",
+        "placeholder:text-white/30",
+        "outline-none",
+        "focus:ring-2 focus:ring-white/15 focus:border-white/20",
+        "transition",
+      ].join(" "),
+    []
+  );
+
+  const panelCls = useMemo(
+    () =>
+      [
+        "rounded-2xl border border-white/10 bg-white/5",
+        "shadow-[0_18px_60px_rgba(0,0,0,.45)]",
+      ].join(" "),
+    []
+  );
+
+  const badgeText = useMemo(() => {
+    if (kind === "profile") return "프로필 이미지";
+    if (kind === "background") return "배경 이미지";
+    return "일러스트 이미지";
+  }, [kind]);
+
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const key = makeImgKey();
-    await saveImageBlob(key, file);
-    onChange(key);
-    e.target.value = "";
+    setBusy(true);
+    try {
+      const key = makeImgKey();
+
+      // ✅ 종류별 압축 후 저장
+      const compressed = await compressToWebp(file, kind);
+      await saveImageBlob(key, compressed);
+
+      onChange(key);
+      e.target.value = "";
+    } finally {
+      setBusy(false);
+    }
   };
 
   const handleUrlChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = e.target.value;
 
+    // dataURL은 저장/압축 가능
     if (v.startsWith("data:")) {
-      const key = makeImgKey();
-      await saveImageBlob(key, dataUrlToBlob(v));
-      onChange(key);
+      setBusy(true);
+      try {
+        const key = makeImgKey();
+        const raw = dataUrlToBlob(v);
+        const compressed = await compressToWebp(raw, kind);
+        await saveImageBlob(key, compressed);
+        onChange(key);
+      } finally {
+        setBusy(false);
+      }
       return;
     }
 
+    // 외부 URL은 그냥 문자열로 보관(크로스 오리진 fetch/압축은 여기서 안 함)
     onChange(v);
   };
 
   const handleClear = async () => {
     if (!value) return;
 
-    if (value.startsWith("img:")) {
-      await removeImage(value);
+    setBusy(true);
+    try {
+      if (value.startsWith("img:")) {
+        await removeImage(value);
+      }
+      onChange("");
+      setPreview("");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    } finally {
+      setBusy(false);
     }
-
-    onChange("");
-    setPreview("");
-    if (fileInputRef.current) fileInputRef.current.value = "";
   };
-
-  const finalPreviewClassName = previewClassName ?? aspectToClass(aspect);
-
-  // ✅ 다크 톤 공통 클래스
-  const inputCls = [
-    "w-full h-11 px-3 rounded-xl",
-    "bg-black/25 text-white",
-    "border border-white/10",
-    "placeholder:text-white/30",
-    "outline-none",
-    "focus:ring-2 focus:ring-white/15 focus:border-white/20",
-    "transition",
-  ].join(" ");
-
-  const softBtnWrap = [
-    "rounded-xl border border-white/10 bg-white/5",
-    "hover:bg-white/10 transition",
-  ].join(" ");
 
   return (
     <div className={className}>
-      {label && <div className="mb-2 text-xs text-white/55">{label}</div>}
+      {label && (
+        <div className="mb-2 flex items-center justify-between">
+          <div className="text-xs text-white/60">{label}</div>
+          <div className="text-[11px] text-white/35">{badgeText}</div>
+        </div>
+      )}
 
-      {/* ✅ Preview Frame */}
-      <div
-        className={[
-          "relative mb-3 rounded-2xl border border-white/10 overflow-hidden",
-          "bg-black/20 p-2",
-          finalPreviewClassName,
-        ].join(" ")}
-      >
+      {/* Preview */}
+      <div className={finalPreviewClassName}>
         {preview ? (
           <>
-            <img src={preview} alt="preview" className="w-full h-full object-contain" />
+            <img
+              src={preview}
+              alt="preview"
+              className="w-full h-full object-contain rounded-xl"
+            />
 
             <div className="absolute top-2 right-2">
               <GButton
@@ -149,16 +285,28 @@ export default function ImageUpload({
                 icon={<X className="w-4 h-4" />}
                 onClick={handleClear}
                 title="이미지 지우기"
+                disabled={busy}
               />
             </div>
           </>
         ) : (
           <div className="w-full h-full grid place-items-center text-xs text-white/35">
-            미리보기
+            <div className="flex items-center gap-2">
+              <ImageIcon className="w-4 h-4 opacity-70" />
+              미리보기
+            </div>
+          </div>
+        )}
+
+        {/* 로딩 오버레이 */}
+        {busy && (
+          <div className="absolute inset-0 grid place-items-center bg-black/45 backdrop-blur-[1px]">
+            <div className="text-xs text-white/70">처리 중…</div>
           </div>
         )}
       </div>
 
+      {/* hidden file input */}
       <input
         ref={fileInputRef}
         type="file"
@@ -167,27 +315,15 @@ export default function ImageUpload({
         className="hidden"
       />
 
-      {/* ✅ URL 입력 */}
-      <input
-        type="text"
-        placeholder={placeholder}
-        value={value?.startsWith("img:") ? "" : value}
-        onChange={handleUrlChange}
-        className={inputCls}
-      />
-
-      {/* ✅ 파일 선택 버튼도 다크톤으로 “박스” 안에 넣어서 튀는 느낌 제거 */}
-      <div className={["mt-3 p-2", softBtnWrap].join(" ")}>
+      {/* 파일 선택 버튼 (GButton className 덧칠 없이, 래퍼로 톤 맞추기) */}
+      <div className={cn("mt-3 p-2", panelCls)}>
         <GButton
-          // 가능하면 ghost/secondary가 더 예쁨. 없으면 default 유지해도 래핑으로 톤이 맞음.
-          variant="default"
-          text="파일 선택"
+          variant="neutral"
+          text={busy ? "처리 중..." : "파일 선택"}
+          icon={<Upload className="w-4 h-4" />}
           onClick={() => fileInputRef.current?.click()}
-          className={[
-            "w-full",
-            // ✅ 버튼 자체도 다크 톤으로 덮어쓰기 (GButton이 className 반영한다는 가정)
-            "bg-white/10 hover:bg-white/15 text-white border border-white/10",
-          ].join(" ")}
+          disabled={busy}
+          className="w-full" // ✅ 레이아웃용(색/톤 덧칠 X)
         />
       </div>
     </div>

@@ -1,26 +1,49 @@
 <!doctype html>
-<html lang="en">
-
+<html lang="ko">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Primary -->
+    <title>결 (GYEOL) — 이야기로 엮인 세계</title>
     <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <title>그림결 - 포트폴리오</title>
-    <meta name="description" content="일러스트레이터와 원화가의 포트폴리오 - 그림결" />
-    <meta name="theme-color" content="#ffffff" />
+      name="description"
+      content="캐릭터와 세계, 그리고 그들의 흔적을 기록하고 감상하는 오프라인 퍼스트 아카이브 앱, 결(GYEOL)"
+    />
+    <meta name="application-name" content="GYEOL" />
+    <meta name="color-scheme" content="dark light" />
+
+    <!-- Theme -->
+    <meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+
+    <!-- Icons / PWA (추천: public 폴더에 추가) -->
+    <link rel="icon" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+
+    <!-- Social (OG/Twitter) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="결 (GYEOL) — 이야기로 엮인 세계" />
+    <meta
+      property="og:description"
+      content="캐릭터와 세계, 그리고 그들의 흔적을 기록하고 감상하는 오프라인 퍼스트 아카이브 앱, 결(GYEOL)"
+    />
+    <!-- og:image는 public/og.png 같은 걸 만들어두면 좋음 -->
+    <meta property="og:image" content="/og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&family=Lato:wght@300;400;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&family=Lato:wght@300;400;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
   </head>
 
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <script
-      defer
-      src="%VITE_ANALYTICS_ENDPOINT%/umami"
-      data-website-id="%VITE_ANALYTICS_WEBSITE_ID%"></script>
   </body>
-
 </html>

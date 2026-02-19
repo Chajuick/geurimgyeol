@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&family=Lato:wght@300;400;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&family=Lato:wght@300;400;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap");
 @import url("https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/subsets/Paperlogy-dynamic-subset.css");
 @import "tailwindcss";
 @import "tw-animate-css";
@@ -121,7 +121,7 @@
   }
   body {
     @apply bg-background text-foreground font-sans;
-    font-family: 'Paperlogy', sans-serif;
+    font-family: "Paperlogy", sans-serif;
   }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
@@ -135,8 +135,13 @@
     @apply cursor-pointer;
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Paperlogy', serif;
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "Paperlogy", serif;
     font-weight: 600;
   }
 
@@ -165,11 +170,14 @@
   }
 
   .font-mono {
-    font-family: 'Paperlogy', 'JetBrains Mono', monospace;
+    font-family: "Paperlogy", "JetBrains Mono", monospace;
   }
 }
 
 @layer components {
+  /* =========================
+   * Layout helpers
+   * ========================= */
   .container {
     width: 100%;
     margin-left: auto;
@@ -198,7 +206,9 @@
     }
   }
 
-  /* Minimalist Elegance Styles */
+  /* =========================
+   * Minimal components
+   * ========================= */
   .section-divider {
     @apply h-px bg-gradient-to-r from-black via-black to-transparent dark:from-white dark:via-white dark:to-transparent;
   }
@@ -222,4 +232,236 @@
   .slide-in {
     @apply animate-in slide-in-from-bottom-4 duration-500;
   }
-};
+
+  /* =========================
+   * GYEOL BUTTON
+   * ========================= */
+
+  /* Base */
+  .gyeol-button {
+    @apply relative inline-flex items-center justify-center gap-2 select-none font-medium outline-none;
+    @apply transition-[transform,background-color,border-color,box-shadow,color,opacity] duration-150;
+    @apply transform-gpu hover:-translate-y-[0.5px] active:translate-y-[0.5px];
+    @apply disabled:opacity-45 disabled:pointer-events-none;
+
+    transition-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  /* Size */
+  .gyeol-button--sm {
+    @apply h-9 px-3 text-[13px] rounded-xl;
+  }
+
+  .gyeol-button--md {
+    @apply h-10 px-4 text-sm rounded-xl;
+  }
+
+  .gyeol-button--icon {
+    @apply h-11 w-11 p-0 rounded-2xl;
+  }
+
+  .gyeol-button--icon,
+  .gyeol-button--iconOnly {
+    @apply gap-0;
+  }
+
+  /* Layer transitions */
+  .gyeol-button__frame,
+  .gyeol-button__top,
+  .gyeol-button__glow,
+  .gyeol-button__focus,
+  .gyeol-button__shine {
+    transition:
+      opacity 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      filter 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      box-shadow 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  /* Frame */
+  .gyeol-button__frame {
+    @apply pointer-events-none absolute inset-0 rounded-[inherit] border;
+  }
+
+  .gyeol-button__frame::after {
+    content: "";
+    @apply absolute inset-[1px] rounded-[calc(theme(borderRadius.xl)-1px)] border;
+  }
+
+  .gyeol-button__frame::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+  }
+
+  /* Top highlight */
+  .gyeol-button__top {
+    @apply pointer-events-none absolute inset-0 rounded-[inherit];
+    opacity: 0.55;
+    transform: translateY(-2px);
+    filter: brightness(1);
+    background: linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.12),
+      transparent 55%
+    );
+  }
+
+  /* Glow */
+  .gyeol-button__glow {
+    @apply pointer-events-none absolute -inset-2 rounded-[inherit] blur-xl;
+    opacity: 0;
+    transform: scale(0.98);
+    filter: blur(16px);
+    background: radial-gradient(
+      circle at 50% 50%,
+      var(--g-glow),
+      transparent 62%
+    );
+  }
+
+  /* Focus ring */
+  .gyeol-button__focus {
+    @apply pointer-events-none absolute inset-0 rounded-[inherit];
+    opacity: 0;
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.16),
+      0 0 0 4px rgba(255, 255, 255, 0.06);
+  }
+
+  /* Shine */
+  .gyeol-button__shine {
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    overflow: hidden;
+    opacity: 0;
+  }
+
+  .gyeol-button__shine::after {
+    content: "";
+    position: absolute;
+    top: -20%;
+    left: -60%;
+    width: 40%;
+    height: 140%;
+    transform: rotate(12deg) translateX(0);
+    background: linear-gradient(
+      to right,
+      transparent,
+      rgba(255, 255, 255, 0.14),
+      transparent
+    );
+    transition: transform 520ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  /* Variants */
+  .gyeol-button--solid {
+    background: var(--g-bg);
+    color: var(--g-fg);
+    border-color: var(--g-bd);
+  }
+
+  .gyeol-button--solid .gyeol-button__frame {
+    background: var(--g-bg);
+    border-color: var(--g-bd);
+  }
+
+  .gyeol-button--solid .gyeol-button__frame::after {
+    border-color: var(--g-in);
+  }
+
+  .gyeol-button--ghost {
+    @apply text-white/80;
+  }
+
+  .gyeol-button--ghost .gyeol-button__frame {
+    background: transparent;
+    border-color: rgba(255, 255, 255, 0.14);
+  }
+
+  .gyeol-button--ghost .gyeol-button__frame::after {
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .gyeol-button--ghost .gyeol-button__top {
+    display: none;
+  }
+
+  .gyeol-button--onlyText {
+    @apply bg-transparent border border-transparent text-white/70 hover:text-white;
+  }
+
+  /* Interactions */
+  .gyeol-button--solid:hover .gyeol-button__frame {
+    background: var(--g-hbg);
+    border-color: var(--g-hbd);
+  }
+
+  .gyeol-button:hover .gyeol-button__frame::before {
+    opacity: 1;
+  }
+
+  .gyeol-button:hover .gyeol-button__top {
+    transform: translateY(0);
+    opacity: 0.85;
+    filter: brightness(1.05);
+  }
+
+  .gyeol-button:hover .gyeol-button__glow {
+    opacity: 1;
+    transform: scale(1.02);
+    filter: blur(18px);
+  }
+
+  .gyeol-button:hover .gyeol-button__shine {
+    opacity: 1;
+  }
+
+  .gyeol-button:hover .gyeol-button__shine::after {
+    transform: rotate(12deg) translateX(260%);
+  }
+
+  .gyeol-button:active {
+    transform: translateY(0.5px) scale(0.99);
+  }
+
+  .gyeol-button:active .gyeol-button__top {
+    opacity: 0.35;
+    filter: brightness(0.98);
+  }
+
+  .gyeol-button:active .gyeol-button__glow {
+    opacity: 0.35;
+    transform: scale(0.98);
+    filter: blur(14px);
+  }
+
+  .gyeol-button:active .gyeol-button__frame {
+    filter: brightness(1.02);
+  }
+
+  .gyeol-button:focus-visible .gyeol-button__focus {
+    opacity: 1;
+  }
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .gyeol-button,
+    .gyeol-button__frame,
+    .gyeol-button__top,
+    .gyeol-button__glow,
+    .gyeol-button__focus,
+    .gyeol-button__shine {
+      transition: none !important;
+      transform: none !important;
+    }
+  }
+}
+```

@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { usePersistFn } from "./usePersistFn";
 
 export interface UseCompositionReturn<
@@ -8,6 +8,8 @@ export interface UseCompositionReturn<
   onCompositionEnd: React.CompositionEventHandler<T>;
   onKeyDown: React.KeyboardEventHandler<T>;
   isComposing: () => boolean;
+  // (선택) 편의용
+  // composingRef: React.MutableRefObject<boolean>;
 }
 
 export interface UseCompositionOptions<
@@ -18,7 +20,14 @@ export interface UseCompositionOptions<
   onCompositionEnd?: React.CompositionEventHandler<T>;
 }
 
-type TimerResponse = ReturnType<typeof setTimeout>;
+type Timer = ReturnType<typeof setTimeout>;
+
+function clearTimer(t: React.MutableRefObject<Timer | null>) {
+  if (t.current) {
+    clearTimeout(t.current);
+    t.current = null;
+  }
+}
 
 export function useComposition<
   T extends HTMLInputElement | HTMLTextAreaElement = HTMLInputElement,
@@ -29,37 +38,48 @@ export function useComposition<
     onCompositionEnd: originalOnCompositionEnd,
   } = options;
 
-  const c = useRef(false);
-  const timer = useRef<TimerResponse | null>(null);
-  const timer2 = useRef<TimerResponse | null>(null);
+  const composing = useRef(false);
+  const t1 = useRef<Timer | null>(null);
+  const t2 = useRef<Timer | null>(null);
+
+  // ✅ 언마운트 시 타이머 정리
+  useEffect(() => {
+    return () => {
+      clearTimer(t1);
+      clearTimer(t2);
+    };
+  }, []);
 
   const onCompositionStart = usePersistFn((e: React.CompositionEvent<T>) => {
-    if (timer.current) {
-      clearTimeout(timer.current);
-      timer.current = null;
-    }
-    if (timer2.current) {
-      clearTimeout(timer2.current);
-      timer2.current = null;
-    }
-    c.current = true;
+    // 입력 시작 시 기존 타이머 제거
+    clearTimer(t1);
+    clearTimer(t2);
+
+    composing.current = true;
     originalOnCompositionStart?.(e);
   });
 
   const onCompositionEnd = usePersistFn((e: React.CompositionEvent<T>) => {
-    // 使用两层 setTimeout 来处理 Safari 浏览器中 compositionEnd 先于 onKeyDown 触发的问题
-    timer.current = setTimeout(() => {
-      timer2.current = setTimeout(() => {
-        c.current = false;
-      });
-    });
+    // ✅ Safari에서 compositionEnd가 onKeyDown보다 먼저 오는 케이스 대응:
+    // 2-tick 뒤에 composing=false로 내림
+    clearTimer(t1);
+    clearTimer(t2);
+
+    t1.current = setTimeout(() => {
+      t2.current = setTimeout(() => {
+        composing.current = false;
+        t2.current = null;
+      }, 0);
+      t1.current = null;
+    }, 0);
+
     originalOnCompositionEnd?.(e);
   });
 
   const onKeyDown = usePersistFn((e: React.KeyboardEvent<T>) => {
-    // 在 composition 状态下，阻止 ESC 和 Enter（非 shift+Enter）事件的冒泡
+    // ✅ IME 조합 중: ESC / Enter(Shift+Enter 제외) 이벤트 버블링 차단
     if (
-      c.current &&
+      composing.current &&
       (e.key === "Escape" || (e.key === "Enter" && !e.shiftKey))
     ) {
       e.stopPropagation();
@@ -68,9 +88,7 @@ export function useComposition<
     originalOnKeyDown?.(e);
   });
 
-  const isComposing = usePersistFn(() => {
-    return c.current;
-  });
+  const isComposing = usePersistFn(() => composing.current);
 
   return {
     onCompositionStart,

@@ -4,9 +4,10 @@ import NotFound from "@/pages/NotFound";
 import Home from "@/pages/Home";
 import Profile from "@/pages/Profile";
 import Worlds from "@/pages/Worlds";
+import WorldDetail from "@/pages/WorldDetail";
 import Characters from "@/pages/Characters";
 import Creatures from "@/pages/Creatures";
-import Sidebar from "@/components/Sidebar";
+import Sidebar from "@/components/sidebar/Sidebar";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
@@ -19,11 +20,12 @@ function Router() {
     <Switch>
       <Route path={"/"} component={Home} />
       <Route path={"/worlds"} component={Worlds} />
+      <Route path={"/worlds/:worldId"} component={WorldDetail} />{" "}
+      {/* ✅ 추가 */}
       <Route path={"/characters"} component={Characters} />
       <Route path={"/creatures"} component={Creatures} />
       <Route path={"/profile"} component={Profile} />
       <Route path={"/404"} component={NotFound} />
-      {/* Final fallback route */}
       <Route component={NotFound} />
     </Switch>
   );
@@ -31,7 +33,9 @@ function Router() {
 
 function AppContent() {
   const portfolioData = usePortfolio();
-  const [editMode, setEditMode] = useState(portfolioData.data.settings.editMode);
+  const [editMode, setEditMode] = useState(
+    portfolioData.data.settings.editMode
+  );
 
   return (
     <PortfolioProvider
