@@ -94,9 +94,9 @@ export default function WorldOverviewTab({
           WORLD OVERVIEW
         </HUDSectionTitle>
 
-        <div className="mt-5 grid grid-cols-1 xl:grid-cols-[1fr_380px] gap-4">
+        <div className="mt-5 grid grid-cols-1 xl:grid-cols-[1fr_380px] gap-4 xl:items-start">
           {/* background preview */}
-          <div className="rounded-3xl overflow-hidden border border-white/10 bg-black/20 relative">
+          <div className="rounded-3xl overflow-hidden border border-white/10 bg-black/20 relative md:aspect-video">
             {bg ? (
               <div
                 className="absolute inset-0"
@@ -135,7 +135,7 @@ export default function WorldOverviewTab({
           </div>
 
           {/* editor / read */}
-          <div className="rounded-3xl border border-white/10 bg-black/20 p-4">
+          <div className="rounded-3xl border border-white/10 bg-black/20 p-4 xl:max-h-[420px] xl:overflow-auto">
             <div className="text-[11px] tracking-[0.26em] text-white/55">DESCRIPTION</div>
 
             <div className="mt-3">

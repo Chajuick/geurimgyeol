@@ -1,0 +1,474 @@
+/* =========================================
+  Frame Presets (minimal base)
+  - Colors from CSS vars: --c1, --c2
+  - Tuning from CSS vars: --frame-thickness, --frame-intensity
+  - Use with:
+    <div class="frame-layer frame-inner frame-preset-xxx" />
+    <div class="frame-layer frame-outer frame-preset-xxx" />
+========================================= */
+
+/* ---------- Base neutrals (fallback) ---------- */
+:root {
+  --frame-neutral-1: rgba(255, 255, 255, 0.1);
+  --frame-neutral-2: rgba(255, 255, 255, 0.18);
+  --frame-neutral-3: rgba(255, 255, 255, 0.32);
+}
+
+/* ---------- Layer base ---------- */
+.frame-layer {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* OUTER / INNER positioning */
+.frame-inner {
+  inset: 0;
+}
+.frame-outer {
+  inset: 0;
+}
+
+/* ---------- Shared vars ---------- */
+.frame-layer {
+  --t: var(--frame-thickness, 1px);
+  --i: var(--frame-intensity, 1);
+
+  /* neutral fallback */
+  --n1: var(--frame-neutral-1);
+  --n2: var(--frame-neutral-2);
+  --n3: var(--frame-neutral-3);
+
+  /* tinted colors (from symbol colors) */
+  --p1: color-mix(in oklab, var(--c1, #444) 70%, white 30%);
+  --p2: color-mix(in oklab, var(--c2, #444) 70%, white 30%);
+
+  /* derived */
+  --line: color-mix(in oklab, var(--n2), var(--p1) calc(var(--i) * 70%));
+  --line-strong: color-mix(in oklab, var(--n3), var(--p1) calc(var(--i) * 80%));
+  --glow: color-mix(in oklab, transparent, var(--p1) calc(var(--i) * 65%));
+  --glow2: color-mix(in oklab, transparent, var(--p2) calc(var(--i) * 55%));
+}
+
+/* ---------- Motion policy ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .frame-layer,
+  .frame-layer::before,
+  .frame-layer::after {
+    animation: none !important;
+  }
+}
+
+/* 선택된 카드에서만 애니메이션 실행 */
+.frame-layer::before,
+.frame-layer::after {
+  animation-play-state: paused;
+}
+.is-selected .frame-layer::before,
+.is-selected .frame-layer::after {
+  animation-play-state: running;
+}
+
+/* =========================================
+  Preset shells (fill one-by-one)
+  - Start implementing from border, targeting, scan-sweep...
+========================================= */
+
+.frame-preset-none {
+}
+
+/* INNER-ish presets */
+/* ✅ Targeting HUD (inner 추천: frame-inner에 붙이기) */
+.frame-preset-targeting {
+  /* 기본 보더 */
+  box-shadow: inset 0 0 0 var(--t) var(--line);
+}
+
+/* 코너 브래킷 + 틱 마커 + 가벼운 HUD 패턴 */
+.frame-preset-targeting::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+
+  /* 1) 얇은 세로/가로 HUD 라인(아주 은은) */
+  background:
+    linear-gradient(
+        to right,
+        transparent 0,
+        color-mix(in oklab, transparent, var(--p1) 18%) 10%,
+        transparent 20%
+      )
+      0 0 / 22px 100%,
+    linear-gradient(
+        to bottom,
+        transparent 0,
+        color-mix(in oklab, transparent, var(--p2) 14%) 10%,
+        transparent 20%
+      )
+      0 0 / 100% 22px,
+    /* 2) 코너 브래킷(4 corners) */
+      linear-gradient(var(--line-strong), var(--line-strong)) left 10px top
+      10px / 16px var(--t) no-repeat,
+    linear-gradient(var(--line-strong), var(--line-strong)) left 10px top 10px /
+      var(--t) 16px no-repeat,
+    linear-gradient(var(--line-strong), var(--line-strong)) right 10px top
+      10px / 16px var(--t) no-repeat,
+    linear-gradient(var(--line-strong), var(--line-strong)) right 10px top
+      10px / var(--t) 16px no-repeat,
+    linear-gradient(var(--line-strong), var(--line-strong)) left 10px bottom
+      10px / 16px var(--t) no-repeat,
+    linear-gradient(var(--line-strong), var(--line-strong)) left 10px bottom
+      10px / var(--t) 16px no-repeat,
+    linear-gradient(var(--line-strong), var(--line-strong)) right 10px bottom
+      10px / 16px var(--t) no-repeat,
+    linear-gradient(var(--line-strong), var(--line-strong)) right 10px bottom
+      10px / var(--t) 16px no-repeat;
+
+  opacity: 0.85;
+}
+
+/* 중앙 “조준선” (선택됐을 때만 미세 펄스) */
+.frame-preset-targeting::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+
+  --tp1: color-mix(in oklab, var(--c1, #6b7280) 70%, white 30%);
+  --tp2: color-mix(in oklab, var(--c2, #6b7280) 70%, white 30%);
+
+  background:
+    linear-gradient(
+        to right,
+        transparent 0%,
+        var(--tp1) 46%,
+        var(--tp1) 54%,
+        transparent 100%
+      )
+      0 50% / 100% 1px no-repeat,
+    linear-gradient(
+        to bottom,
+        transparent 0%,
+        var(--tp2) 46%,
+        var(--tp2) 54%,
+        transparent 100%
+      )
+      50% 0 / 1px 100% no-repeat;
+
+  opacity: 0.9;
+
+  filter: drop-shadow(0 0 4px var(--tp1)) drop-shadow(0 0 6px var(--tp2));
+}
+
+/* ✅ 선택 상태에서만 살짝 살아 움직이게 */
+.is-selected .frame-preset-targeting::after {
+  animation: targeting-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes targeting-pulse {
+  0% {
+    opacity: 0.4;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 0.75;
+    transform: scale(0.5);
+  }
+  100% {
+    opacity: 0.4;
+    transform: scale(0.3);
+  }
+}
+
+.frame-preset-scan-sweep::after {
+  content: "";
+  position: absolute;
+  inset: -40% 0; /* 위/아래 밖에서 시작 */
+  pointer-events: none;
+
+  /* 스캔 라인 */
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 42%,
+    color-mix(in oklab, transparent, var(--p1) 45%) 50%,
+    transparent 58%,
+    transparent 100%
+  );
+
+  opacity: 0;
+
+  transform: translateY(-70%);
+  animation: scan-sweep 2.2s ease-in-out infinite;
+}
+
+@keyframes scan-sweep {
+  0% {
+    transform: translateY(-70%);
+    opacity: 0;
+  }
+
+  15% {
+    opacity: 0.9;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+
+  85% {
+    opacity: 0.9;
+  }
+
+  100% {
+    transform: translateY(70%);
+    opacity: 0;
+  }
+}
+
+.frame-preset-scan-sweep::after {
+  content: "";
+  position: absolute;
+  inset: -40% 0;
+
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 44%,
+    color-mix(in oklab, transparent, var(--p1) 40%) 49%,
+    color-mix(in oklab, transparent, white 35%) 50%,
+    color-mix(in oklab, transparent, var(--p2) 40%) 51%,
+    transparent 56%,
+    transparent 100%
+  );
+
+  transform: translateY(-70%);
+  opacity: 0;
+
+  filter: drop-shadow(0 0 6px var(--p1)) drop-shadow(0 0 12px var(--p2));
+
+  animation: scan-sweep 2s ease-in-out infinite;
+}
+/* =========================================
+   GLASS SURFACE — AAA HUD GLASS
+========================================= */
+
+.frame-preset-glass-surface {
+  /* 아주 약한 유리 틴트 */
+  background: linear-gradient(
+    to bottom,
+    color-mix(in oklab, transparent, white 6%),
+    transparent 35%,
+    color-mix(in oklab, transparent, var(--p1) 6%)
+  );
+}
+
+/* 내부 반사광 */
+.frame-preset-glass-surface::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+
+  background:
+    radial-gradient(
+      circle at 20% 10%,
+      color-mix(in oklab, transparent, white 28%) 0%,
+      transparent 55%
+    ),
+    radial-gradient(
+      circle at 85% 80%,
+      color-mix(in oklab, transparent, var(--p1) 16%) 0%,
+      transparent 60%
+    );
+
+  opacity: 0.45;
+}
+
+/* 이동하는 글린트 (유리 특유의 빛 스침) */
+.frame-preset-glass-surface::after {
+  content: "";
+  position: absolute;
+  inset: -60%;
+  pointer-events: none;
+
+  background: linear-gradient(
+    120deg,
+    transparent 0%,
+    transparent 35%,
+    color-mix(in oklab, transparent, white 70%) 45%,
+    color-mix(in oklab, transparent, var(--p1) 35%) 50%,
+    transparent 60%,
+    transparent 100%
+  );
+
+  transform: translateX(-45%) rotate(6deg);
+  opacity: 0;
+
+  filter: blur(6px);
+
+  animation: glass-glint 3.2s ease-in-out infinite;
+}
+
+@keyframes glass-glint {
+  0% {
+    transform: translateX(-45%) rotate(6deg);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.9;
+  }
+  55% {
+    opacity: 0.35;
+  }
+  100% {
+    transform: translateX(45%) rotate(6deg);
+    opacity: 0;
+  }
+}
+/* =========================================
+   STEEL SURFACE — AAA HUD METAL
+========================================= */
+
+.frame-preset-steel-surface {
+  /* 금속 톤 + 약한 틴트 */
+  background:
+    linear-gradient(
+      to bottom,
+      color-mix(in oklab, transparent, white 10%) 0%,
+      transparent 28%,
+      color-mix(in oklab, transparent, black 22%) 68%,
+      color-mix(in oklab, transparent, var(--p1) 6%) 100%
+    );
+
+  opacity: 0.95;
+}
+
+/* 브러시 결 + 미세 노이즈 */
+.frame-preset-steel-surface::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+
+  /* ✅ 1) 브러시 결(가로 스트라이프) + ✅ 2) 미세 결(세로) */
+  background:
+    repeating-linear-gradient(
+      90deg,
+      color-mix(in oklab, transparent, white 18%) 0 1px,
+      transparent 1px 7px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      color-mix(in oklab, transparent, black 16%) 0 1px,
+      transparent 1px 11px
+    );
+
+  opacity: 0.18;
+  mix-blend-mode: overlay;
+}
+
+/* 금속 광택 "sweep" (선택 상태에서만 움직이게) */
+.frame-preset-steel-surface::after {
+  content: "";
+  position: absolute;
+  inset: -55%;
+  border-radius: inherit;
+  pointer-events: none;
+
+  background: linear-gradient(
+    115deg,
+    transparent 0%,
+    transparent 35%,
+    color-mix(in oklab, transparent, white 40%) 45%,
+    color-mix(in oklab, transparent, var(--p2) 22%) 52%,
+    transparent 62%,
+    transparent 100%
+  );
+
+  transform: translateX(-45%) rotate(6deg);
+  opacity: 0;
+  filter: blur(7px);
+
+  animation: steel-sheen 3.6s ease-in-out infinite;
+}
+
+/* ✅ 너 규칙: selected일 때만 애니메이션 ON */
+.frame-layer::after,
+.frame-layer::before {
+  animation-play-state: paused;
+}
+.is-selected .frame-layer::after,
+.is-selected .frame-layer::before {
+  animation-play-state: running;
+}
+
+@keyframes steel-sheen {
+  0% {
+    transform: translateX(-45%) rotate(6deg);
+    opacity: 0;
+  }
+  18% {
+    opacity: 0.75;
+  }
+  55% {
+    opacity: 0.28;
+  }
+  100% {
+    transform: translateX(45%) rotate(6deg);
+    opacity: 0;
+  }
+}
+
+/* OUTER-ish presets */
+.frame-preset-border {
+  box-shadow:
+    inset 0 0 0 var(--t) var(--line),
+    inset 0 0 0 calc(var(--t) + 1px)
+      color-mix(in oklab, transparent, var(--glow) 45%);
+}
+
+.frame-preset-glow-soft {
+  box-shadow:
+    /* 2) 부드러운 외곽 광 */
+    0 0 12px color-mix(in oklab, transparent, var(--c1, #888) 90%),
+    /* 3) 아주 약한 퍼짐 */ 0 0 20px
+      color-mix(in oklab, transparent, var(--c2, #888) 55%);
+}
+
+.frame-preset-glow-strong {
+  box-shadow:
+    inset 0 0 0 var(--frame-thickness, 1px)
+      color-mix(
+        in oklab,
+        transparent,
+        var(--c1, #888) calc(var(--frame-intensity, 1) * 50%)
+      ),
+    /* 2) 강한 외곽 광 */ 0 0 16px
+      color-mix(in oklab, transparent, var(--c1, #888) 90%),
+    /* 3) 조금 약한 퍼짐 */ 0 0 24px
+      color-mix(in oklab, transparent, var(--c2, #888) 55%);
+}
+
+
+/* electric: base border(지글) + glow + overlay */
+.frame-preset-electric {
+  /* 1) 테두리(스트로크) 자체를 지글지글 */
+  border: var(--t) solid color-mix(in oklab, var(--p1) 75%, white 25%);
+  filter: url(#turbulent-displace);
+
+  /* 2) 빈 외곽선 줄이기 = 베이스 스트로크를 확실히 */
+  opacity: 0.95;
+
+  /* 3) 카드 주변 글로우(원본 코드의 glow-layer 느낌) */
+  box-shadow:
+    0 0 10px color-mix(in oklab, transparent, var(--p1) 35%),
+    0 0 22px color-mix(in oklab, transparent, var(--p2) 22%);
+
+  /* 애니메이션은 선택시에만 (네 시스템 유지) */
+  animation-play-state: paused;
+}

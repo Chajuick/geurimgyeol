@@ -50,11 +50,13 @@ export default function WorldDetail() {
 
   const world = useMemo(() => {
     if (!worldId) return null;
-    return (data.worlds ?? []).find((w) => w.id === worldId) ?? null;
+    return (data.worlds ?? []).find(w => w.id === worldId) ?? null;
   }, [data.worlds, worldId]);
 
   // ✅ tab: URL query와 동기화
-  const [tab, _setTab] = useState<TabKey>(() => getQueryTab(location) ?? "overview");
+  const [tab, _setTab] = useState<TabKey>(
+    () => getQueryTab(location) ?? "overview"
+  );
 
   useEffect(() => {
     const fromUrl = getQueryTab(location);
@@ -76,7 +78,11 @@ export default function WorldDetail() {
           <div className="text-white/60 text-sm">
             삭제되었거나 잘못된 주소일 수 있어요.
           </div>
-          <GButton variant="primary" text="세계관 목록으로" onClick={() => setLocation("/worlds")} />
+          <GButton
+            variant="primary"
+            text="세계관 목록으로"
+            onClick={() => setLocation("/worlds")}
+          />
         </div>
       </div>
     );
@@ -84,9 +90,9 @@ export default function WorldDetail() {
 
   // ✅ 월드 업데이트(단일 월드 patch)
   const updateWorld = (patch: any) => {
-    setData((prev) => {
+    setData(prev => {
       const nextWorlds = [...(prev.worlds ?? [])];
-      const idx = nextWorlds.findIndex((w) => w.id === worldId);
+      const idx = nextWorlds.findIndex(w => w.id === worldId);
       if (idx < 0) return prev;
       nextWorlds[idx] = { ...nextWorlds[idx], ...patch };
       return { ...prev, worlds: nextWorlds };
@@ -95,20 +101,29 @@ export default function WorldDetail() {
 
   const stats = {
     linked:
-      (world.worldCharacters?.length ?? 0) + (world.worldCreatures?.length ?? 0),
+      (world.worldCharacters?.length ?? 0) +
+      (world.worldCreatures?.length ?? 0),
     events: (world.events ?? []).length,
     nouns: (world.properNouns ?? []).length,
   };
 
   return (
-    <div className="min-h-screen gyeol-bg text-white relative overflow-hidden">
+    <div
+      className={cn(
+        // ✅ 모바일은 페이지 스크롤 유지, PC(md+)는 화면 고정 + 내부 스크롤
+        "min-h-screen md:h-screen",
+        "gyeol-bg text-white relative",
+        "md:overflow-hidden"
+      )}
+    >
       {/* background HUD vignette */}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(255,255,255,0.07),transparent_45%),radial-gradient(circle_at_80%_30%,rgba(99,102,241,0.10),transparent_45%)]" />
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.10),rgba(0,0,0,0.60))]" />
 
-      <div className="relative z-10 px-6 md:px-10 lg:px-12 py-10">
+      {/* ✅ 전체를 column 레이아웃으로 */}
+      <div className="relative z-10 px-6 md:px-10 lg:px-12 py-10 md:h-full flex flex-col">
         {/* TOP BAR */}
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center justify-between gap-3 shrink-0">
           <div className="flex items-center gap-3">
             <GButton
               variant="ghost"
@@ -117,84 +132,116 @@ export default function WorldDetail() {
               onClick={() => setLocation("/worlds")}
             />
             <div className="text-[11px] tracking-[0.26em] text-white/45 hidden sm:block">
-              WORLD CODEX
+              WORLD
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            {editMode ? <HUDBadge tone="warn">EDIT MODE</HUDBadge> : <HUDBadge>VIEW MODE</HUDBadge>}
+            {editMode ? (
+              <HUDBadge tone="warn">EDIT MODE</HUDBadge>
+            ) : (
+              <HUDBadge>VIEW MODE</HUDBadge>
+            )}
             <HUDBadge>{`LINKED ${stats.linked}`}</HUDBadge>
-            <HUDBadge>{`EVENTS ${stats.events}`}</HUDBadge>
             <HUDBadge>{`TERMS ${stats.nouns}`}</HUDBadge>
           </div>
         </div>
 
-        {/* LAYOUT: LEFT DOSSIER + RIGHT CONTENT */}
-        <div className="mt-6 grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-4 lg:items-start">
-          {/* LEFT: DOSSIER */}
-          <HUDPanel className="p-6">
-            <div className="text-[11px] tracking-[0.26em] text-white/55">
-              DOSSIER
-            </div>
+        {/* ✅ TOP: DOSSIER (전체 너비) */}
+        <HUDPanel className="p-6 mt-6 shrink-0">
+          <div className="flex flex-row justify-between items-center">
+            <div>
+              <div className="text-[11px] tracking-[0.26em] text-white/55">
+                DOSSIER
+              </div>
 
-            <div className="mt-2 text-3xl font-extrabold tracking-tight truncate">
-              {world.name}
+              <div className="mt-2 text-3xl font-extrabold tracking-tight truncate">
+                {world.name}
+              </div>
             </div>
-
-            <div className="mt-2 text-sm text-white/65 line-clamp-4 whitespace-pre-wrap">
-              {world.description || "설명이 없습니다"}
-            </div>
-
             {/* quick stats grid */}
-            <div className="mt-5 grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2">
               <DossierStat label="LINKED" value={stats.linked} />
-              <DossierStat label="EVENTS" value={stats.events} />
               <DossierStat label="TERMS" value={stats.nouns} />
             </div>
+          </div>
 
-            <div className="mt-6">
-              <div className="text-[12px] tracking-[0.26em] text-white/55">
-                NAVIGATION
-              </div>
+          <div className="mt-6">
+            <div className="text-[12px] tracking-[0.26em] text-white/55">
+              NAVIGATION
+            </div>
 
-              <div className="mt-3">
-                <HUDSegmentTabs<TabKey>
-                  value={tab}
-                  onChange={setTab}
-                  items={[
-                    { key: "overview", label: "소개", icon: <BookOpen className="w-4 h-4" /> },
-                    { key: "events", label: "사건", icon: <ScrollText className="w-4 h-4" /> },
-                    { key: "properNouns", label: "고유명사", icon: <Sparkles className="w-4 h-4" /> },
-                    { key: "chronology", label: "연대", icon: <CalendarClock className="w-4 h-4" /> },
-                  ]}
+            <div className="mt-3">
+              <HUDSegmentTabs<TabKey>
+                value={tab}
+                onChange={setTab}
+                items={[
+                  {
+                    key: "overview",
+                    label: "소개",
+                    icon: <BookOpen className="w-4 h-4" />,
+                  },
+                  {
+                    key: "properNouns",
+                    label: "세계관 요소",
+                    icon: <Sparkles className="w-4 h-4" />,
+                  },
+                  /* 추후 개발
+                  {
+                    key: "events",
+                    label: "사건",
+                    icon: <ScrollText className="w-4 h-4" />,
+                  },
+                  {
+                    key: "chronology",
+                    label: "연대",
+                    icon: <CalendarClock className="w-4 h-4" />,
+                  },
+                  */
+                ]}
+              />
+            </div>
+          </div>
+        </HUDPanel>
+
+        {/* ✅ BOTTOM: CONTENT (PC에서 이 영역만 스크롤) */}
+        <div className="mt-4 flex-1 min-h-0">
+          {/* min-h-0가 없으면 flex 자식이 overflow를 제대로 못 먹음 */}
+          <div className="h-full overflow-hidden">
+            <div className="h-full overflow-auto scroll-dark">
+              {tab === "overview" && (
+                <WorldOverviewTab
+                  world={world}
+                  editMode={editMode}
+                  updateWorld={updateWorld}
+                  data={data}
                 />
-              </div>
+              )}
+
+              {tab === "events" && (
+                <WorldEventsTab
+                  world={world}
+                  editMode={editMode}
+                  updateWorld={updateWorld}
+                />
+              )}
+
+              {tab === "properNouns" && (
+                <WorldProperNounsTab
+                  world={world}
+                  editMode={editMode}
+                  updateWorld={updateWorld}
+                />
+              )}
+
+              {tab === "chronology" && (
+                <WorldChronologyTab
+                  world={world}
+                  editMode={editMode}
+                  updateWorld={updateWorld}
+                />
+              )}
             </div>
-
-            {/* hint */}
-            <div className="mt-6 text-xs text-white/45 leading-relaxed">
-              - 탭 상태는 URL에 저장돼서 새로고침/공유가 가능해.
-              <br />- “결” 느낌 유지하려면 패널은 HUDPanel로 계속 통일하면 좋아.
-            </div>
-          </HUDPanel>
-
-          {/* RIGHT: CONTENT */}
-          <div className="min-w-0">
-            {tab === "overview" && (
-              <WorldOverviewTab world={world} editMode={editMode} updateWorld={updateWorld} data={data} />
-            )}
-
-            {tab === "events" && (
-              <WorldEventsTab world={world} editMode={editMode} updateWorld={updateWorld} />
-            )}
-
-            {tab === "properNouns" && (
-              <WorldProperNounsTab world={world} editMode={editMode} updateWorld={updateWorld} />
-            )}
-
-            {tab === "chronology" && (
-              <WorldChronologyTab world={world} editMode={editMode} updateWorld={updateWorld} />
-            )}
           </div>
         </div>
       </div>
@@ -206,7 +253,7 @@ function DossierStat({ label, value }: { label: string; value: number }) {
   return (
     <div
       className={cn(
-        "rounded-2xl border border-white/10 bg-black/20 px-3 py-2",
+        "rounded-2xl border border-white/10 bg-black/20 pl-4 pr-10 py-2",
         "shadow-[0_12px_30px_rgba(0,0,0,0.35)]"
       )}
     >

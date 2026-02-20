@@ -72,8 +72,6 @@ export type FramePresetId =
   | "scan-sweep"        // 6) 테두리 빛이 훑는 효과
   | "glass-surface"     // 7) 전체 유리 질감
   | "steel-surface"     // 8) 전체 강철 질감
-  | "electric"          // 9) 전기 지직거림
-  | "flame";            // 10) 불꽃 이글거림
 
 /** ✅ 여러 프레임 프리셋을 레이어처럼 합성 */
 export type FrameStack = {
@@ -195,19 +193,20 @@ export type WorldEntryBase = {
   };
 };
 
+/** ✅ 월드 내 “용어/항목” 분류(Kind) 정의: 유저가 추가/삭제/라벨 변경 가능 */
+export type WorldProperNounKindDef = {
+  id: ID;          // 내부 키 (절대 안 바꾸는 값) 예: "place", "org", "hollow"
+  label: string;   // 화면 표시명 예: "장소", "조직", "공동"
+  icon?: string;   // 선택: lucide 이름 같은 걸로 저장해도 됨
+  color?: ColorHex;// 선택: 배지 컬러
+  meta?: Meta;     // order/pinned/hidden 등
+};
+
 /** ✅ 고유명사(용어) 타입 */
-export type WorldProperNounKind =
-  | "person"
-  | "place"
-  | "organization"
-  | "item"
-  | "technology"
-  | "concept"
-  | "species"
-  | "other";
+export type WorldProperNounKindId = ID;
 
 export type WorldProperNoun = WorldEntryBase & {
-  kind: WorldProperNounKind;
+  kindId: WorldProperNounKindId;
 };
 
 
@@ -322,6 +321,10 @@ export interface WorldData {
   chronology?: WorldChronology;
 
   properNouns?: WorldProperNoun[];
+
+  properNounKinds?: WorldProperNounKindDef[];
+  defaultProperNounKindId?: ID;
+
   events?: WorldEvent[];
 
   meta?: Meta;
@@ -332,14 +335,14 @@ export interface WorldData {
     🧙 Character Domain
 ========================================================= */
 
-export interface CharacterData extends EntityBase {}
+export interface CharacterData extends EntityBase { }
 
 
 /* =========================================================
     🐉 Creature Domain
 ========================================================= */
 
-export interface CreatureData extends EntityBase {}
+export interface CreatureData extends EntityBase { }
 
 
 /* =========================================================

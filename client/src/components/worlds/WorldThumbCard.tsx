@@ -15,7 +15,6 @@ export default function WorldThumbCard({
   name,
   image,
   editMode,
-  onDelete,
   className = "",
 }: Props) {
   const resolved = useResolvedImage(image || "");
@@ -36,19 +35,6 @@ export default function WorldThumbCard({
           <div className="w-full h-full grid place-items-center text-[10px] text-white/40">
             NO
           </div>
-        )}
-
-        {editMode && onDelete && (
-          <GButton
-            variant="danger"
-            icon={<Trash2 className="w-3.5 h-3.5" />}
-            onClick={(e: any) => {
-              e.stopPropagation();
-              onDelete(e);
-            }}
-            title="삭제"
-            className="absolute top-1 right-1 shadow w-4"
-          />
         )}
       </div>
     </div>

@@ -38,13 +38,17 @@ function tokens(variant: GButtonVariant) {
   };
   if (variant === "primary")
     return {
-      bg: "rgba(37,99,235,0.16)",
-      fg: "rgba(255,255,255,0.94)",
-      bd: "rgba(147,197,253,0.30)",
+      // 🔶 WARN tone (amber)
+      bg: "rgba(245,158,11,0.16)", // amber-500 tint
+      fg: "rgba(255,251,235,0.95)", // amber-50~100 계열
+
+      bd: "rgba(253,224,71,0.32)", // amber-300 border
       in: "rgba(0,0,0,0.28)",
-      hbg: "rgba(37,99,235,0.22)",
-      hbd: "rgba(147,197,253,0.42)",
-      glow: "rgba(59,130,246,0.18)",
+
+      hbg: "rgba(245,158,11,0.24)", // hover 더 밝게
+      hbd: "rgba(253,224,71,0.48)",
+
+      glow: "rgba(245,158,11,0.20)", // amber glow
     };
 
   if (variant === "danger")

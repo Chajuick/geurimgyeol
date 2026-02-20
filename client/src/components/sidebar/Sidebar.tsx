@@ -330,12 +330,6 @@ export default function Sidebar() {
               const active = isActivePath(location, item.path);
 
               const onClick = () => {
-                // ✅ worlds는 마지막 월드로 들어가도록 special-case
-                if (item.path === "/worlds") {
-                  onGoWorlds();
-                  return;
-                }
-
                 setLocation(item.path);
                 if (window.matchMedia("(max-width: 767px)").matches) {
                   closeMobile();
