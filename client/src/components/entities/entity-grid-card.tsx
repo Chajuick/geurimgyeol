@@ -4,6 +4,7 @@ import { Pencil, Trash2 } from "lucide-react";
 import { resolveFrameStack } from "@/lib/frameStack";
 import type { FramePresetId, ID } from "@/types";
 import { OUTER_PRESETS } from "@/lib/framePresets";
+import OverflowMarquee from "../ui/overflow-marquee";
 
 function isOuterPreset(id: FramePresetId) {
   return OUTER_PRESETS.has(id);
@@ -124,7 +125,7 @@ const EntityGridCard = memo(function EntityGridCard({
       }}
       className={[
         "group relative aspect-square",
-        "transition-all duration-300",
+        "transition-[transform,box-shadow] duration-300",
         "overflow-visible",
         selected ? "is-selected" : "",
       ].join(" ")}
@@ -172,9 +173,9 @@ const EntityGridCard = memo(function EntityGridCard({
               loading="lazy"
               decoding="async"
               className={[
-                "h-full w-full object-cover transition-all duration-500 will-change-transform",
+                "h-full w-full object-cover transition-all duration-500",
                 selected
-                  ? "scale-110 brightness-100 saturate-100 grayscale-0"
+                  ? "scale-110 brightness-100 saturate-100 grayscale-0 will-change-transform group-hover:scale-120"
                   : "grayscale brightness-75 contrast-105 group-hover:grayscale-0 group-hover:brightness-90 group-hover:scale-105",
               ].join(" ")}
             />
@@ -186,10 +187,29 @@ const EntityGridCard = memo(function EntityGridCard({
         </div>
 
         {/* bottom info */}
-        <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 to-transparent z-40">
-          <div className="text-white text-sm font-semibold tracking-tight">{name}</div>
-          <div className="text-zinc-400 text-[11px] mt-1">
-            {(subCategories || []).join(", ")}
+        <div className="absolute inset-x-0 bottom-0 px-3 pb-2 z-40">
+          {/* ✅ 배경 그라디언트 레이어 (텍스트 뒤) */}
+          <div
+            className={[
+              "pointer-events-none absolute inset-x-0 bottom-0",
+              "h-24", // 필요하면 20~32 사이로 조절
+              "bg-gradient-to-t from-black/90 via-black/55 to-transparent",
+            ].join(" ")}
+          />
+
+          {/* ✅ 내용은 위로 */}
+          <div className="relative z-10">
+            {/* ===== 이름 ===== */}
+            <OverflowMarquee active={selected}>
+              <span className="marquee-text name text-sm font-bold">{name}</span>
+            </OverflowMarquee>
+
+            {/* ===== 태그 ===== */}
+            <OverflowMarquee active={selected}>
+              <span className="marquee-text tags text-xs">
+                {(subCategories || []).join(", ")}
+              </span>
+            </OverflowMarquee>
           </div>
         </div>
 

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState, useDeferredValue } from "react";
 import { useLocation } from "wouter";
-import { ChevronLeft, ChevronRight, Plus, Trash2, Edit2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Trash2, Edit2, Unlink } from "lucide-react";
 
 import GButton from "@/components/ui/gyeol-button";
 import { HUDPanel, HUDBadge } from "@/components/ui/hud";
@@ -45,7 +45,7 @@ export default function Worlds() {
   const [currentWorldIndex, setCurrentWorldIndex] = useState(0);
   const currentWorld = worlds[currentWorldIndex] ?? null;
 
-  // ✅ 전경 배경 이미지 해석 (img: 키 포함 대응)
+  // ✅ background resolve (img: 키 포함 대응)
   const resolvedWorldBg = useResolvedImage(currentWorld?.backgroundImage ?? "");
 
   // ✅ entity lookup maps (O(1))
@@ -79,8 +79,6 @@ export default function Worlds() {
   // Add item modal
   const [addTab, setAddTab] = useState<AddTab>("character");
   const [search, setSearch] = useState("");
-
-  // ✅ 타이핑 부하 완화
   const deferredSearch = useDeferredValue(search);
 
   const [detailOpen, setDetailOpen] = useState<{ type: AddTab; id: ID } | null>(null);
@@ -260,6 +258,23 @@ export default function Worlds() {
     [addTab, currentWorld, currentWorldIndex, updateWorldAtIndex]
   );
 
+  const handleUnlinkItem = useCallback(
+    (refId: ID, type: AddTab) => {
+      if (!currentWorld) return;
+
+      if (type === "character") {
+        updateWorldAtIndex(currentWorldIndex, {
+          worldCharacters: (currentWorld.worldCharacters ?? []).filter((r) => r.id !== refId),
+        });
+      } else {
+        updateWorldAtIndex(currentWorldIndex, {
+          worldCreatures: (currentWorld.worldCreatures ?? []).filter((r) => r.id !== refId),
+        });
+      }
+    },
+    [currentWorld, currentWorldIndex, updateWorldAtIndex]
+  );
+
   const displayItems = useMemo(() => {
     if (!currentWorld) return [];
 
@@ -284,7 +299,6 @@ export default function Worlds() {
 
   const q = deferredSearch.trim().toLowerCase();
 
-  // ✅ Add modal list: "필터링 + 표시용 shape"까지 한번에 memo
   const addModalItems = useMemo(() => {
     if (!currentWorld) return [];
 
@@ -341,10 +355,10 @@ export default function Worlds() {
   // Empty state (no worlds)
   if (!currentWorld) {
     return (
-      <div className="min-h-screen gyeol-bg text-white p-10 flex items-center justify-center">
+      <div className="min-h-[100svh] gyeol-bg text-white p-6 md:p-10 flex items-center justify-center">
         <div className="max-w-xl mx-auto space-y-4 flex flex-col items-center">
           <div className="text-2xl font-bold">세계관이 없습니다</div>
-          <div className="text-white/60 text-sm">
+          <div className="text-white/60 text-sm text-center">
             {editMode ? "편집 모드에서 세계관을 추가할 수 있어요." : "잠시 후 찾아와주세요."}
           </div>
 
@@ -374,192 +388,225 @@ export default function Worlds() {
   }
 
   return (
-    <div className={cn("min-h-screen md:h-screen", "gyeol-bg text-white relative", "md:overflow-hidden")}>
+    <div
+      className={cn(
+        "min-h-[100svh] gyeol-bg text-white relative overflow-x-hidden",
+        "md:h-[100svh] md:overflow-hidden",
+        // ✅ 높이 짧으면(md 폭이어도) 고정 해제 → 자연 스크롤
+        "[@media(max-height:973px)]:md:h-auto",
+        "[@media(max-height:973px)]:md:overflow-visible"
+      )}
+    >
       {/* background HUD vignette */}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(255,255,255,0.07),transparent_45%),radial-gradient(circle_at_85%_30%,rgba(99,102,241,0.10),transparent_45%)]" />
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.10),rgba(0,0,0,0.60))]" />
 
-      <div className="relative z-10 px-6 md:px-10 lg:px-12 py-10 md:h-full flex flex-col">
+      {/* ✅ md 이상: h-full + flex-col + min-h-0 체계 필수 */}
+      <div
+        className={cn(
+          "relative z-10 px-4 sm:px-6 md:px-10 lg:px-12 py-6 md:py-10 flex flex-col",
+          "md:h-full",
+          "[@media(max-height:973px)]:md:h-auto"
+        )}
+      >
         {/* TOP BAR */}
-        <div className="flex items-center justify-between gap-3 shrink-0">
-          <div className="flex items-center gap-2">
-            {editMode ? <HUDBadge tone="warn">EDIT MODE</HUDBadge> : <HUDBadge>VIEW MODE</HUDBadge>}
-            <HUDBadge>{`WORLDS ${stats.worlds}`}</HUDBadge>
-            <HUDBadge>{`LINKED ${stats.linked}`}</HUDBadge>
+        <div className="flex items-center justify-between gap-3 shrink-0 h-10">
+          <div className="flex items-center gap-2 flex-wrap">
+            {editMode ? <HUDBadge tone="warn">EDIT</HUDBadge> : <HUDBadge>VIEW</HUDBadge>}
           </div>
         </div>
 
         {/* DOSSIER */}
-        <HUDPanel className="p-6 mt-6 shrink-0">
-          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-            <div className="min-w-0 flex-1 max-w-120">
-              <div className="text-[11px] tracking-[0.26em] text-white/55">WORLDS</div>
-              <div className="mt-2 flex items-center gap-3 min-w-0">
-                <div className="w-11 h-11 rounded-xl overflow-hidden bg-white/5 flex items-center justify-center shrink-0">
-                  <WorldThumbCard name={currentWorld.name} image={currentWorld.iconImage} />
-                </div>
+        <HUDPanel className="p-6 mt-4 sm:mt-6 shrink-0">
+          <div className="flex flex-col">
+            <div className="text-[11px] tracking-[0.26em] text-white/55 pb-4">WORLDS</div>
+            {/* ✅ 모바일에서 버튼 줄바꿈/정렬 안정화 */}
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              <div className="min-w-0 flex-1">
 
-                {editMode ? (
-                  <input
-                    value={nameDraft}
-                    onChange={(e) => setNameDraft(e.target.value)}
-                    className="min-w-0 flex-1 bg-white/10 border border-white/0 rounded-xl px-3 py-2 text-white font-normal
-                      focus:outline-none focus:ring-2 focus:ring-white/20"
-                    placeholder="세계관 이름"
-                  />
-                ) : (
-                  <div className="min-w-0 text-3xl font-extrabold tracking-tight truncate">
-                    {currentWorld.name}
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-11 h-11 rounded-xl overflow-hidden bg-white/5 flex items-center justify-center shrink-0">
+                    <WorldThumbCard name={currentWorld.name} image={currentWorld.iconImage} />
                   </div>
-                )}
 
-                {editMode && (
-                  <GButton
-                    variant="ghost"
-                    size="icon"
-                    icon={<Edit2 className="w-5 h-5" />}
-                    onClick={openBackgroundModal}
-                    title="아이콘/배경 변경"
-                  />
-                )}
-              </div>
-
-              <div className="mt-4">
-                <div className="text-[12px] tracking-[0.26em] text-white/55">WORLD BRIEF</div>
-
-                <div className="mt-3">
                   {editMode ? (
-                    <textarea
-                      value={descDraft}
-                      onChange={(e) => setDescDraft(e.target.value)}
-                      className="w-full min-h-24 p-3 rounded-xl bg-black/25 text-white border border-white/10
-                            placeholder:text-white/30 outline-none focus:ring-2 focus:ring-white/15 focus:border-white/20 transition resize-none scroll-dark"
-                      placeholder="세계관 설정을 입력하세요"
+                    <input
+                      value={nameDraft}
+                      onChange={(e) => setNameDraft(e.target.value)}
+                      className="min-w-0 flex-1 bg-white/10 border border-white/0 rounded-xl px-3 py-2 text-white font-normal
+                      focus:outline-none focus:ring-2 focus:ring-white/20"
+                      placeholder="세계관 이름"
                     />
                   ) : (
-                    <p className="min-h-0 max-h-24 overflow-y-auto scroll-dark text-sm text-white/70 leading-relaxed whitespace-pre-wrap">
-                      {currentWorld.description || "설명이 없습니다"}
-                    </p>
+                    <div className="min-w-0 text-2xl sm:text-3xl font-extrabold tracking-tight truncate">
+                      {currentWorld.name}
+                    </div>
+                  )}
+
+                  {editMode && (
+                    <GButton
+                      variant="ghost"
+                      size="icon"
+                      icon={<Edit2 className="w-5 h-5" />}
+                      onClick={openBackgroundModal}
+                      title="아이콘/배경 변경"
+                    />
                   )}
                 </div>
               </div>
-            </div>
 
-            <div className="flex items-center justify-between lg:justify-end gap-3">
-              <div className="flex items-center gap-2">
-                <GButton
-                  variant="ghost"
-                  size="icon"
-                  icon={<ChevronLeft className="w-5 h-5" />}
-                  onClick={handlePrevWorld}
-                  title="이전 세계관"
-                />
-                <div className="text-xs text-white/60 min-w-[64px] text-center">
-                  {currentWorldIndex + 1} / {worlds.length}
-                </div>
-                <GButton
-                  variant="ghost"
-                  size="icon"
-                  icon={<ChevronRight className="w-5 h-5" />}
-                  onClick={handleNextWorld}
-                  title="다음 세계관"
-                />
-              </div>
-
-              {editMode && (
+              {/* ✅ 우측 컨트롤: 모바일에선 왼쪽 정렬 + 줄바꿈 */}
+              <div className="flex items-center justify-between lg:justify-end gap-3 flex-wrap">
                 <div className="flex items-center gap-2">
                   <GButton
-                    variant="neutral"
-                    icon={<Plus className="w-4 h-4" />}
-                    text="추가"
-                    onClick={() => setIsAddingWorld(true)}
+                    variant="ghost"
+                    size="icon"
+                    icon={<ChevronLeft className="w-5 h-5" />}
+                    onClick={handlePrevWorld}
+                    title="이전 세계관"
                   />
+                  <div className="text-xs text-white/60 min-w-[64px] text-center">
+                    {currentWorldIndex + 1} / {worlds.length}
+                  </div>
                   <GButton
-                    variant="danger"
-                    icon={<Trash2 className="w-4 h-4" />}
-                    text="삭제"
-                    onClick={handleDeleteWorld}
-                    disabled={worlds.length === 1}
+                    variant="ghost"
+                    size="icon"
+                    icon={<ChevronRight className="w-5 h-5" />}
+                    onClick={handleNextWorld}
+                    title="다음 세계관"
                   />
                 </div>
-              )}
+
+                {editMode && (
+                  <div className="flex items-center gap-2">
+                    <GButton
+                      variant="neutral"
+                      icon={<Plus className="w-4 h-4" />}
+                      text="추가"
+                      onClick={() => setIsAddingWorld(true)}
+                    />
+                    <GButton
+                      variant="danger"
+                      icon={<Trash2 className="w-4 h-4" />}
+                      text="삭제"
+                      onClick={handleDeleteWorld}
+                      disabled={worlds.length === 1}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* brief */}
+            <div className="mt-4">
+              <div className="text-[12px] tracking-[0.26em] text-white/55">WORLD BRIEF</div>
+
+              <div className="mt-3">
+                {editMode ? (
+                  <textarea
+                    value={descDraft}
+                    onChange={(e) => setDescDraft(e.target.value)}
+                    className="w-full min-h-24 p-3 rounded-xl bg-black/25 text-white border border-white/10
+                            placeholder:text-white/30 outline-none focus:ring-2 focus:ring-white/15 focus:border-white/20 transition resize-none scroll-dark"
+                    placeholder="세계관 설정을 입력하세요"
+                  />
+                ) : (
+                  <p className="min-h-0 max-h-28 md:max-h-24 overflow-y-auto scroll-dark text-sm text-white/70 leading-relaxed whitespace-pre-wrap">
+                    {currentWorld.description || "설명이 없습니다"}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
-
-          <div className="mt-6" />
         </HUDPanel>
 
         {/* CONTENT */}
-        <div className="mt-4 flex-1 min-h-0">
-          <div className="h-full overflow-hidden">
-            <div className="h-full overflow-auto scroll-dark">
-              <div className="grid grid-cols-1 lg:grid-cols-[1.25fr_0.95fr] gap-4">
-                {/* LEFT */}
-                <HUDPanel className="p-4 md:p-6">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <div className="text-[11px] tracking-[0.26em] text-white/55">SCENE PREVIEW</div>
-                      <div className="mt-1 text-sm text-white/60">전경</div>
-                    </div>
+        {/* ✅ 모바일: 자연스럽게 아래로 늘어남 / md+: 남은 영역 flex-1로 고정 */}
+        <div className="mt-4 md:mt-6 flex-1 min-h-0">
+          {/* md 이상에선 내부 높이 고정이 필요 */}
+          <div className={cn(
+            "md:h-full md:overflow-hidden",
+            "[@media(max-height:973px)]:md:h-auto",
+            "[@media(max-height:973px)]:md:overflow-visible"
+          )}>
+            <div className="grid grid-cols-1 lg:grid-cols-[1.25fr_0.95fr] gap-4 md:h-full md:min-h-0 items-stretch">
+              {/* LEFT */}
+              <HUDPanel className="p-6 md:h-full md:min-h-0 flex flex-col overflow-hidden">
+                {/* header */}
+                <div className="flex items-center justify-between gap-3 shrink-0">
+                  <div>
+                    <div className="text-[11px] tracking-[0.26em] text-white/55">SCENE PREVIEW</div>
+                    <div className="mt-1 text-sm text-white/60">전경</div>
+                  </div>
 
+                  <GButton
+                    variant="primary"
+                    text="빠져들기"
+                    onClick={() => setLocation(`/worlds/${currentWorld.id}`)}
+                  />
+                </div>
+
+                {/* preview */}
+                <div className="mt-4 flex-1 min-h-[240px]">
+                  <div
+                    className="w-full h-full rounded-2xl overflow-hidden relative border border-white/10 bg-black/10"
+                    style={{
+                      backgroundImage: resolvedWorldBg ? `url(${resolvedWorldBg})` : undefined,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                    }}
+                  >
+                    {!resolvedWorldBg && <div className="absolute inset-0 gyeol-bg" />}
+                    <div className="absolute inset-0 bg-black/10 pointer-events-none" />
+                    <div className="pointer-events-none absolute inset-0 opacity-[0.12] bg-[linear-gradient(rgba(255,255,255,0.12)_1px,transparent_1px)] bg-[length:100%_3px]" />
+                  </div>
+                </div>
+              </HUDPanel>
+
+              {/* RIGHT */}
+              <HUDPanel className="p-6 md:h-full md:min-h-0 flex flex-col">
+                <div className="flex items-center justify-between gap-3 shrink-0">
+                  <div>
+                    <div className="text-[11px] tracking-[0.26em] text-white/55">LINKED ENTITIES</div>
+                    <div className="mt-1 text-sm text-white/60">캐릭터/크리쳐</div>
+                  </div>
+
+                  {editMode && (
                     <GButton
-                      variant="primary"
-                      text="빠져들기"
-                      onClick={() => setLocation(`/worlds/${currentWorld.id}`)}
-                    />
-                  </div>
-
-                  <div className="mt-4">
-                    <div
-                      className="w-full aspect-[16/9] rounded-2xl overflow-hidden relative border border-white/10 bg-black/10"
-                      style={{
-                        backgroundImage: resolvedWorldBg ? `url(${resolvedWorldBg})` : undefined,
-                        backgroundSize: "cover",
-                        backgroundPosition: "center",
+                      variant="ghost"
+                      icon={<Plus className="w-4 h-4" />}
+                      text="추가"
+                      onClick={() => {
+                        setIsAddingItem(true);
+                        setAddTab("character");
+                        setSearch("");
                       }}
-                    >
-                      {!resolvedWorldBg && <div className="absolute inset-0 gyeol-bg" />}
-                      <div className="absolute inset-0 bg-black/10 pointer-events-none" />
-                      <div className="pointer-events-none absolute inset-0 opacity-[0.12] bg-[linear-gradient(rgba(255,255,255,0.12)_1px,transparent_1px)] bg-[length:100%_3px]" />
+                    />
+                  )}
+                </div>
+
+                {/* body */}
+                {/* ✅ 모바일: 그냥 늘어나되, 너무 길면 자연 스크롤(페이지 스크롤) */}
+                {/* ✅ md 이상: 이 영역만 스크롤 */}
+                <div className={cn(
+                  "mt-4 flex-1 min-h-0 scroll-dark pr-1",
+                  "md:overflow-y-auto",
+                  "[@media(max-height:973px)]:md:overflow-visible",
+                  "[@media(max-height:973px)]:md:flex-none"
+                )}>
+                  {displayItems.length === 0 ? (
+                    <div className="rounded-2xl border border-white/10 bg-black/20 p-4 text-xs text-white/45">
+                      등록된 항목이 없습니다.
+                      {editMode ? " 오른쪽 상단 ‘추가’로 연결해줘." : ""}
                     </div>
-                  </div>
-                </HUDPanel>
-
-                {/* RIGHT */}
-                <HUDPanel className="p-4 md:p-6">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <div className="text-[11px] tracking-[0.26em] text-white/55">LINKED ENTITIES</div>
-                      <div className="mt-1 text-sm text-white/60">캐릭터/크리쳐</div>
-                    </div>
-
-                    {editMode && (
-                      <GButton
-                        variant="ghost"
-                        icon={<Plus className="w-4 h-4" />}
-                        text="추가"
-                        onClick={() => {
-                          setIsAddingItem(true);
-                          setAddTab("character");
-                          setSearch("");
-                        }}
-                      />
-                    )}
-                  </div>
-
-                  <div className="mt-8">
-                    {displayItems.length === 0 ? (
-                      <div className="rounded-2xl border border-white/10 bg-black/20 p-4 text-xs text-white/45">
-                        등록된 항목이 없습니다.
-                        {editMode ? " 오른쪽 상단 ‘추가’로 연결해줘." : ""}
-                      </div>
-                    ) : (
-                      <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3">
-                        {displayItems.map((it) => (
+                  ) : (
+                    <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3">
+                      {displayItems.map((it) => (
+                        <div key={it.refId} className="relative group">
+                          {/* 썸네일 클릭 = 상세 */}
                           <button
-                            key={it.refId}
                             type="button"
-                            className="text-left"
+                            className="w-full text-left"
                             onClick={() => {
                               setDetailOpen({ type: it.type, id: it.data.id });
                               setDetailSubIndex(0);
@@ -571,12 +618,31 @@ export default function Worlds() {
                               editMode={editMode}
                             />
                           </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </HUDPanel>
-              </div>
+
+                          {/* ✅ editMode일 때만 연결 해제 버튼 */}
+                          {/* ✅ GButton danger unlink */}
+                          {editMode && (
+                            <GButton
+                              variant="danger"
+                              size="icon"
+                              icon={<Unlink className="w-4 h-4" />}
+                              title="연결 해제"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleUnlinkItem(it.refId, it.type);
+                              }}
+                              className={cn(
+                                "absolute top-2 right-2 z-20",
+                              )}
+                            />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </HUDPanel>
             </div>
           </div>
         </div>

@@ -157,7 +157,7 @@ export default function Profile() {
   return (
     <div
       className={cn(
-        "min-h-screen w-full overflow-x-hidden text-white",
+        "min-h-[100svh] w-full overflow-x-hidden text-white",
         "gyeol-bg relative"
       )}
     >
@@ -191,7 +191,7 @@ export default function Profile() {
         <HUDPanel className="p-5 md:p-7 mt-6">
           <div className="flex flex-col md:flex-row gap-8 md:gap-10">
             {/* Profile Image Card */}
-            <div className="flex-shrink-0">
+            <div className="flex-shrink-0 flex items-center justify-center">
               <div className="relative w-56 h-56 rounded-2xl overflow-hidden border border-white/10 bg-black/25">
                 {/* subtle scanlines */}
                 <div className="pointer-events-none absolute inset-0 opacity-[0.10] bg-[linear-gradient(rgba(255,255,255,0.18)_1px,transparent_1px)] bg-[length:100%_3px]" />

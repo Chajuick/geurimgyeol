@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useRoute } from "wouter";
-import { ArrowLeft, BookOpen, Sparkles, CalendarClock, ScrollText } from "lucide-react";
+import { ArrowLeft, BookOpen, Sparkles } from "lucide-react";
 
 import { usePortfolioContext } from "@/contexts/PortfolioContext";
 import GButton from "@/components/ui/gyeol-button";
@@ -38,20 +38,20 @@ export default function WorldDetail() {
   // ✅ entities: id -> entity (O(1))
   const characterById = useMemo(() => {
     const m = new Map<ID, CharacterData>();
-    (data.characters ?? []).forEach((c) => m.set(c.id, c));
+    (data.characters ?? []).forEach(c => m.set(c.id, c));
     return m;
   }, [data.characters]);
 
   const creatureById = useMemo(() => {
     const m = new Map<ID, CreatureData>();
-    (data.creatures ?? []).forEach((c) => m.set(c.id, c));
+    (data.creatures ?? []).forEach(c => m.set(c.id, c));
     return m;
   }, [data.creatures]);
 
   // ✅ worlds: id -> world (O(1))
   const worldById = useMemo(() => {
     const m = new Map<string, any>();
-    (data.worlds ?? []).forEach((w) => m.set(w.id, w));
+    (data.worlds ?? []).forEach(w => m.set(w.id, w));
     return m;
   }, [data.worlds]);
 
@@ -69,7 +69,6 @@ export default function WorldDetail() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location]);
 
-  // ✅ setTab: stale location 방지 (worldId 기준으로 생성)
   const setTab = useCallback(
     (t: TabKey) => {
       _setTab(t);
@@ -78,10 +77,10 @@ export default function WorldDetail() {
     [setLocation, worldId]
   );
 
-  // ✅ 탭 언마운트 방지: 한번 방문한 탭은 유지 렌더
+  // ✅ 탭 언마운트 방지
   const [visitedTabs, setVisitedTabs] = useState<Set<TabKey>>(() => new Set([tab]));
   useEffect(() => {
-    setVisitedTabs((prev) => {
+    setVisitedTabs(prev => {
       if (prev.has(tab)) return prev;
       const next = new Set(prev);
       next.add(tab);
@@ -106,13 +105,13 @@ export default function WorldDetail() {
 
   const detailTagOptions = useMemo(() => [] as string[], []);
 
-  // ✅ 월드 업데이트(단일 월드 patch) - (worldId 없으면 no-op)
+  // ✅ 월드 업데이트
   const updateWorld = useCallback(
     (patch: any) => {
       if (!worldId) return;
-      setData((prev) => {
+      setData(prev => {
         const worlds = prev.worlds ?? [];
-        const idx = worlds.findIndex((w) => w.id === worldId);
+        const idx = worlds.findIndex(w => w.id === worldId);
         if (idx < 0) return prev;
 
         const nextWorlds = [...worlds];
@@ -123,10 +122,8 @@ export default function WorldDetail() {
     [setData, worldId]
   );
 
-  // ✅ stats memo (world null-safe)
   const stats = useMemo(() => {
-    const linked =
-      (world?.worldCharacters?.length ?? 0) + (world?.worldCreatures?.length ?? 0);
+    const linked = (world?.worldCharacters?.length ?? 0) + (world?.worldCreatures?.length ?? 0);
     const events = (world?.events ?? []).length;
     const nouns = (world?.properNouns ?? []).length;
     return { linked, events, nouns };
@@ -144,52 +141,43 @@ export default function WorldDetail() {
   useEffect(() => {
     if (!match || !worldId) return;
 
-    // 아직 복원/로딩 중이면 기다림
     if (!worldsHydrated) {
       setNotFound(false);
       return;
     }
-
-    // worlds가 한번이라도 채워졌는데도 못 찾으면 진짜 notFound
     setNotFound(!world);
   }, [match, worldId, worldsHydrated, world]);
 
   const isLocating = !!match && !!worldId && !world && !notFound;
 
-  // ✅ 라우트 매칭 안 되면 렌더 안 함
   if (!match) return null;
 
-  // ✅ worldId 자체가 없으면(이론상 거의 없음) 부드러운 가드
   if (!worldId) {
     return (
-      <div className="min-h-screen gyeol-bg text-white relative overflow-hidden">
+      <div className="min-h-[100svh] gyeol-bg text-white relative overflow-hidden">
         <LocatingOverlay show text="LOCATING ROUTE" />
       </div>
     );
   }
 
-  // ✅ 진짜로 없는 월드만 NotFound
   if (!world && notFound) {
     return (
-      <div className="min-h-screen gyeol-bg text-white p-10 h-full flex items-center justify-center">
-        <div className="max-w-xl mx-auto space-y-4 flex flex-col items-center">
-          <div className="text-2xl font-bold">월드를 찾을 수 없습니다</div>
-          <div className="text-white/60 text-sm">삭제되었거나 잘못된 주소일 수 있어요.</div>
-          <GButton
-            variant="primary"
-            text="세계관 목록으로"
-            onClick={() => setLocation("/worlds")}
-          />
+      <div className="min-h-[100svh] gyeol-bg text-white p-6 md:p-10 h-full flex items-center justify-center">
+        <div className="max-w-xl mx-auto space-y-4 flex flex-col items-center text-center">
+          <div className="text-xl md:text-2xl font-bold">월드를 찾을 수 없습니다</div>
+          <div className="text-white/60 text-sm">
+            삭제되었거나 잘못된 주소일 수 있어요.
+          </div>
+          <GButton variant="primary" text="세계관 목록으로" onClick={() => setLocation("/worlds")} />
         </div>
       </div>
     );
   }
 
-  // ✅ 여기부터는 "월드가 있을 수도 있고(정상)", "아직 로딩 중일 수도 있음(overlay)" 상태
   return (
     <div
       className={cn(
-        "min-h-screen md:h-screen",
+        "min-h-[100svh] md:h-[100svh]",
         "gyeol-bg text-white relative",
         "overflow-hidden"
       )}
@@ -198,48 +186,46 @@ export default function WorldDetail() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(255,255,255,0.07),transparent_45%),radial-gradient(circle_at_80%_30%,rgba(99,102,241,0.10),transparent_45%)]" />
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.10),rgba(0,0,0,0.60))]" />
 
-      {/* ✅ 실제 컨텐츠는 world 있을 때만 렌더 (로딩 중엔 오버레이만 자연스럽게) */}
       {world && (
         <>
-          <div className="relative z-10 px-6 md:px-10 lg:px-12 py-10 md:h-full min-h-0 flex flex-col">
+          <div className="relative z-10 px-4 sm:px-6 md:px-10 lg:px-12 py-6 md:py-10 md:h-full min-h-0 flex flex-col">
             {/* TOP BAR */}
-            <div className="flex items-center justify-between gap-3 shrink-0">
-              <div className="flex items-center gap-3">
+            <div className="flex items-center sm:items-center justify-between gap-3 shrink-0">
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                 <GButton
                   variant="ghost"
                   icon={<ArrowLeft className="w-4 h-4" />}
                   text="세계관"
                   onClick={() => setLocation("/worlds")}
                 />
-                <div className="text-[11px] tracking-[0.26em] text-white/45 hidden sm:block">
-                  WORLD
+                <div className="flex flex-wrap items-center justify-end gap-1.5 sm:gap-2 max-w-[60%] sm:max-w-none">
+                  {editMode ? (
+                    <HUDBadge tone="warn">EDIT</HUDBadge>
+                  ) : (
+                    <HUDBadge>VIEW</HUDBadge>
+                  )}
                 </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                {editMode ? <HUDBadge tone="warn">EDIT MODE</HUDBadge> : <HUDBadge>VIEW MODE</HUDBadge>}
-                <HUDBadge>{`LINKED ${stats.linked}`}</HUDBadge>
-                <HUDBadge>{`TERMS ${stats.nouns}`}</HUDBadge>
               </div>
             </div>
 
             {/* DOSSIER */}
-            <HUDPanel className="p-6 mt-6 shrink-0">
-              <div className="flex flex-row justify-between items-center">
+            <HUDPanel className="p-6 mt-4 sm:mt-6 shrink-0">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
                 <div className="min-w-0">
                   <div className="text-[11px] tracking-[0.26em] text-white/55">DOSSIER</div>
-                  <div className="mt-2 text-3xl font-extrabold tracking-tight truncate">
+                  <div className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight truncate">
                     {world.name}
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
+                {/* ✅ 모바일: stats는 아래로 내려가고 grid 자동 */}
+                <div className="grid grid-cols-2 sm:grid-cols-2 gap-2 self-start">
                   <DossierStat label="LINKED" value={stats.linked} />
                   <DossierStat label="TERMS" value={stats.nouns} />
                 </div>
               </div>
 
-              <div className="mt-6">
+              <div className="mt-5 sm:mt-6">
                 <div className="text-[12px] tracking-[0.26em] text-white/55">NAVIGATION</div>
 
                 <div className="mt-3">
@@ -249,8 +235,9 @@ export default function WorldDetail() {
                     items={[
                       { key: "overview", label: "소개", icon: <BookOpen className="w-4 h-4" /> },
                       { key: "properNouns", label: "세계관 요소", icon: <Sparkles className="w-4 h-4" /> },
-                      { key: "events", label: "이벤트", icon: <ScrollText className="w-4 h-4" /> },
-                      { key: "chronology", label: "연표", icon: <CalendarClock className="w-4 h-4" /> },
+                      // 필요하면 아래도 다시 열기
+                      // { key: "events", label: "이벤트", icon: <CalendarClock className="w-4 h-4" /> },
+                      // { key: "chronology", label: "연표", icon: <ScrollText className="w-4 h-4" /> },
                     ]}
                   />
                 </div>
@@ -258,51 +245,47 @@ export default function WorldDetail() {
             </HUDPanel>
 
             {/* CONTENT */}
-            <div className="mt-4 flex-1 min-h-0 overflow-hidden">
+            <div className="mt-3 sm:mt-4 flex-1 min-h-0 overflow-hidden">
               <div className="h-full min-h-0 overflow-hidden">
-                <div className="h-full min-h-0 overflow-hidden">
-                  <div className="h-full min-h-0 overflow-hidden">
-                    {visitedTabs.has("overview") && (
-                      <div className={cn("h-full min-h-0", tab === "overview" ? "block" : "hidden")}>
-                        <WorldOverviewTab
-                          world={world}
-                          editMode={editMode}
-                          updateWorld={updateWorld}
-                          data={data}
-                          onOpenEntity={openEntityDetail}
-                        />
-                      </div>
-                    )}
-
-                    {visitedTabs.has("events") && (
-                      <div className={cn("h-full min-h-0", tab === "events" ? "block" : "hidden")}>
-                        <WorldEventsTab world={world} editMode={editMode} updateWorld={updateWorld} />
-                      </div>
-                    )}
-
-                    {visitedTabs.has("properNouns") && (
-                      <div className={cn("h-full min-h-0", tab === "properNouns" ? "block" : "hidden")}>
-                        <WorldProperNounsTab
-                          world={world}
-                          editMode={editMode}
-                          updateWorld={updateWorld}
-                          data={data}
-                        />
-                      </div>
-                    )}
-
-                    {visitedTabs.has("chronology") && (
-                      <div className={cn("h-full min-h-0", tab === "chronology" ? "block" : "hidden")}>
-                        <WorldChronologyTab world={world} editMode={editMode} updateWorld={updateWorld} />
-                      </div>
-                    )}
+                {visitedTabs.has("overview") && (
+                  <div className={cn("h-full min-h-0", tab === "overview" ? "block" : "hidden")}>
+                    <WorldOverviewTab
+                      world={world}
+                      editMode={editMode}
+                      updateWorld={updateWorld}
+                      data={data}
+                      onOpenEntity={openEntityDetail}
+                    />
                   </div>
-                </div>
+                )}
+
+                {visitedTabs.has("events") && (
+                  <div className={cn("h-full min-h-0", tab === "events" ? "block" : "hidden")}>
+                    <WorldEventsTab world={world} editMode={editMode} updateWorld={updateWorld} />
+                  </div>
+                )}
+
+                {visitedTabs.has("properNouns") && (
+                  <div className={cn("h-full min-h-0", tab === "properNouns" ? "block" : "hidden")}>
+                    <WorldProperNounsTab
+                      world={world}
+                      editMode={editMode}
+                      updateWorld={updateWorld}
+                      data={data}
+                    />
+                  </div>
+                )}
+
+                {visitedTabs.has("chronology") && (
+                  <div className={cn("h-full min-h-0", tab === "chronology" ? "block" : "hidden")}>
+                    <WorldChronologyTab world={world} editMode={editMode} updateWorld={updateWorld} />
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
-          {/* ✅ ENTITY DETAIL MODAL */}
+          {/* ENTITY DETAIL MODAL */}
           {detailEntity && (
             <EntityDetailFullscreen
               entity={detailEntity as any}
@@ -321,7 +304,6 @@ export default function WorldDetail() {
         </>
       )}
 
-      {/* ✅ 자연스러운 로딩 오버레이 (world 로드되면 fade-out) */}
       <LocatingOverlay show={isLocating} text="LOCATING WORLD" />
     </div>
   );
@@ -331,7 +313,8 @@ function DossierStat({ label, value }: { label: string; value: number }) {
   return (
     <div
       className={cn(
-        "rounded-2xl border border-white/10 bg-black/20 pl-4 pr-10 py-2",
+        "rounded-2xl border border-white/10 bg-black/20",
+        "px-4 py-2",
         "shadow-[0_12px_30px_rgba(0,0,0,0.35)]"
       )}
     >
@@ -353,11 +336,11 @@ function LocatingOverlay({ show, text }: { show: boolean; text?: string }) {
     >
       <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" />
 
-      <div className="absolute inset-0 flex items-center justify-center">
+      <div className="absolute inset-0 flex items-center justify-center px-4">
         <div
           className={cn(
             "rounded-2xl border border-white/10 bg-black/40",
-            "px-6 py-4 shadow-[0_18px_45px_rgba(0,0,0,0.45)]"
+            "px-5 sm:px-6 py-4 shadow-[0_18px_45px_rgba(0,0,0,0.45)]"
           )}
         >
           <div className="flex items-center gap-3">

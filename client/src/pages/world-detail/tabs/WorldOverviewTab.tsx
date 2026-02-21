@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Image as ImageIcon, Plus } from "lucide-react";
+import { Image as ImageIcon, Plus, Unlink } from "lucide-react";
 
 import { HUDPanel, HUDSectionTitle, HUDBadge } from "@/components/ui/hud";
 import ImageUpload from "@/components/ImageUpload";
@@ -167,6 +167,8 @@ export default function WorldOverviewTab({
     [updateWorld, world.worldCharacters, world.worldCreatures]
   );
 
+
+
   // ✅ add list: 이미 링크된 엔티티 제외 + memo
   const q = search.trim().toLowerCase();
 
@@ -215,18 +217,7 @@ export default function WorldOverviewTab({
         <div className="grid gap-4">
           {/* HERO PREVIEW */}
           <HUDPanel className="p-6">
-            <HUDSectionTitle
-              right={
-                <div className="flex gap-2">
-                  <HUDBadge>OVERVIEW</HUDBadge>
-                  <HUDBadge tone={editMode ? "warn" : "neutral"}>
-                    {editMode ? "EDITABLE" : "READONLY"}
-                  </HUDBadge>
-                </div>
-              }
-            >
-              WORLD OVERVIEW
-            </HUDSectionTitle>
+            <HUDSectionTitle>WORLD OVERVIEW</HUDSectionTitle>
 
             <div
               className="
@@ -350,31 +341,47 @@ export default function WorldOverviewTab({
               LINKED ENTITIES
             </HUDSectionTitle>
 
-            <div className="mt-4">
+            <div className="my-4">
               {displayItems.length === 0 ? (
                 <div className="text-sm text-white/55">등록된 항목이 없습니다.</div>
               ) : (
                 <div className="grid gap-3 grid-cols-3 sm:grid-cols-4 md:grid-cols-6 xl:grid-cols-7">
                   {displayItems.map((it: any) => {
-                    const clickable = !!onOpenEntity; // WorldDetail에서만 열 수 있게
+                    const clickable = !!onOpenEntity;
+
                     return (
-                      <button
-                        key={it.refId}
-                        type="button"
-                        className={cn("text-left", clickable ? "cursor-pointer" : "cursor-default")}
-                        onClick={() => clickable && handleOpenLinked(it.type, it.entityId)}
-                      >
-                        <WorldThumbCard
-                          name={it.data?.name}
-                          image={it.data?.profileImage}
-                          editMode={editMode}
-                          onDelete={() => {
-                            // (가능하면) 삭제 클릭이 카드 클릭으로 버블링 되는 걸 방지하고 싶지만
-                            // WorldThumbCard 내부에서 stopPropagation을 해야 완벽해.
-                            handleDeleteItemByRefId(it.refId, it.type);
-                          }}
-                        />
-                      </button>
+                      <div key={it.refId} className="relative group">
+                        <button
+                          type="button"
+                          className={cn("w-full text-left", clickable ? "cursor-pointer" : "cursor-default")}
+                          onClick={() => clickable && handleOpenLinked(it.type, it.entityId)}
+                        >
+                          <WorldThumbCard
+                            name={it.data?.name}
+                            image={it.data?.profileImage}
+                            editMode={editMode}
+                          />
+                        </button>
+
+                        {/* ✅ 연결 해제 (refId 기준) */}
+                        {editMode && (
+                          <GButton
+                            variant="danger"
+                            size="icon"
+                            icon={<Unlink className="w-4 h-4" />}
+                            title="연결 해제"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleDeleteItemByRefId(it.refId, it.type);
+                            }}
+                            className={cn(
+                              "absolute top-2 right-2 z-20",
+                              "opacity-100 transition"
+                            )}
+                          />
+                        )}
+                      </div>
                     );
                   })}
                 </div>

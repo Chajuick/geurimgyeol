@@ -16,14 +16,22 @@ import CategoryGroupEditModal, {
 import type {
   CreatureData,
   ID,
-  SubImage,
-  SymbolColor,
   CategoryItem,
   FramePresetId,
 } from "@/types";
 
 import { cn } from "@/lib/utils";
-import { INNER_OPTIONS, OUTER_OPTIONS, OUTER_PRESETS } from "@/lib/framePresets";
+import { OUTER_PRESETS } from "@/lib/framePresets";
+
+import {
+  normalizeSymbolColors,
+  normalizeSubImages,
+  sanitizeSymbolColors,
+  sanitizeSubImages,
+  symbolColorsEqual,
+  subImagesEqual,
+} from "@/lib/entityNormalize";
+import EntityFrameSettingsModal from "@/components/entities/frame-setting-modal";
 
 const ALL = "전체";
 
@@ -60,32 +68,6 @@ function arraysShallowEqual(a: any[] = [], b: any[] = []) {
   return true;
 }
 
-function symbolsEqual(a: SymbolColor[] = [], b: SymbolColor[] = []) {
-  if (a === b) return true;
-  if (a.length !== b.length) return false;
-  for (let i = 0; i < a.length; i++) {
-    const A: any = a[i];
-    const B: any = b[i];
-    if (!A || !B) return false;
-    if (A.hex !== B.hex) return false;
-    if (A.label !== B.label) return false;
-  }
-  return true;
-}
-
-function subImagesEqual(a: SubImage[] = [], b: SubImage[] = []) {
-  if (a === b) return true;
-  if (a.length !== b.length) return false;
-  for (let i = 0; i < a.length; i++) {
-    const A: any = a[i];
-    const B: any = b[i];
-    if (!A || !B) return false;
-    if (A.url !== B.url) return false;
-    if (A.caption !== B.caption) return false;
-  }
-  return true;
-}
-
 function creatureEqual(a: CreatureData, b: CreatureData) {
   return (
     a.name === b.name &&
@@ -95,7 +77,7 @@ function creatureEqual(a: CreatureData, b: CreatureData) {
     a.mainImage === b.mainImage &&
     subImagesEqual(a.subImages || [], b.subImages || []) &&
     arraysShallowEqual(a.tags || [], b.tags || []) &&
-    symbolsEqual(a.symbolColors || [], b.symbolColors || []) &&
+    symbolColorsEqual(a.symbolColors || [], b.symbolColors || []) &&
     a.summary === b.summary &&
     a.description === b.description &&
     a.meta === b.meta
@@ -152,11 +134,11 @@ export default function Creatures() {
             : [],
         profileImage: String(raw?.profileImage ?? ""),
         mainImage: String(raw?.mainImage ?? ""),
-        subImages: Array.isArray(raw?.subImages) ? (raw.subImages as SubImage[]) : [],
+
+        subImages: normalizeSubImages(raw?.subImages) as any,
         tags: Array.isArray(raw?.tags) ? raw.tags : [],
-        symbolColors: Array.isArray(raw?.symbolColors)
-          ? (raw.symbolColors as SymbolColor[])
-          : [],
+        symbolColors: normalizeSymbolColors(raw?.symbolColors) as any,
+
         summary: String(raw?.summary ?? ""),
         description: String(raw?.description ?? ""),
         meta: raw?.meta ?? undefined,
@@ -187,23 +169,6 @@ export default function Creatures() {
 
   // frame settings modal
   const [isFrameSettingsOpen, setIsFrameSettingsOpen] = useState(false);
-
-  // preview delay
-  const [showFramePreviews, setShowFramePreviews] = useState(false);
-  useEffect(() => {
-    if (!isFrameSettingsOpen) {
-      setShowFramePreviews(false);
-      return;
-    }
-    let raf = 0;
-    const t = window.setTimeout(() => {
-      raf = window.requestAnimationFrame(() => setShowFramePreviews(true));
-    }, 60);
-    return () => {
-      window.clearTimeout(t);
-      if (raf) window.cancelAnimationFrame(raf);
-    };
-  }, [isFrameSettingsOpen]);
 
   // selectedExtra (compat)
   const currentSelected = useMemo<FrameDraft>(() => {
@@ -358,6 +323,7 @@ export default function Creatures() {
     return Array.from(set);
   }, [categories]);
 
+  /** ✅ 저장 시에도 신 스키마로 고정(sanitize) */
   const updateCreatures = useCallback(
     (next: CreatureData[]) => {
       setData((prev) => ({
@@ -366,9 +332,11 @@ export default function Creatures() {
           ...c,
           rankId: (c.rankId || defaultRankIdResolved || ("rank_default" as ID)) as ID,
           subCategories: c.subCategories || [],
-          subImages: c.subImages || [],
+
+          subImages: sanitizeSubImages(c.subImages) as any,
+          symbolColors: sanitizeSymbolColors(c.symbolColors) as any,
+
           tags: c.tags || [],
-          symbolColors: c.symbolColors || [],
           profileImage: c.profileImage || "",
           mainImage: c.mainImage || "",
           summary: c.summary || "",
@@ -392,11 +360,11 @@ export default function Creatures() {
       subCategories: [],
       profileImage: "",
       mainImage: "",
-      subImages: [],
+      subImages: [] as any,
       tags: [],
       summary: "",
       description: "",
-      symbolColors: [],
+      symbolColors: [] as any,
       meta: { order: 0 },
     };
 
@@ -443,7 +411,7 @@ export default function Creatures() {
   return (
     <div
       className={cn(
-        "min-h-screen md:h-screen w-full max-w-full overflow-x-hidden",
+        "min-h-[100svh] md:h-[100svh] w-full max-w-full overflow-x-hidden",
         "gyeol-bg text-white relative",
         "md:overflow-hidden"
       )}
@@ -451,19 +419,30 @@ export default function Creatures() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(255,255,255,0.07),transparent_45%),radial-gradient(circle_at_85%_30%,rgba(99,102,241,0.10),transparent_45%)]" />
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.10),rgba(0,0,0,0.65))]" />
 
-      <div className="relative z-10 px-6 md:px-10 lg:px-12 py-10 md:h-full flex flex-col min-w-0">
-        {/* TOP BAR */}
-        <div className="flex items-center justify-between gap-3 shrink-0">
-          <div className="flex items-center gap-2">
-            {editMode ? <HUDBadge tone="warn">EDIT MODE</HUDBadge> : <HUDBadge>VIEW MODE</HUDBadge>}
-            <HUDBadge>{`CREATURES ${stats.total}`}</HUDBadge>
-            <HUDBadge>{`SHOWING ${stats.showing}`}</HUDBadge>
-            <HUDBadge>{`CATS ${stats.categories}`}</HUDBadge>
-          </div>
+      <div
+        className={cn(
+          "relative z-10",
+          "px-4 sm:px-6 md:px-10 lg:px-12 py-6 md:py-10",
+          "md:h-full flex flex-col min-w-0"
+        )}
+      >
+        {/* TOP BAR (✅ 모바일: 줄바꿈/스크롤 자연스럽게) */}
+        <div className="shrink-0">
+          <div className="flex flex-row items-center md:justify-between gap-3">
+            {/* badges */}
+            <div
+              className={cn(
+                "flex items-center gap-2",
+                "flex-wrap",
+                "max-w-full"
+              )}
+            >
+              {editMode ? <HUDBadge tone="warn">EDIT</HUDBadge> : <HUDBadge>VIEW</HUDBadge>}
+            </div>
 
-          <div className="flex items-center gap-2">
+            {/* actions */}
             {editMode && (
-              <>
+              <div className="flex items-center justify-end gap-2 flex-wrap">
                 <GButton
                   variant="ghost"
                   icon={<SlidersHorizontal className="w-4 h-4" />}
@@ -476,36 +455,36 @@ export default function Creatures() {
                   text="크리쳐 추가"
                   onClick={addNewCreature}
                 />
-              </>
+              </div>
             )}
           </div>
         </div>
 
         {/* HEADER + CATEGORIES */}
-        <HUDPanel className="p-4 md:p-6 mt-6 shrink-0 w-full max-w-full min-w-0 overflow-x-hidden">
+        <HUDPanel className="p-6 mt-4 sm:mt-6 shrink-0 w-full max-w-full min-w-0 overflow-x-hidden">
           <div className="flex flex-col gap-3 min-w-0">
-            <div className="flex items-center justify-between gap-4 min-w-0">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 min-w-0">
               <div className="min-w-0">
                 <div className="text-[11px] tracking-[0.26em] text-white/55">CREATURES</div>
-                <div className="mt-2 text-3xl font-extrabold tracking-tight">크리쳐 소개</div>
+                <div className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight">크리쳐 소개</div>
                 <div className="mt-2 text-sm text-white/60">
-                  카테고리로 필터링하고, 도감처럼 빠르게 열람하세요.
+                  세계관의 크리쳐들을 살펴보세요.
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 shrink-0">
-                {editMode && (
+              {editMode && (
+                <div className="flex items-center gap-2 shrink-0">
                   <GButton
                     variant="ghost"
                     icon={<Pencil className="w-4 h-4" />}
                     text="카테고리 편집"
                     onClick={() => setIsEditingCategory(true)}
                   />
-                )}
-              </div>
+                </div>
+              )}
             </div>
 
-            <div className="mt-2 w-full max-w-full min-w-0">
+            <div className="mt-1 w-full max-w-full min-w-0">
               <EntityCategoryBar
                 categories={categories}
                 activeMain={activeMain}
@@ -517,67 +496,75 @@ export default function Creatures() {
           </div>
         </HUDPanel>
 
-        {/* CONTENT */}
+        {/* CONTENT (✅ 여기만 세로 스크롤) */}
         <div className="mt-4 flex-1 min-h-0">
-          <div className="h-full overflow-hidden">
-            <div className="h-full overflow-auto scroll-dark">
-              <div className="pb-4">
-                <HUDPanel className="p-4 md:p-6">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <div className="text-[11px] tracking-[0.26em] text-white/55">GRID</div>
-                      <div className="mt-1 text-sm text-white/60">선택 / 상세 열기</div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <HUDBadge>{activeMain}</HUDBadge>
-                      <HUDBadge>{activeSub}</HUDBadge>
-                    </div>
+          <div className="h-full min-h-0 overflow-y-auto overscroll-contain scroll-dark pr-1">
+            <div className="pb-6">
+              <HUDPanel className="p-6">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <div>
+                    <div className="text-[11px] tracking-[0.26em] text-white/55">GRID</div>
+                    <div className="mt-1 text-sm text-white/60">선택 / 상세 열기</div>
                   </div>
 
-                  <div className="mt-6">
-                    {filtered.length === 0 ? (
-                      <div className="rounded-2xl border border-white/10 bg-black/20 p-8 text-center">
-                        <div className="text-sm text-white/55">해당 카테고리에 크리쳐가 없습니다.</div>
-                        {editMode && (
-                          <div className="mt-4 flex justify-center">
-                            <GButton
-                              variant="neutral"
-                              icon={<Plus className="w-4 h-4" />}
-                              text="새 크리쳐 추가"
-                              onClick={addNewCreature}
-                            />
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-6">
-                        {filtered.map((c) => (
-                          <EntityGridCard
-                            key={c.id}
-                            id={c.id}
-                            name={c.name}
-                            subCategories={c.subCategories}
-                            image={c.profileImage}
-                            symbolColors={c.symbolColors}
-                            selected={c.id === selectedId}
-                            editMode={editMode}
-                            rankId={c.rankId as ID}
-                            defaultRankId={defaultRankIdResolved}
-                            frameSettings={frameSettingsCreatures}
-                            onSelect={handleSelectCard}
-                            onOpen={handleOpenCard}
-                            onEdit={handleEditCard}
-                            onDelete={handleAskDelete}
+                  <div className="flex items-center gap-2">
+                    <HUDBadge>{activeMain}</HUDBadge>
+                    <HUDBadge>{activeSub}</HUDBadge>
+                  </div>
+                </div>
+
+                <div className="mt-5 sm:mt-6">
+                  {filtered.length === 0 ? (
+                    <div className="rounded-2xl border border-white/10 bg-black/20 p-6 sm:p-8 text-center">
+                      <div className="text-sm text-white/55">해당 카테고리에 크리쳐가 없습니다.</div>
+                      {editMode && (
+                        <div className="mt-4 flex justify-center">
+                          <GButton
+                            variant="neutral"
+                            icon={<Plus className="w-4 h-4" />}
+                            text="새 크리쳐 추가"
+                            onClick={addNewCreature}
                           />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </HUDPanel>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div
+                      className={cn(
+                        // ✅ 모바일 2열 스타트 (카드가 너무 커보이면 2열 추천)
+                        "grid gap-4 sm:gap-5 md:gap-6",
+                        "grid-cols-2",
+                        "sm:grid-cols-3",
+                        "md:grid-cols-4",
+                        "lg:grid-cols-5",
+                        "xl:grid-cols-7"
+                      )}
+                    >
+                      {filtered.map((c) => (
+                        <EntityGridCard
+                          key={c.id}
+                          id={c.id}
+                          name={c.name}
+                          subCategories={c.subCategories}
+                          image={c.profileImage}
+                          symbolColors={c.symbolColors}
+                          selected={c.id === selectedId}
+                          editMode={editMode}
+                          rankId={c.rankId as ID}
+                          defaultRankId={defaultRankIdResolved}
+                          frameSettings={frameSettingsCreatures}
+                          onSelect={handleSelectCard}
+                          onOpen={handleOpenCard}
+                          onEdit={handleEditCard}
+                          onDelete={handleAskDelete}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </HUDPanel>
 
-                <div className="pointer-events-none mt-4 opacity-[0.10] h-8 rounded-2xl bg-[linear-gradient(rgba(255,255,255,0.18)_1px,transparent_1px)] bg-[length:100%_3px]" />
-              </div>
+              <div className="pointer-events-none mt-4 opacity-[0.10] h-8 rounded-2xl bg-[linear-gradient(rgba(255,255,255,0.18)_1px,transparent_1px)] bg-[length:100%_3px]" />
             </div>
           </div>
         </div>
@@ -600,153 +587,14 @@ export default function Creatures() {
         />
       )}
 
-      {/* Frame settings modal (너 코드 그대로) */}
-      {isFrameSettingsOpen && (
-        <div className="fixed inset-0 z-[80]">
-          <div
-            className="absolute inset-0 bg-black/65 backdrop-blur-sm"
-            onClick={() => setIsFrameSettingsOpen(false)}
-          />
-          <div className="absolute inset-0 flex items-center justify-center p-4">
-            <HUDPanel className="w-full max-w-5xl p-5 md:p-6 max-h-[82vh] flex flex-col">
-              <div className="flex items-start justify-between gap-4 shrink-0">
-                <div>
-                  <div className="text-[11px] tracking-[0.26em] text-white/55">
-                    CREATURE FRAME SETTINGS
-                  </div>
-                  <div className="mt-2 text-2xl font-extrabold tracking-tight">선택 프레임 효과</div>
-                  <div className="mt-2 text-sm text-white/60">
-                    크리쳐를 선택했을 때(선택 프레임) 적용할 효과를 고르세요.
-                    <br />
-                    외곽 / 내부를 각각 1개씩 선택할 수 있습니다.
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <GButton variant="ghost" text="닫기" onClick={() => setIsFrameSettingsOpen(false)} />
-                  <GButton variant="primary" text="저장" onClick={saveFrameSettings} />
-                </div>
-              </div>
-
-              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 min-h-0 overflow-auto scroll-dark">
-                <HUDPanel className="p-4">
-                  <div className="text-[11px] tracking-[0.26em] text-white/55">OUTER</div>
-                  <div className="mt-1 text-sm text-white/70">외곽 효과</div>
-
-                  <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {OUTER_OPTIONS.map((opt) => {
-                      const selected = frameDraft.outer === opt.id;
-
-                      return (
-                        <button
-                          key={opt.id}
-                          type="button"
-                          onClick={() => setOuter(opt.id)}
-                          className={[
-                            "rounded-2xl border p-3 text-left transition",
-                            "bg-black/20 border-white/20 hover:border-white/30",
-                            selected ? "ring-2 ring-white/20 is-selected" : "",
-                          ].join(" ")}
-                        >
-                          <div className="flex items-center justify-between gap-2">
-                            <div className="text-sm font-semibold px-2">{opt.label}</div>
-
-                            <div
-                              className={[
-                                "w-5 h-5 rounded-full border flex items-center justify-center",
-                                selected ? "border-white/70 bg-white/15" : "border-white/25 bg-transparent",
-                              ].join(" ")}
-                            >
-                              {selected && <div className="w-2.5 h-2.5 rounded-full bg-white" />}
-                            </div>
-                          </div>
-
-                          <div className="mt-3">
-                            <div className="relative aspect-square overflow-visible rounded-xl border border-white/10 bg-black/25">
-                              {showFramePreviews && opt.id !== "none" && (
-                                <div
-                                  className={["frame-layer", "frame-outer", `frame-preset-${opt.id}`].join(" ")}
-                                  style={{
-                                    ["--frame-thickness" as any]: `2px`,
-                                    ["--frame-intensity" as any]: `0.9`,
-                                    ["--c1" as any]: "#6b7280",
-                                    ["--c2" as any]: "#6b7280",
-                                  }}
-                                />
-                              )}
-                              <div className="relative h-full w-full overflow-hidden rounded-xl" />
-                            </div>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </HUDPanel>
-
-                <HUDPanel className="p-4">
-                  <div className="text-[11px] tracking-[0.26em] text-white/55">INNER</div>
-                  <div className="mt-1 text-sm text-white/70">내부 효과</div>
-
-                  <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {INNER_OPTIONS.map((opt) => {
-                      const selected = frameDraft.inner === opt.id;
-
-                      return (
-                        <button
-                          key={opt.id}
-                          type="button"
-                          onClick={() => setInner(opt.id)}
-                          className={[
-                            "rounded-2xl border p-3 text-left transition",
-                            "bg-black/20 border-white/20 hover:border-white/30",
-                            selected ? "ring-2 ring-white/20 is-selected" : "",
-                          ].join(" ")}
-                        >
-                          <div className="flex items-center justify-between gap-2">
-                            <div className="text-sm font-semibold px-2">{opt.label}</div>
-
-                            <div
-                              className={[
-                                "w-5 h-5 rounded-full border flex items-center justify-center",
-                                selected ? "border-white/70 bg-white/15" : "border-white/25 bg-transparent",
-                              ].join(" ")}
-                            >
-                              {selected && <div className="w-2.5 h-2.5 rounded-full bg-white" />}
-                            </div>
-                          </div>
-
-                          <div className="mt-3">
-                            <div className="relative aspect-square overflow-visible rounded-xl border border-white/10 bg-black/25">
-                              <div className="relative h-full w-full overflow-hidden rounded-xl">
-                                {showFramePreviews && opt.id !== "none" && (
-                                  <div
-                                    className={["frame-layer", "frame-inner", `frame-preset-${opt.id}`].join(" ")}
-                                    style={{
-                                      ["--frame-thickness" as any]: `1px`,
-                                      ["--frame-intensity" as any]: `1`,
-                                      ["--c1" as any]: "#6b7280",
-                                      ["--c2" as any]: "#6b7280",
-                                    }}
-                                  />
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </HUDPanel>
-              </div>
-
-              <div className="mt-5 text-xs text-white/55 shrink-0">
-                OUTER: <span className="text-white/80">{frameDraft.outer}</span> · INNER:{" "}
-                <span className="text-white/80">{frameDraft.inner}</span>
-              </div>
-            </HUDPanel>
-          </div>
-        </div>
-      )}
+      {/* Frame settings modal (✅ 모바일 반응형 강화) */}
+      <EntityFrameSettingsModal
+        open={isFrameSettingsOpen}
+        value={frameDraft}
+        onChange={setFrameDraft}
+        onClose={() => setIsFrameSettingsOpen(false)}
+        onSave={saveFrameSettings}
+      />
 
       {/* Detail */}
       {viewModalChar && (

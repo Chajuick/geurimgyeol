@@ -478,10 +478,9 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
           </div>
 
           {/* body */}
-          <div className="relative h-[calc(100vh-60px)] py-6">
-            <div className="h-full max-h-[100vh] grid grid-cols-12 gap-6">
-              <div className="col-span-1 hidden lg:block" />
-
+          <div className="relative h-[calc(100vh-60px)]">
+            {/* ✅ 모바일: 이미지가 전체 배경 / 데스크탑: 좌측 패널 */}
+            <div className="absolute inset-0 lg:right-[460px]">
               <LeftPanel
                 entity={entity}
                 editable={editable}
@@ -492,32 +491,46 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
                 shadowOn={shadowOn}
                 mounted={mounted}
                 onOpenBasic={() => setEditPanel("basic")}
-              />
-
-              <MiddlePanel entity={entity} profileUrl={profile} onClickProfile={onClickProfile} />
-
-              <RightPanel
-                entity={entity}
-                editable={editable}
-                symbolColors={symbolColorsDraft}
-                subImages={subImagesDraft}
-                viewSubIndex={viewSubIndex}
-                onOpenSymbolColors={() => setEditPanel("symbolColors")}
-                onOpenBasic={() => setEditPanel("basic")}
-                onOpenSubImages={() => setEditPanel("subImages")}
-                onPickSubImage={(idx) => {
-                  setViewSubIndex(idx);
-                  setShowSubOnMain(true);
-                }}
+                profileUrl={profile} 
+                onClickProfile={onClickProfile}
               />
             </div>
 
-            <div
-              className="absolute left-1/2 -translate-x-1/2 top-[-12px] text-xs text-white transition-opacity duration-700 cursor-pointer opacity-40 hover:opacity-80"
-              onClick={handleClose}
-            >
-              ESC를 누르거나 상단 X를 눌러 돌아가기
+            {/* ✅ Right: 모바일 Bottom Sheet / 데스크탑 Right 카드 */}
+            <div className="absolute inset-0 z-20 pointer-events-none">
+              <div
+                className={[
+                  "absolute pointer-events-auto",
+                  // 모바일: 하단 시트
+                  "left-0 right-0 bottom-0",
+                  "h-[40vh] rounded-t-[28px]",
+                  // 데스크탑: 우측 카드
+                  "lg:left-auto lg:right-6 lg:top-6 lg:bottom-6 lg:h-auto lg:w-[420px] lg:rounded-3xl",
+                ].join(" ")}
+              >
+                <RightPanel
+                  entity={entity}
+                  editable={editable}
+                  symbolColors={symbolColorsDraft}
+                  subImages={subImagesDraft}
+                  viewSubIndex={viewSubIndex}
+                  onOpenSymbolColors={() => setEditPanel("symbolColors")}
+                  onOpenBasic={() => setEditPanel("basic")}
+                  onOpenSubImages={() => setEditPanel("subImages")}
+                  onPickSubImage={(idx) => {
+                    setViewSubIndex(idx);
+                    setShowSubOnMain(true);
+                  }}
+                />
+              </div>
             </div>
+          </div>
+          {/* ✅ 안내 문구는 모바일에선 방해될 수 있어 lg에서만 */}
+          <div
+            className="hidden lg:block absolute left-1/2 -translate-x-1/2 top-8 text-xs text-white/40 hover:text-white/70 transition cursor-pointer z-30"
+            onClick={handleClose}
+          >
+            ESC를 누르거나 상단 X를 눌러 돌아가기
           </div>
         </div>
 

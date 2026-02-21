@@ -243,7 +243,7 @@ export default function Sidebar() {
       />
 
       {/* ✅ 모바일 토글 버튼 */}
-      <div className="fixed top-6 right-6 z-[60] md:hidden">
+      <div className="fixed top-5 right-8 z-[60] md:hidden">
         <GButton
           onClick={toggleMobile}
           size="icon"
@@ -253,20 +253,10 @@ export default function Sidebar() {
         />
       </div>
 
-      {/* ✅ 모바일 백드롭 */}
-      {isOpen && (
-        <button
-          type="button"
-          aria-label="사이드바 닫기"
-          onClick={closeMobile}
-          className="fixed inset-0 z-40 bg-black/40 md:hidden"
-        />
-      )}
-
       {/* ✅ Sidebar */}
       <aside
         className={cn(
-          "fixed left-0 top-0 h-screen z-50",
+          "fixed left-0 top-0 h-[100svh] z-50",
           "bg-background border-r border-border",
           // ✅ 모바일은 w-full, 데스크탑은 md에서 폭 토글
           "w-full",

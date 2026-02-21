@@ -2,7 +2,7 @@ import GuideSection from "@/components/help/guide-section";
 
 export default function HomeHelpContent({ editMode }: { editMode: boolean }) {
   return (
-    <div className="text-sm text-white/70 leading-relaxed">
+    <div className="text-sm text-white/70 leading-relaxed p-2">
       {editMode ? (
         <div className="space-y-6">
           <GuideSection title="1) 네비게이션 사용">

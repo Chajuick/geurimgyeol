@@ -39,17 +39,17 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-[100svh] bg-background">
       {/* Main Hero Section */}
       <section
-        className="gyeol-bg relative w-full h-screen flex items-center justify-center"
+        className="gyeol-bg relative w-full h-[100svh] flex items-center justify-center"
         style={
           resolvedBg
             ? cssVar("--gyeol-bg-image", `url(${resolvedBg})`)
             : undefined
         }
       >
-        <div className="absolute top-6 left-6 z-20 flex items-center gap-2">
+        <div className="absolute top-5 left-6 z-20 flex items-center gap-2">
           <GButton
             variant="neutral"
             size="icon"
@@ -82,7 +82,7 @@ export default function Home() {
           </div>
         }
       >
-        <ImageUpload value={draftBgUrl} onChange={setDraftBgUrl} />
+        <ImageUpload value={draftBgUrl} onChange={setDraftBgUrl} className="p-2" />
       </Modal>
 
       {/* 도움말 모달 (내용은 너가 분리한 컴포넌트로 교체 추천) */}

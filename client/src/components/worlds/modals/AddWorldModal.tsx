@@ -50,7 +50,7 @@ export default function AddWorldModal(props: Props) {
         </div>
       }
     >
-      <div className="space-y-6">
+      <div className="space-y-6 p-2">
         <ImageUpload
           label="세계관 아이콘 (권장: 64×64)"
           value={iconImage}

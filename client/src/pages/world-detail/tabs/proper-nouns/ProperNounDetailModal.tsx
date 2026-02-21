@@ -54,16 +54,9 @@ const hudPanel = cn(
 
 const labelCls = "text-[11px] tracking-wider uppercase text-white/55";
 
-const readBox = cn(
-  "rounded-xl border-none",
-  "text-white/60"
-);
+const readBox = cn("rounded-xl border-none", "text-white/60");
 
-function LinkedThumbCard(props: {
-  name?: string;
-  profileImage?: string;
-  type: AddTab;
-}) {
+function LinkedThumbCard(props: { name?: string; profileImage?: string; type: AddTab }) {
   const { name, profileImage, type } = props;
   const src = useResolvedImage(profileImage || "");
 
@@ -89,11 +82,7 @@ function LinkedThumbCard(props: {
 export default function ProperNounDetailModal(props: {
   open: boolean;
   onClose: () => void;
-
-  /** ✅ 모달을 어떤 상태로 열지: view면 감상 전용, edit면 편집 전용 */
   mode: "view" | "edit";
-
-  /** 전역 편집 모드 여부(편집 진입 자체는 mode로 결정, editMode는 안전장치) */
   editMode: boolean;
 
   kinds: { id: string; label: string; meta?: any }[];
@@ -103,15 +92,12 @@ export default function ProperNounDetailModal(props: {
   entry: any | null;
   kindLabel: (id: string) => string;
 
-  /** ✅ 반짝임 방지: 열기 전에 확정된 draft */
   initialDraft?: any | null;
-  /** ✅ insert/update 판별용 (null이면 insert) */
   initialEditingId?: string | null;
 
   onDelete: (id: string) => void;
   onSave: (payload: { entry: any; editingId: string | null }) => void;
 
-  /** ✅ linked 캐릭터/크리쳐를 위한 전체 데이터 */
   data: any;
 }) {
   const {
@@ -131,13 +117,11 @@ export default function ProperNounDetailModal(props: {
     data,
   } = props;
 
-  // ✅ 최종 편집 가능 여부
   const isEditing = mode === "edit" && editMode;
 
   const [draft, setDraft] = useState<any | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  // (태그/링크는 UI 숨김 유지: 저장 로직만 보존)
   const [tagsText, setTagsText] = useState("");
   const [worldIdsText, setWorldIdsText] = useState("");
   const [characterIdsText, setCharacterIdsText] = useState("");
@@ -145,16 +129,13 @@ export default function ProperNounDetailModal(props: {
   const [entryIdsText, setEntryIdsText] = useState("");
   const [eventIdsText, setEventIdsText] = useState("");
 
-  /** ✅ 모달 내 “연관 엔티티 추가” 상태 */
   const [isAddingLink, setIsAddingLink] = useState(false);
   const [addTab, setAddTab] = useState<AddTab>("character");
   const [search, setSearch] = useState("");
 
-  /** ✅ 엔티티 상세 보기(읽기전용) */
   const [detailOpen, setDetailOpen] = useState<{ type: AddTab; id: string } | null>(null);
   const [detailSubIndex, setDetailSubIndex] = useState(0);
 
-  /** ✅ draft 세팅 함수 (한 곳에서만) */
   const applyDraft = useCallback((base: any, nextEditingId: string | null) => {
     setDraft(base);
     setEditingId(nextEditingId);
@@ -167,7 +148,6 @@ export default function ProperNounDetailModal(props: {
     setEventIdsText(fromIds(base.links?.eventIds));
   }, []);
 
-  /** ✅ 열고/닫을 때 draft를 명확히 관리 */
   useEffect(() => {
     if (!open) {
       setDraft(null);
@@ -179,13 +159,11 @@ export default function ProperNounDetailModal(props: {
       return;
     }
 
-    // ✅ 1순위: initialDraft (부모에서 이미 확정)
     if (initialDraft) {
       applyDraft(initialDraft, initialEditingId ?? (forceNew ? null : initialDraft.id ?? null));
       return;
     }
 
-    // ✅ fallback
     if (!entry || forceNew) {
       const defaultKind =
         worldDefaultKindId ?? kinds.find((k) => k.id === "concept")?.id ?? kinds[0]?.id ?? "other";
@@ -247,7 +225,6 @@ export default function ProperNounDetailModal(props: {
   const viewKindId = String(draft?.kindId || "other");
   const viewKindLabel = kindLabel(viewKindId);
 
-  // ✅ lookup maps
   const characterById = useMemo(() => {
     const m = new Map<string, any>();
     (data?.characters ?? []).forEach((c: any) => m.set(String(c.id), c));
@@ -265,7 +242,6 @@ export default function ProperNounDetailModal(props: {
 
   const linkedItems = useMemo(() => {
     const out: { type: AddTab; id: string; data: any }[] = [];
-
     for (const id of linkedCharacterIds) {
       const ent = characterById.get(String(id));
       if (ent) out.push({ type: "character", id: String(id), data: ent });
@@ -274,19 +250,18 @@ export default function ProperNounDetailModal(props: {
       const ent = creatureById.get(String(id));
       if (ent) out.push({ type: "creature", id: String(id), data: ent });
     }
-
     return out;
   }, [linkedCharacterIds, linkedCreatureIds, characterById, creatureById]);
 
   const header = useMemo(() => {
     return (
-      <div className={cn(hudCard, "p-4 relative overflow-hidden")}>
+      <div className={cn(hudCard, "p-3 sm:p-4 relative overflow-hidden")}>
         <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-white/15" />
         <div className="pointer-events-none absolute -top-24 -right-24 w-64 h-64 rounded-full bg-white/10 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-28 -left-28 w-72 h-72 rounded-full bg-white/5 blur-3xl" />
 
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="w-12 h-12 rounded-xl border border-white/15 bg-black/50 overflow-hidden flex items-center justify-center shrink-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+        <div className="flex items-start sm:items-center gap-3 min-w-0">
+          <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl border border-white/15 bg-black/50 overflow-hidden flex items-center justify-center shrink-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
             {iconSrc ? (
               <img src={iconSrc} className="w-full h-full object-contain" alt="" />
             ) : (
@@ -296,14 +271,24 @@ export default function ProperNounDetailModal(props: {
 
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 min-w-0">
-              <div className="text-xl font-semibold truncate flex-1 min-w-0 text-white/90">{title || "제목 없음"}</div>
+              <div className="text-lg sm:text-xl font-semibold truncate flex-1 min-w-0 text-white/90">
+                {title || "제목 없음"}
+              </div>
             </div>
 
             {draft?.summary ? (
-              <div className="mt-1 text-sm text-white/65 line-clamp-1 whitespace-pre-wrap">{draft.summary}</div>
+              <div className="mt-1 text-sm text-white/65 line-clamp-1 whitespace-pre-wrap">
+                {draft.summary}
+              </div>
             ) : (
               <div className="mt-1 text-sm text-white/45">요약 없음</div>
             )}
+
+            {/* ✅ 모바일에서도 뱃지 보여주기 (줄바꿈 허용) */}
+            <div className="mt-2 flex flex-wrap gap-2 sm:hidden">
+              <HUDBadge>{viewKindLabel}</HUDBadge>
+              <HUDBadge tone={isEditing ? "warn" : "neutral"}>{isEditing ? "EDIT" : "VIEW"}</HUDBadge>
+            </div>
           </div>
 
           <div className="shrink-0 hidden sm:flex items-center gap-2">
@@ -371,7 +356,6 @@ export default function ProperNounDetailModal(props: {
       }
 
       setDraft({ ...draft, links: nextLinks });
-      // 저장 로직 유지용 텍스트도 동기화
       setCharacterIdsText(fromIds(nextLinks.characterIds));
       setCreatureIdsText(fromIds(nextLinks.creatureIds));
     },
@@ -404,7 +388,6 @@ export default function ProperNounDetailModal(props: {
     return creatureById.get(detailOpen.id) ?? null;
   }, [detailOpen, characterById, creatureById]);
 
-  // add modal list
   const q = search.trim().toLowerCase();
   const addedSet = useMemo(() => {
     const s = new Set<string>();
@@ -421,13 +404,13 @@ export default function ProperNounDetailModal(props: {
   }, [addTab, data?.characters, data?.creatures, addedSet, q]);
 
   const skeleton = (
-    <div className="p-6 space-y-4">
+    <div className="p-4 sm:p-6 space-y-4">
       <div className="h-16 rounded-2xl bg-white/5 animate-pulse" />
       <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-4">
-        <div className="h-[280px] rounded-2xl bg-white/5 animate-pulse" />
-        <div className="h-[280px] rounded-2xl bg-white/5 animate-pulse" />
+        <div className="h-[240px] sm:h-[280px] rounded-2xl bg-white/5 animate-pulse" />
+        <div className="h-[240px] sm:h-[280px] rounded-2xl bg-white/5 animate-pulse" />
       </div>
-      <div className="h-32 rounded-2xl bg-white/5 animate-pulse" />
+      <div className="h-24 sm:h-32 rounded-2xl bg-white/5 animate-pulse" />
     </div>
   );
 
@@ -447,7 +430,7 @@ export default function ProperNounDetailModal(props: {
                   icon={<Trash2 className="w-4 h-4" />}
                   text="삭제"
                   onClick={doDelete}
-                  disabled={!editingId} // 새로 생성 중이면 삭제 비활성
+                  disabled={!editingId}
                 />
               )}
             </div>
@@ -470,154 +453,186 @@ export default function ProperNounDetailModal(props: {
         {!draft ? (
           skeleton
         ) : (
-          <div key={`${draft?.id ?? "empty"}-${mode}`} className="animate-in fade-in duration-150 p-2">
-            <div className="space-y-4">
+          // ✅ 모달 바디 한 곳만 스크롤: 모바일에서 내용 잘림/이중 스크롤 방지
+          <div className="p-2 sm:p-4">
+            <div
+              className={cn(
+                "max-h-[calc(100svh-220px)] sm:max-h-none",
+                "min-w-0",
+                "space-y-4"
+              )}
+            >
               {header}
 
-              <HUDPanel className="p-5">
-                <div>
-                  <div className="space-y-4">
-                    {/* ✅ 좌/우 같은 높이: items-stretch + 각 칼럼 h-full */}
-                    <div>
-                      <div className="text-[11px] tracking-[0.26em] text-white/55">ABOUT</div>
-                      <div className="mt-1 text-sm text-white/70">개요</div>
-                    </div>
-                    <div className="grid grid-cols-1 lg:grid-cols-[380px_minmax(0,1fr)] gap-4 items-stretch">
-                      {/* LEFT */}
-                      <div className="flex flex-col gap-4 h-full min-h-0">
-                        <div className={cn(hudPanel, "flex flex-col h-full min-h-[320px]")}>
-                          {isEditing && <div className={labelCls + " mb-2"}>대표 이미지</div>}
+              <HUDPanel className="p-6">
+                <div className="space-y-5 sm:space-y-6">
+                  {/* ABOUT */}
+                  <div>
+                    <div className="text-[11px] tracking-[0.26em] text-white/55">ABOUT</div>
+                    <div className="mt-1 text-sm text-white/70">개요</div>
+                  </div>
 
-                          <div className="flex-1 min-h-0">
-                            {isEditing ? (
-                              <ImageUpload
-                                value={draft.image || ""}
-                                onChange={(v: string) => setDraft({ ...draft, image: v })}
-                                aspect="video"
-                                className="w-full h-full"
-                              />
-                            ) : (
-                              <div className="rounded-2xl border border-none overflow-hidden h-full">
-                                {imageSrc ? (
-                                  <img src={imageSrc} className="w-full h-full object-cover" alt="" />
-                                ) : (
-                                  <div className="h-full grid place-items-center text-sm text-white/50">이미지 없음</div>
-                                )}
-                              </div>
-                            )}
-                          </div>
+                  {/* ✅ 모바일: 1열(스택), 데스크탑: 2열 */}
+                  <div className="grid grid-cols-1 lg:grid-cols-[380px_minmax(0,1fr)] gap-4 items-stretch">
+                    {/* LEFT */}
+                    <div className="flex flex-col gap-4 min-h-0">
+                      <div className={cn(hudPanel, "flex flex-col min-h-[220px] sm:min-h-[320px]")}>
+                        {isEditing && <div className={labelCls + " mb-2"}>대표 이미지</div>}
+
+                        <div className="flex-1 min-h-0">
+                          {isEditing ? (
+                            <ImageUpload
+                              value={draft.image || ""}
+                              onChange={(v: string) => setDraft({ ...draft, image: v })}
+                              aspect="video"
+                              className="w-full h-full"
+                            />
+                          ) : (
+                            <div className="rounded-2xl border border-none overflow-hidden h-full">
+                              {imageSrc ? (
+                                <img src={imageSrc} className="w-full h-full object-cover" alt="" />
+                              ) : (
+                                <div className="h-full grid place-items-center text-sm text-white/50">이미지 없음</div>
+                              )}
+                            </div>
+                          )}
                         </div>
+                      </div>
+
+                      {isEditing && (
+                        <div className={cn(hudPanel, "p-4")}>
+                          <div className={labelCls + " mb-2"}>아이콘</div>
+                          <ImageUpload
+                            value={draft.icon || ""}
+                            onChange={(v: string) => setDraft({ ...draft, icon: v })}
+                            aspect="square"
+                            className="w-full"
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* RIGHT */}
+                    <div className="min-h-0 min-w-0 overflow-hidden">
+                      <div className={cn(hudPanel, "p-4 space-y-4 min-h-[220px] sm:min-h-[320px]", "min-w-0 overflow-hidden")}>
+                        {isEditing && (
+                          <div>
+                            <div className={labelCls + " mb-2"}>분류</div>
+
+                            {/* ✅ 모바일: 가로 스크롤 chips */}
+                            <div
+                              className={cn(
+                                "rounded-2xl border border-white/12 bg-black/40 p-1",
+                                "flex items-center gap-1",
+                                "overflow-x-auto overflow-y-hidden whitespace-nowrap",
+                                "scrollbar-none"
+                              )}
+                            >
+                              {kinds.map((k) => {
+                                const active = String(draft.kindId) === k.id;
+                                return (
+                                  <button
+                                    key={k.id}
+                                    type="button"
+                                    onClick={() => setDraft({ ...draft, kindId: k.id })}
+                                    className={cn(
+                                      "px-3 py-2 rounded-xl text-sm font-medium transition shrink-0",
+                                      active
+                                        ? "bg-white/12 border border-white/20 text-white"
+                                        : "text-white/60 hover:text-white hover:bg-white/6"
+                                    )}
+                                  >
+                                    {k.label}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
 
                         {isEditing && (
-                          <div className={cn(hudPanel, "p-4")}>
-                            <div className={labelCls + " mb-2"}>아이콘</div>
-                            <ImageUpload
-                              value={draft.icon || ""}
-                              onChange={(v: string) => setDraft({ ...draft, icon: v })}
-                              aspect="square"
-                              className="w-full"
+                          <div className="min-w-0">
+                            <div className={labelCls + " mb-2"}>명칭</div>
+                            <input
+                              className={cn(
+                                uiInput,
+                                "bg-black/55 border-white/12",
+                                "w-full min-w-0 max-w-full"
+                              )}
+                              value={draft.title}
+                              onChange={(e) => setDraft({ ...draft, title: e.target.value })}
                             />
                           </div>
                         )}
-                      </div>
 
-                      {/* RIGHT (✅ 내부 스크롤 제거, 부모 스크롤로 통일) */}
-                      <div className="h-full min-h-0">
-                        <div className={cn(hudPanel, "p-4 space-y-4 h-full min-h-[320px]")}>
-                          {isEditing && (
-                            <div>
-                              <div className={labelCls + " mb-2"}>분류</div>
-                              <div className="rounded-2xl border border-white/12 bg-black/40 p-1 flex flex-wrap gap-1">
-                                {kinds.map((k) => {
-                                  const active = String(draft.kindId) === k.id;
-                                  return (
-                                    <button
-                                      key={k.id}
-                                      type="button"
-                                      onClick={() => setDraft({ ...draft, kindId: k.id })}
-                                      className={cn(
-                                        "px-3 py-2 rounded-xl text-sm font-medium transition",
-                                        active
-                                          ? "bg-white/12 border border-white/20 text-white"
-                                          : "text-white/60 hover:text-white hover:bg-white/6"
-                                      )}
-                                    >
-                                      {k.label}
-                                    </button>
-                                  );
-                                })}
-                              </div>
+                        <div>
+                          {isEditing && <div className={labelCls + " mb-2"}>요약</div>}
+                          {isEditing ? (
+                            <textarea
+                              className={cn(uiTextarea, "bg-black/55 border-white/12")}
+                              value={draft.summary}
+                              onChange={(e) => setDraft({ ...draft, summary: e.target.value })}
+                            />
+                          ) : (
+                            <div className={cn(readBox, "whitespace-pre-wrap text-base sm:text-xl text-white/80")}>
+                              {draft.summary || "요약 없음"}
                             </div>
                           )}
+                        </div>
 
-                          {isEditing && (
-                            <div>
-                              <div className={labelCls + " mb-2"}>명칭</div>
-                              <input
-                                className={cn(uiInput, "bg-black/55 border-white/12")}
-                                value={draft.title}
-                                onChange={(e) => setDraft({ ...draft, title: e.target.value })}
-                              />
-                            </div>
+                        <div>
+                          {isEditing && <div className={labelCls + " mb-2"}>본문</div>}
+                          {isEditing ? (
+                            <textarea
+                              className={cn(uiTextarea, "min-h-[160px] sm:min-h-[220px]", "bg-black/55 border-white/12")}
+                              value={draft.description}
+                              onChange={(e) => setDraft({ ...draft, description: e.target.value })}
+                            />
+                          ) : (
+                            <div className={cn(readBox, "whitespace-pre-wrap")}>{draft.description || "본문 없음"}</div>
                           )}
-
-                          <div>
-                            {isEditing && <div className={labelCls + " mb-2"}>요약</div>}
-                            {isEditing ? (
-                              <textarea
-                                className={cn(uiTextarea, "bg-black/55 border-white/12")}
-                                value={draft.summary}
-                                onChange={(e) => setDraft({ ...draft, summary: e.target.value })}
-                              />
-                            ) : (
-                              <div className={cn(readBox, "whitespace-pre-wrap text-xl text-white/80")}>
-                                {draft.summary || "요약 없음"}
-                              </div>
-                            )}
-                          </div>
-
-                          <div>
-                            {isEditing && <div className={labelCls + " mb-2"}>본문</div>}
-                            {isEditing ? (
-                              <textarea
-                                className={cn(uiTextarea, "min-h-[220px]", "bg-black/55 border-white/12")}
-                                value={draft.description}
-                                onChange={(e) => setDraft({ ...draft, description: e.target.value })}
-                              />
-                            ) : (
-                              <div className={cn(readBox, "whitespace-pre-wrap")}>
-                                {draft.description || "본문 없음"}
-                              </div>
-                            )}
-                          </div>
                         </div>
                       </div>
                     </div>
+                  </div>
 
-                    {/* ✅ 아래: 연관 캐릭터/크리쳐 (같은 스크롤 안에 포함) */}
-
-                    {linkedItems.length !== 0 && <div>
-                      <div className="flex items-center justify-between gap-3 pt-2">
-                        <div>
-                          <div className="text-[11px] tracking-[0.26em] text-white/55">LINKED</div>
-                          <div className="mt-1 text-sm text-white/70">연관 캐릭터 / 크리쳐</div>
-                        </div>
-
-                        {isEditing && (
-                          <GButton
-                            variant="neutral"
-                            icon={<Plus className="w-4 h-4" />}
-                            text="추가"
-                            onClick={() => {
-                              setIsAddingLink(true);
-                              setAddTab("character");
-                              setSearch("");
-                            }}
-                          />
-                        )}
+                  {/* LINKED */}
+                  <div>
+                    <div className="flex items-center justify-between gap-3 pt-1">
+                      <div>
+                        <div className="text-[11px] tracking-[0.26em] text-white/55">LINKED</div>
+                        <div className="mt-1 text-sm text-white/70">연관 캐릭터 / 크리쳐</div>
                       </div>
 
-                      <div className="mt-4 mb-2">
+                      {isEditing && (
+                        <GButton
+                          variant="neutral"
+                          icon={<Plus className="w-4 h-4" />}
+                          text="추가"
+                          onClick={() => {
+                            setIsAddingLink(true);
+                            setAddTab("character");
+                            setSearch("");
+                          }}
+                        />
+                      )}
+                    </div>
+
+                    <div className="mt-4 mb-2">
+                      {linkedItems.length === 0 ? (
+                        <div className={cn(hudPanel, "relative overflow-hidden p-6 bg-black/30 border border-white/10")}>
+                          <div className="pointer-events-none absolute inset-0 opacity-[0.12] bg-[linear-gradient(rgba(255,255,255,0.18)_1px,transparent_1px)] bg-[length:100%_3px]" />
+                          <div className="pointer-events-none absolute -top-16 -right-16 w-56 h-56 rounded-full bg-white/10 blur-3xl" />
+                          <div className="pointer-events-none absolute -bottom-20 -left-20 w-64 h-64 rounded-full bg-white/5 blur-3xl" />
+
+                          <div className="relative">
+                            <div className="text-sm font-semibold text-white/85">연관된 캐릭터/크리쳐가 없습니다.</div>
+                            <div className="mt-1 text-[12px] text-white/55">
+                              {isEditing ? "추가 버튼으로 연결을 만들어 보세요." : "연결된 항목이 아직 존재하지 않습니다."}
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
                         <div className="grid gap-3 grid-cols-3 sm:grid-cols-4 md:grid-cols-6 xl:grid-cols-7">
                           {linkedItems.map((it) => (
                             <button
@@ -630,16 +645,12 @@ export default function ProperNounDetailModal(props: {
                               }}
                             >
                               <div className="relative">
-                                <LinkedThumbCard
-                                  type={it.type}
-                                  name={it.data?.name}
-                                  profileImage={it.data?.profileImage}
-                                />
+                                <LinkedThumbCard type={it.type} name={it.data?.name} profileImage={it.data?.profileImage} />
 
                                 {isEditing && (
                                   <button
                                     type="button"
-                                    className="absolute -top-2 -right-2 w-7 h-7 rounded-full border border-white/15 bg-black/70 text-white/80 hover:bg-black/90"
+                                    className="absolute -top-2 -right-2 w-8 h-8 rounded-full border border-white/15 bg-black/70 text-white/80 hover:bg-black/90"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       removeLinked(it.type, it.id);
@@ -653,12 +664,11 @@ export default function ProperNounDetailModal(props: {
                             </button>
                           ))}
                         </div>
-                      </div>
-                    </div>}
-
-
-                    {/* 태그/링크 텍스트 UI는 숨김 유지 (저장 로직만 유지) */}
+                      )}
+                    </div>
                   </div>
+
+                  {/* 태그/링크 텍스트 UI는 숨김 유지 */}
                 </div>
               </HUDPanel>
             </div>
@@ -666,7 +676,7 @@ export default function ProperNounDetailModal(props: {
         )}
       </Modal>
 
-      {/* ✅ 연관 추가 모달 */}
+      {/* 연관 추가 모달 */}
       <Modal
         open={isAddingLink && isEditing}
         onClose={() => {
@@ -736,7 +746,7 @@ export default function ProperNounDetailModal(props: {
         </div>
       </Modal>
 
-      {/* ✅ Entity 상세 (읽기 전용) */}
+      {/* Entity 상세 */}
       {detailEntity && (
         <EntityDetailFullscreen
           entity={detailEntity}

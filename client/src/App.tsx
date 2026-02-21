@@ -47,7 +47,7 @@ function AppContent() {
 
   return (
     <PortfolioProvider value={{ ...portfolio, editMode, setEditMode }}>
-      <div className="min-h-screen bg-background text-foreground relative overflow-x-clip">
+      <div className="min-h-[100svh] bg-background text-foreground relative overflow-x-clip">
         <Sidebar />
         <main className="w-full min-w-0 pl-0 md:pl-20">
           <Router />

@@ -51,7 +51,7 @@ function normalizeEntryToDraft(args: {
 
   const defaultKind =
     worldDefaultKindId ??
-    kinds.find(k => k.id === "concept")?.id ??
+    kinds.find((k) => k.id === "concept")?.id ??
     kinds[0]?.id ??
     "other";
 
@@ -74,7 +74,7 @@ function normalizeEntryToDraft(args: {
   };
 
   const kid = getEntryKindId(base);
-  const safeKid = kinds.some(k => String(k.id) === String(kid)) ? kid : defaultKind;
+  const safeKid = kinds.some((k) => String(k.id) === String(kid)) ? kid : defaultKind;
 
   return {
     ...base,
@@ -98,12 +98,10 @@ function normalizeEntryToDraft(args: {
 }
 
 export default function WorldProperNounsTab({ world, editMode, updateWorld, data }: any) {
-  // ✅ createDraft (생성 모드에서만 사용) - 유지
   const [createDraft, setCreateDraft] = useState<any | null>(null);
 
   const [q, setQ] = useState("");
   const qDebounced = useDebouncedValue(q, 120);
-
   const [kind, setKind] = useState<string | "all">("all");
 
   // detail modal
@@ -111,7 +109,7 @@ export default function WorldProperNounsTab({ world, editMode, updateWorld, data
   const [detailId, setDetailId] = useState<string | null>(null);
   const [detailEdit, setDetailEdit] = useState(false);
 
-  // ✅ 모달 반짝임 방지: 열기 전에 초기 draft를 확정해서 전달
+  // ✅ 모달 반짝임 방지
   const [initialDraft, setInitialDraft] = useState<any | null>(null);
   const [initialEditingId, setInitialEditingId] = useState<string | null>(null);
 
@@ -120,10 +118,9 @@ export default function WorldProperNounsTab({ world, editMode, updateWorld, data
 
   const nouns = (world.properNouns ?? []) as any[];
 
-  // nounsById (detail lookup O(1))
   const nounById = useMemo(() => {
     const m = new Map<string, any>();
-    nouns.forEach(n => m.set(String(n.id), n));
+    nouns.forEach((n) => m.set(String(n.id), n));
     return m;
   }, [nouns]);
 
@@ -139,35 +136,47 @@ export default function WorldProperNounsTab({ world, editMode, updateWorld, data
     return [...withOther].sort((a: any, b: any) => (a.meta?.order ?? 0) - (b.meta?.order ?? 0));
   }, [world.properNounKinds]);
 
-  // label map (kindLabel O(1))
   const kindLabelMap = useMemo(() => {
     const m = new Map<string, string>();
-    kinds.forEach(k => m.set(String(k.id), String(k.label ?? k.id)));
+    kinds.forEach((k) => m.set(String(k.id), String(k.label ?? k.id)));
     return m;
   }, [kinds]);
 
-  const kindLabel = useCallback((id: string) => kindLabelMap.get(String(id)) ?? String(id), [kindLabelMap]);
+  const kindLabel = useCallback(
+    (id: string) => kindLabelMap.get(String(id)) ?? String(id),
+    [kindLabelMap]
+  );
 
-  // filtered list (qDebounced 사용)
+  /**
+   * ✅ 핵심 최적화: 검색용 문자열(haystack)을 nouns 변경 시에만 준비
+   * - 매 렌더마다 toLowerCase/join 반복 제거
+   */
+  const prepared = useMemo(() => {
+    return nouns.map((n) => {
+      const title = String(n.title ?? "");
+      const summary = String(n.summary ?? "");
+      const desc = String(n.description ?? "");
+      const tags = Array.isArray(n.tags) ? n.tags.join(",") : "";
+      const kid = getEntryKindId(n);
+
+      return {
+        n,
+        id: String(n.id),
+        kid,
+        hay: (title + "\n" + summary + "\n" + desc + "\n" + tags).toLowerCase(),
+      };
+    });
+  }, [nouns]);
+
   const filtered = useMemo(() => {
     const s = (qDebounced || "").trim().toLowerCase();
 
-    return nouns.filter(n => {
-      const kid = getEntryKindId(n);
+    return prepared
+      .filter((x) => (kind === "all" ? true : x.kid === kind))
+      .filter((x) => (!s ? true : x.hay.includes(s)))
+      .map((x) => x.n);
+  }, [prepared, qDebounced, kind]);
 
-      if (kind !== "all" && kid !== kind) return false;
-      if (!s) return true;
-
-      const title = String(n.title ?? "").toLowerCase();
-      const summary = String(n.summary ?? "").toLowerCase();
-      const desc = String(n.description ?? "").toLowerCase();
-      const tagsText = Array.isArray(n.tags) ? n.tags.join(",").toLowerCase() : "";
-
-      return title.includes(s) || summary.includes(s) || desc.includes(s) || tagsText.includes(s);
-    });
-  }, [nouns, qDebounced, kind]);
-
-  /** ✅ 생성: 무조건 편집 모드로 열기 (열기 전에 initialDraft 확정) */
   const openCreate = useCallback(() => {
     const draft = normalizeEntryToDraft({
       entry: null,
@@ -178,13 +187,12 @@ export default function WorldProperNounsTab({ world, editMode, updateWorld, data
 
     setCreateDraft(draft);
     setInitialDraft(draft);
-    setInitialEditingId(null); // ✅ insert
-    setDetailId(draft.id);
+    setInitialEditingId(null);
+    setDetailId(String(draft.id));
     setDetailEdit(true);
     setOpenDetail(true);
   }, [kinds, world.defaultProperNounKindId]);
 
-  /** ✅ 감상으로 열기 (열기 전에 initialDraft 확정) */
   const openView = useCallback(
     (id: string) => {
       const e = nounById.get(String(id)) ?? null;
@@ -197,15 +205,14 @@ export default function WorldProperNounsTab({ world, editMode, updateWorld, data
 
       setCreateDraft(null);
       setInitialDraft(draft);
-      setInitialEditingId(String(id)); // update target
-      setDetailId(id);
+      setInitialEditingId(String(id));
+      setDetailId(String(id));
       setDetailEdit(false);
       setOpenDetail(true);
     },
     [nounById, kinds, world.defaultProperNounKindId]
   );
 
-  /** ✅ 편집으로 열기 (열기 전에 initialDraft 확정) */
   const openEdit = useCallback(
     (id: string) => {
       if (!editMode) return;
@@ -219,8 +226,8 @@ export default function WorldProperNounsTab({ world, editMode, updateWorld, data
 
       setCreateDraft(null);
       setInitialDraft(draft);
-      setInitialEditingId(String(id)); // update target
-      setDetailId(id);
+      setInitialEditingId(String(id));
+      setDetailId(String(id));
       setDetailEdit(true);
       setOpenDetail(true);
     },
@@ -232,16 +239,12 @@ export default function WorldProperNounsTab({ world, editMode, updateWorld, data
     setDetailId(null);
     setDetailEdit(false);
     setCreateDraft(null);
-
-    // ✅ 다음 오픈 때 이전 내용이 먼저 뜨는 현상 방지
     setInitialDraft(null);
     setInitialEditingId(null);
   }, []);
 
   const removeEntry = useCallback(
-    (id: string) => {
-      updateWorld({ properNouns: nouns.filter(n => n.id !== id) });
-    },
+    (id: string) => updateWorld({ properNouns: nouns.filter((n) => String(n.id) !== String(id)) }),
     [updateWorld, nouns]
   );
 
@@ -249,7 +252,7 @@ export default function WorldProperNounsTab({ world, editMode, updateWorld, data
     (nextEntry: any, editingId: string | null) => {
       if (editingId) {
         updateWorld({
-          properNouns: nouns.map(n => (n.id === editingId ? { ...n, ...nextEntry } : n)),
+          properNouns: nouns.map((n) => (String(n.id) === String(editingId) ? { ...n, ...nextEntry } : n)),
         });
       } else {
         updateWorld({ properNouns: [...nouns, nextEntry] });
@@ -279,7 +282,6 @@ export default function WorldProperNounsTab({ world, editMode, updateWorld, data
     [updateWorld, kind]
   );
 
-  // (기존 유지) detailEntry: 모달 내부 fallback용
   const detailEntry = useMemo(() => {
     if (!detailId) return null;
     if (createDraft?.id === detailId) return createDraft;
@@ -290,11 +292,11 @@ export default function WorldProperNounsTab({ world, editMode, updateWorld, data
     <HUDPanel className="p-6 h-full min-h-0 flex flex-col">
       <HUDSectionTitle
         right={
-          <div className="flex items-center gap-2">
-            <HUDBadge>{`TOTAL ${nouns.length}`}</HUDBadge>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <HUDBadge className="shrink-0 hidden sm:visible">{`TOTAL ${nouns.length}`}</HUDBadge>
 
             {editMode && (
-              <>
+              <div className="flex flex-wrap items-center gap-2">
                 <GButton
                   variant="neutral"
                   icon={<Settings2 className="w-4 h-4" />}
@@ -307,60 +309,83 @@ export default function WorldProperNounsTab({ world, editMode, updateWorld, data
                   text="항목 추가"
                   onClick={openCreate}
                 />
-              </>
+              </div>
             )}
           </div>
         }
       >
-        TERMS / INDEX
+        <div className="hidden sm:visible">TERMS / INDEX</div>
       </HUDSectionTitle>
 
       {/* controls (스크롤 안됨) */}
-      <div className="mt-4 grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-3 shrink-0">
+      <div className="mt-3 sm:mt-4 grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-3 shrink-0">
+        {/* search */}
         <div className="relative">
           <Search className="w-4 h-4 text-white/40 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             value={q}
-            onChange={e => setQ(e.target.value)}
+            onChange={(e) => setQ(e.target.value)}
             placeholder="제목/요약/본문/태그 검색"
-            className={`${uiInput} pl-9`}
+            className={cn(uiInput, "pl-9")}
           />
         </div>
 
-        <div className="flex flex-wrap gap-2 justify-start lg:justify-end">
-          <GButton
-            variant={kind === "all" ? "primary" : "neutral"}
-            text="ALL"
-            onClick={() => setKind("all")}
-          />
-          {kinds.map(k => (
+        {/* kind chips: 모바일은 가로 스크롤 */}
+        <div
+          className={cn(
+            "lg:justify-end",
+            "flex items-center gap-2",
+            "overflow-x-auto overflow-y-hidden",
+            "whitespace-nowrap",
+            "py-1",
+            "scrollbar-none",
+            "overscroll-x-contain",
+            "snap-x snap-mandatory"
+          )}
+        >
+          <div className="w-1 shrink-0" />
+
+          <div className="snap-start shrink-0">
             <GButton
-              key={k.id}
-              variant={kind === k.id ? "primary" : "neutral"}
-              text={k.label}
-              onClick={() => setKind(k.id)}
+              variant={kind === "all" ? "primary" : "neutral"}
+              text="ALL"
+              onClick={() => setKind("all")}
             />
+          </div>
+
+          {kinds.map((k) => (
+            <div key={k.id} className="snap-start shrink-0">
+              <GButton
+                variant={kind === k.id ? "primary" : "neutral"}
+                text={k.label}
+                onClick={() => setKind(k.id)}
+              />
+            </div>
           ))}
+
+          <div className="w-2 shrink-0" />
         </div>
       </div>
 
-      {/* ✅ list wrapper: 여기만 스크롤 */}
+      {/* list wrapper: 여기만 스크롤 */}
       <div
         className={cn(
-          "mt-5 flex-1 min-h-0",
-          "overflow-y-scroll",
+          "mt-4 sm:mt-5 flex-1 min-h-0",
+          "overflow-y-auto",
+          "overscroll-contain",
           "[scrollbar-gutter:stable]",
           "scroll-dark",
+          "webkit-overflow-scrolling-touch",
           "pr-1"
         )}
       >
         <div className="grid gap-3">
           {filtered.length === 0 ? (
-            <div className="rounded-2xl border border-white/10 bg-black/20 p-6 text-sm text-white/60">
+            <div className="rounded-2xl border border-white/10 bg-black/20 p-5 sm:p-6 text-sm text-white/60">
               항목이 없습니다.
             </div>
           ) : (
-            filtered.map(n => {
+            filtered.map((n) => {
               const kid = getEntryKindId(n);
               return (
                 <ProperNounCard
@@ -368,9 +393,9 @@ export default function WorldProperNounsTab({ world, editMode, updateWorld, data
                   entry={n}
                   kindLabel={kindLabel(kid)}
                   editMode={editMode}
-                  onOpen={() => openView(n.id)}
-                  onOpenEdit={() => openEdit(n.id)}
-                  onRemove={() => removeEntry(n.id)}
+                  onOpen={openView}
+                  onOpenEdit={openEdit}
+                  onRemove={removeEntry}
                 />
               );
             })
@@ -389,8 +414,8 @@ export default function WorldProperNounsTab({ world, editMode, updateWorld, data
         entry={detailEntry}
         data={data}
         forceNew={!!createDraft}
-        initialDraft={initialDraft}          // ✅ 추가
-        initialEditingId={initialEditingId}  // ✅ 추가
+        initialDraft={initialDraft}
+        initialEditingId={initialEditingId}
         kindLabel={(id: string) => kindLabel(id)}
         onDelete={(id: string) => removeEntry(id)}
         onSave={(payload: { entry: any; editingId: string | null }) => {

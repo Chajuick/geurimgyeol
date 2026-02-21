@@ -1,4 +1,6 @@
+// src/components/ui/modal.tsx
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -15,7 +17,58 @@ type ModalProps = {
 
   // backdrop 클릭 닫기 (기본 true)
   closeOnBackdrop?: boolean;
+
+  // z-index 커스터마이즈(기본 10000)
+  zIndex?: number;
 };
+
+function useMounted() {
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => setMounted(true), []);
+  return mounted;
+}
+
+/** ✅ 더 안전한 스크롤 락 (모바일/사파리 대응) */
+function lockBodyScroll() {
+  const body = document.body;
+  const html = document.documentElement;
+
+  const scrollY = window.scrollY || window.pageYOffset;
+
+  const prev = {
+    bodyPosition: body.style.position,
+    bodyTop: body.style.top,
+    bodyLeft: body.style.left,
+    bodyRight: body.style.right,
+    bodyWidth: body.style.width,
+    bodyOverflow: body.style.overflow,
+    htmlOverflow: html.style.overflow,
+  };
+
+  // iOS에서 overflow:hidden만으로는 배경 스크롤이 남는 경우가 많아서 fixed로 잠금
+  body.style.position = "fixed";
+  body.style.top = `-${scrollY}px`;
+  body.style.left = "0";
+  body.style.right = "0";
+  body.style.width = "100%";
+  body.style.overflow = "hidden";
+  html.style.overflow = "hidden";
+
+  return () => {
+    // restore
+    body.style.position = prev.bodyPosition;
+    body.style.top = prev.bodyTop;
+    body.style.left = prev.bodyLeft;
+    body.style.right = prev.bodyRight;
+    body.style.width = prev.bodyWidth;
+    body.style.overflow = prev.bodyOverflow;
+    html.style.overflow = prev.htmlOverflow;
+
+    // restore scroll
+    const y = Math.abs(parseInt(prev.bodyTop || "0", 10)) || scrollY;
+    window.scrollTo(0, y);
+  };
+}
 
 export default function Modal({
   open,
@@ -26,7 +79,12 @@ export default function Modal({
   maxWidthClassName = "max-w-md",
   className,
   closeOnBackdrop = true,
+  zIndex = 10000,
 }: ModalProps) {
+  const mounted = useMounted();
+  const restoreRef = React.useRef<null | (() => void)>(null);
+
+  // ESC + scroll lock
   React.useEffect(() => {
     if (!open) return;
 
@@ -35,24 +93,45 @@ export default function Modal({
     };
     window.addEventListener("keydown", onKeyDown);
 
-    // 스크롤 락
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    restoreRef.current = lockBodyScroll();
 
     return () => {
       window.removeEventListener("keydown", onKeyDown);
-      document.body.style.overflow = prev;
+      restoreRef.current?.();
+      restoreRef.current = null;
     };
   }, [open, onClose]);
 
-  if (!open) return null;
+  // 포커스: 열린 순간 닫기 버튼에 포커스(선택)
+  const closeBtnRef = React.useRef<HTMLButtonElement | null>(null);
+  React.useEffect(() => {
+    if (!open) return;
+    const t = window.setTimeout(() => closeBtnRef.current?.focus(), 0);
+    return () => window.clearTimeout(t);
+  }, [open]);
 
-  return (
-    <div className="fixed inset-0 z-50">
-      {/* backdrop: ConfirmModal 톤 (덜 어둡게 + 비네팅) */}
+  if (!open) return null;
+  if (!mounted) return null;
+
+  // Portal로 body에 직접 붙여서 stacking context(사이드바 토글 등) 이슈 제거
+  return createPortal(
+    <div
+      className="fixed inset-0"
+      style={{ zIndex }}
+      data-modal-root
+    >
+      {/* backdrop */}
       <div
         className="absolute inset-0 bg-black/55 backdrop-blur-[2px]"
-        onClick={() => closeOnBackdrop && onClose()}
+        onMouseDown={(e) => {
+          // 드래그 시작이 backdrop이면 닫기(클릭/터치 안정)
+          if (!closeOnBackdrop) return;
+          if (e.target === e.currentTarget) onClose();
+        }}
+        onTouchStart={(e) => {
+          if (!closeOnBackdrop) return;
+          if (e.target === e.currentTarget) onClose();
+        }}
       />
       <div
         aria-hidden
@@ -62,7 +141,7 @@ export default function Modal({
 
       {/* dialog */}
       <div className="absolute inset-0 grid place-items-center p-4 sm:p-6">
-        <div className={cn("relative w-full", maxWidthClassName)}>
+        <div className={cn("relative w-full", maxWidthClassName, "min-w-0")}>
           {/* 외곽 글로우 */}
           <div
             aria-hidden
@@ -78,7 +157,10 @@ export default function Modal({
                 "relative rounded-3xl overflow-hidden",
                 "bg-zinc-950/92 text-white",
                 "shadow-[0_30px_120px_rgba(0,0,0,.75)]",
+                // ✅ 여기서만 스크롤
                 "max-h-[85vh] flex flex-col",
+                // ✅ 가로 폭 밀림 방지
+                "min-w-0 overflow-x-hidden",
                 className
               )}
               role="dialog"
@@ -92,7 +174,7 @@ export default function Modal({
               />
 
               {/* header (fixed) */}
-              <div className="relative shrink-0 flex items-center justify-between px-5 py-4 border-b border-white/10">
+              <div className="relative shrink-0 flex items-center justify-between px-4 py-2 border-b border-white/10">
                 <div className="min-w-0">
                   {title ? (
                     <h2 className="text-sm font-semibold text-white/90 truncate">
@@ -104,6 +186,7 @@ export default function Modal({
                 </div>
 
                 <button
+                  ref={closeBtnRef}
                   type="button"
                   onClick={onClose}
                   className="h-9 w-9 rounded-xl grid place-items-center text-white/70 hover:bg-white/10 transition"
@@ -114,7 +197,7 @@ export default function Modal({
               </div>
 
               {/* body (scroll only here) */}
-              <div className="relative flex-1 min-h-0 overflow-y-auto scroll-dark">
+              <div className="relative flex-1 min-h-0 overflow-y-auto overscroll-contain scroll-dark">
                 {children}
               </div>
 
@@ -131,6 +214,7 @@ export default function Modal({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
