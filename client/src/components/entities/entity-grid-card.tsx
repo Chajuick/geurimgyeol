@@ -1,7 +1,6 @@
 import React, { memo, useCallback, useMemo } from "react";
 import { useResolvedImage } from "@/hooks/useResolvedImage";
 import { Pencil, Trash2 } from "lucide-react";
-import { usePortfolioContext } from "@/contexts/PortfolioContext";
 import { resolveFrameStack } from "@/lib/frameStack";
 import type { FramePresetId, ID } from "@/types";
 import { OUTER_PRESETS } from "@/lib/framePresets";
@@ -19,7 +18,10 @@ type Props = {
   selected: boolean;
   editMode: boolean;
 
-  // ✅ NEW
+  /** ✅ 부모에서 내려주는 최소 데이터 */
+  frameSettings: any; // data.settings?.frameSettings?.characters
+  defaultRankId: ID;  // rank default (resolved)
+
   rankId?: ID;
 
   onSelect: (id: string) => void;
@@ -37,6 +39,8 @@ const EntityGridCard = memo(function EntityGridCard({
   symbolColors,
   selected,
   editMode,
+  frameSettings,
+  defaultRankId,
   rankId,
   onSelect,
   onOpen,
@@ -44,41 +48,48 @@ const EntityGridCard = memo(function EntityGridCard({
   onDelete,
 }: Props) {
   const resolved = useResolvedImage(image);
-  const { data } = usePortfolioContext();
 
-  const colors = (symbolColors || []).map(c => c.hex).filter(Boolean);
-  const c1 = colors[0] || "#444444";
-  const c2 = colors[1] || c1;
+  // ✅ 색상 2개만 빠르게 추출 (카드 많을 때 누적 비용 줄임)
+  const { c1, c2 } = useMemo(() => {
+    let a = "#444444";
+    let b = "";
 
-  // ✅ 프레임 (characters 화면 기준: frameSettings.characters)
-  const effectiveRankId =
-    rankId ||
-    data.settings?.rankSets?.characters?.defaultTierId ||
-    (data.settings?.rankSets?.characters?.tiers?.[0]?.id as ID) ||
-    ("rank_default" as ID);
+    for (const c of symbolColors || []) {
+      const hex = c?.hex;
+      if (!hex) continue;
+      if (a === "#444444") a = hex;
+      else {
+        b = hex;
+        break;
+      }
+    }
+    return { c1: a, c2: b || a };
+  }, [symbolColors]);
+
+  const effectiveRankId = (rankId || defaultRankId || ("rank_default" as ID)) as ID;
 
   const stack = useMemo(() => {
-    return resolveFrameStack(
-      data.settings?.frameSettings?.characters,
-      effectiveRankId as ID,
-      selected
-    );
-  }, [data.settings?.frameSettings?.characters, effectiveRankId, selected]);
+    // ✅ selected=false면 내부에서 프레임 거의 비게 나올 테지만
+    // 그래도 계산 자체를 최소화하려면 여기서 빠르게 처리
+    return resolveFrameStack(frameSettings, effectiveRankId, selected);
+  }, [frameSettings, effectiveRankId, selected]);
 
-  /** ✅ presets 그대로 사용 (클래스로 미리 변환하지 않음) */
-  const presets = useMemo<FramePresetId[]>(() => {
-    if (!selected) return []; // ✅ 선택 아닐 땐 프레임 없음
-    return (stack.presets || []).filter(Boolean) as FramePresetId[];
-  }, [stack.presets, selected]);
+  // ✅ 선택된 카드에서만 프리셋 렌더
+  const { outerPresets, innerPresets } = useMemo(() => {
+    if (!selected) return { outerPresets: [] as FramePresetId[], innerPresets: [] as FramePresetId[] };
 
-  const outerPresets = useMemo(
-    () => presets.filter(p => isOuterPreset(p)),
-    [presets]
-  );
-  const innerPresets = useMemo(
-    () => presets.filter(p => !isOuterPreset(p) && p !== "none"),
-    [presets]
-  );
+    const ps = (stack.presets || []).filter(Boolean) as FramePresetId[];
+    const outer: FramePresetId[] = [];
+    const inner: FramePresetId[] = [];
+
+    for (const p of ps) {
+      if (p === "none") continue;
+      if (isOuterPreset(p)) outer.push(p);
+      else inner.push(p);
+    }
+
+    return { outerPresets: outer, innerPresets: inner };
+  }, [selected, stack.presets]);
 
   // ✅ 클릭 UX:
   const handleClick = useCallback(() => {
@@ -106,7 +117,6 @@ const EntityGridCard = memo(function EntityGridCard({
     <div
       onClick={handleClick}
       style={{
-        // vars are inherited by children
         ["--frame-thickness" as any]: `${stack.thickness ?? 1}px`,
         ["--frame-intensity" as any]: `${stack.intensity ?? 1}`,
         ["--c1" as any]: c1,
@@ -119,40 +129,32 @@ const EntityGridCard = memo(function EntityGridCard({
         selected ? "is-selected" : "",
       ].join(" ")}
     >
-      {/* ✅ OUTER FX: 카드 밖으로 퍼지는 프리셋만 */}
+      {/* ✅ OUTER FX */}
       {outerPresets.length > 0 && (
         <div className="pointer-events-none absolute inset-0 z-50 rounded-2xl">
           {outerPresets.map((p, i) => (
             <div
               key={p + i}
-              className={[
-                "frame-layer",
-                "frame-outer",
-                `frame-preset-${p}`,
-              ].join(" ")}
+              className={["frame-layer", "frame-outer", `frame-preset-${p}`].join(" ")}
             />
           ))}
         </div>
       )}
 
-      {/* ✅ INNER CLIP: 내용(이미지/텍스트)은 여기서만 클립 */}
+      {/* ✅ INNER CLIP */}
       <div
         className={[
           "relative z-20 h-full w-full rounded-2xl overflow-hidden",
           "bg-zinc-900 shadow-sm group-hover:shadow-xl",
         ].join(" ")}
       >
-        {/* ✅ INNER FX: 안쪽에 붙는 프리셋만 */}
+        {/* ✅ INNER FX */}
         {innerPresets.length > 0 && (
           <div className="pointer-events-none absolute inset-0 z-20">
             {innerPresets.map((p, i) => (
               <div
                 key={p + "_in_" + i}
-                className={[
-                  "frame-layer",
-                  "frame-inner",
-                  `frame-preset-${p}`,
-                ].join(" ")}
+                className={["frame-layer", "frame-inner", `frame-preset-${p}`].join(" ")}
               />
             ))}
           </div>
@@ -185,9 +187,7 @@ const EntityGridCard = memo(function EntityGridCard({
 
         {/* bottom info */}
         <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 to-transparent z-40">
-          <div className="text-white text-sm font-semibold tracking-tight">
-            {name}
-          </div>
+          <div className="text-white text-sm font-semibold tracking-tight">{name}</div>
           <div className="text-zinc-400 text-[11px] mt-1">
             {(subCategories || []).join(", ")}
           </div>

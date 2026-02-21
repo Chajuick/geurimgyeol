@@ -15,7 +15,7 @@ export default function HomeHelpContent({ editMode }: { editMode: boolean }) {
                 로 이동할 수 있어요.
               </li>
               <li>
-                상단의{" "}
+                사이드 메뉴 하단의{" "}
                 <span className="text-white/90 font-semibold">편집 모드</span>를
                 켜면 추가/수정/삭제 기능이 활성화됩니다.
               </li>
@@ -26,15 +26,13 @@ export default function HomeHelpContent({ editMode }: { editMode: boolean }) {
             <ul className="list-disc pl-5 space-y-1 text-white/70">
               <li>
                 <span className="text-white/90 font-semibold">세계관</span>:
-                배경/아이콘을 먼저 넣고, 설정을 짧게 요약한 뒤 디테일을
-                추가해요.
+                배경/아이콘을 먼저 넣고, 설정을 짧게 요약한 뒤 빠져들기 메뉴에서 디테일을 추가해요.
               </li>
               <li>
                 <span className="text-white/90 font-semibold">
                   캐릭터/크리쳐
                 </span>
-                : 프로필은 얼굴/전신, 메인은 “대표 장면”, 서브는 변형/소품/관계
-                컷으로 구성하면 좋아요.
+                : 프로필은 얼굴/전신, 메인은 “대표 장면”, 서브는 변형/소품/관계 컷으로 구성하면 좋아요.
               </li>
               <li>
                 이미지는 가능하면{" "}
@@ -114,33 +112,28 @@ export default function HomeHelpContent({ editMode }: { editMode: boolean }) {
                 <span className="text-white/90 font-semibold">
                   세계관 / 캐릭터 / 크리쳐
                 </span>{" "}
-                페이지로 이동해 주세요.
+                페이지로 이동할 수 있습니다.
               </li>
-              <li>각 카드(썸네일)를 눌러 상세 정보를 확인할 수 있어요.</li>
-              <li>페이지마다 연출을 비교하며 감상해 주세요.</li>
+              <li>각 프로필 카드를 눌러 상세 정보를 확인할 수 있어요.</li>
             </ul>
           </GuideSection>
 
           <GuideSection title="추천 감상 순서">
             <ol className="list-decimal pl-5 space-y-1 text-white/70">
               <li>
-                <span className="text-white/90 font-semibold">세계관</span>에서
-                배경과 설정을 먼저 보고
+                <span className="text-white/90 font-semibold">세계관</span>의
+                결을따라서
               </li>
               <li>
-                <span className="text-white/90 font-semibold">캐릭터</span>에서
-                등장인물의 성격/관계를 확인한 다음
+                <span className="text-white/90 font-semibold">캐릭터</span>와 <span className="text-white/90 font-semibold">크리쳐</span>
+                의 서사를 즐겨주세요.
               </li>
               <li>
-                <span className="text-white/90 font-semibold">크리쳐</span>로
-                세계의 생태/위협/미스터리를 확장해 보세요.
+                마음에 드셨다면, <span className="text-white/90 font-semibold">프로필</span>의
+                링크를 통해 더 많은 작품을 감상하실 수 있습니다.
               </li>
             </ol>
           </GuideSection>
-
-          <p className="text-xs text-white/40 pb-2">
-            ※ 이 페이지는 감상 전용으로 제공됩니다.
-          </p>
         </div>
       )}
     </div>

@@ -11,8 +11,6 @@ const PRESETS: { id: FramePresetId; label: string }[] = [
   { id: "scan-sweep", label: "SWEEP" },
   { id: "glass-surface", label: "GLASS" },
   { id: "steel-surface", label: "STEEL" },
-  { id: "electric", label: "ELECTRIC" },
-  { id: "flame", label: "FLAME" },
 ];
 
 export const DEFAULT_STACK: FrameStack = {

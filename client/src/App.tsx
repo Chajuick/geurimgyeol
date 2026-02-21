@@ -13,7 +13,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { PortfolioProvider } from "./contexts/PortfolioContext";
 import { usePortfolio } from "./hooks/usePortfolio";
-import { useState } from "react";
+import { useCallback } from "react";
 
 function Router() {
   return (
@@ -32,22 +32,24 @@ function Router() {
 }
 
 function AppContent() {
-  const portfolioData = usePortfolio();
-  const [editMode, setEditMode] = useState(
-    portfolioData.data.settings.editMode
+  const portfolio = usePortfolio();
+  const editMode = !!portfolio.data.settings.editMode;
+
+  const setEditMode = useCallback(
+    (mode: boolean) => {
+      portfolio.setData(prev => ({
+        ...prev,
+        settings: { ...prev.settings, editMode: mode },
+      }));
+    },
+    [portfolio]
   );
 
   return (
-    <PortfolioProvider
-      value={{
-        ...portfolioData,
-        editMode,
-        setEditMode,
-      }}
-    >
-      <div className="min-h-screen bg-background text-foreground flex">
+    <PortfolioProvider value={{ ...portfolio, editMode, setEditMode }}>
+      <div className="min-h-screen bg-background text-foreground relative overflow-x-clip">
         <Sidebar />
-        <main className="flex-1 md:ml-0 ml-0">
+        <main className="w-full min-w-0 pl-0 md:pl-20">
           <Router />
         </main>
       </div>

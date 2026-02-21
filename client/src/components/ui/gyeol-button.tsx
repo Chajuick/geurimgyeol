@@ -93,7 +93,7 @@ export default function GButton({
       disabled={disabled}
       title={title || text}
       className={cn(
-        "group gyeol-button",
+        "group gyeol-button [contain:paint]",
         SIZE[size],
         isIconOnly ? "gyeol-button--iconOnly" : "",
         rootVariantClass,

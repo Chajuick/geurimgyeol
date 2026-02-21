@@ -14,7 +14,6 @@ type Props = {
 export default function WorldThumbCard({
   name,
   image,
-  editMode,
   className = "",
 }: Props) {
   const resolved = useResolvedImage(image || "");
@@ -24,7 +23,6 @@ export default function WorldThumbCard({
       <div
         className={[
           "relative w-full aspect-square overflow-hidden transition rounded-xl",
-          "min-w-[64px]",
           "bg-white/5",
         ].join(" ")}
         title={name || ""}

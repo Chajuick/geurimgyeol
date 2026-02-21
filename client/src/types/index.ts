@@ -108,16 +108,16 @@ export type EntityMenuFrameSettings = {
 ========================================================= */
 
 /** ✅ 서브이미지 설명: 요약/설명 분리 */
-export type SubImage = {
-  image: ImageRef;
-  summary: string;
-  description: string;
+export type SymbolColor = {
+  id: string;
+  name: string; // ✅ 이전 label 대신 name
+  hex: string;  // e.g. "#FFAA00"
 };
 
-export type SymbolColor = {
-  id?: ID;
-  name?: string;
-  hex: ColorHex;
+export type SubImage = {
+  image: string;       // ✅ 이전 url 대신 image
+  summary: string;     // ✅ 이전 caption 대신 summary
+  description: string; // ✅ 추가
 };
 
 /** ✅ 캐릭터/크리쳐 공용 베이스 */

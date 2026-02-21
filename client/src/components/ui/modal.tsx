@@ -114,7 +114,7 @@ export default function Modal({
               </div>
 
               {/* body (scroll only here) */}
-              <div className="relative flex-1 min-h-0 overflow-y-auto scroll-dark p-4">
+              <div className="relative flex-1 min-h-0 overflow-y-auto scroll-dark">
                 {children}
               </div>
 

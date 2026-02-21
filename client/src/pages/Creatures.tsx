@@ -1,5 +1,4 @@
-// Creature.tsx (or Creatures.tsx) — full file
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Plus, Pencil, SlidersHorizontal } from "lucide-react";
 
 import { usePortfolioContext } from "@/contexts/PortfolioContext";
@@ -41,11 +40,11 @@ function makeId(): ID {
 
 /** SettingsData(CategoryItem[]) -> UI(CategoryGroup[]) 어댑터 */
 function toCategoryGroups(items: CategoryItem[] = []): CategoryGroup[] {
-  return items.map(x => ({ main: x.main, subs: x.subs || [] }));
+  return items.map((x) => ({ main: x.main, subs: x.subs || [] }));
 }
 /** UI(CategoryGroup[]) -> SettingsData(CategoryItem[]) 어댑터 */
 function toCategoryItems(groups: CategoryGroup[] = []): CategoryItem[] {
-  return groups.map(g => ({ main: g.main, subs: g.subs || [] }));
+  return groups.map((g) => ({ main: g.main, subs: g.subs || [] }));
 }
 
 /** ✅ 프레임 draft: OUTER 1개 + INNER 1개 */
@@ -54,58 +53,125 @@ type FrameDraft = {
   inner: FramePresetId; // "none" 포함
 };
 
+function arraysShallowEqual(a: any[] = [], b: any[] = []) {
+  if (a === b) return true;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+  return true;
+}
+
+function symbolsEqual(a: SymbolColor[] = [], b: SymbolColor[] = []) {
+  if (a === b) return true;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    const A: any = a[i];
+    const B: any = b[i];
+    if (!A || !B) return false;
+    if (A.hex !== B.hex) return false;
+    if (A.label !== B.label) return false;
+  }
+  return true;
+}
+
+function subImagesEqual(a: SubImage[] = [], b: SubImage[] = []) {
+  if (a === b) return true;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    const A: any = a[i];
+    const B: any = b[i];
+    if (!A || !B) return false;
+    if (A.url !== B.url) return false;
+    if (A.caption !== B.caption) return false;
+  }
+  return true;
+}
+
+function creatureEqual(a: CreatureData, b: CreatureData) {
+  return (
+    a.name === b.name &&
+    a.rankId === b.rankId &&
+    arraysShallowEqual(a.subCategories || [], b.subCategories || []) &&
+    a.profileImage === b.profileImage &&
+    a.mainImage === b.mainImage &&
+    subImagesEqual(a.subImages || [], b.subImages || []) &&
+    arraysShallowEqual(a.tags || [], b.tags || []) &&
+    symbolsEqual(a.symbolColors || [], b.symbolColors || []) &&
+    a.summary === b.summary &&
+    a.description === b.description &&
+    a.meta === b.meta
+  );
+}
+
 export default function Creatures() {
   const { data, setData, editMode } = usePortfolioContext();
 
   /** ✅ settings 기반 ranks */
   const rankSet = data.settings?.rankSets?.creatures;
-  const defaultRankId: ID | null = useMemo(() => {
+
+  const defaultRankIdResolved: ID = useMemo(() => {
     const tiers = rankSet?.tiers || [];
-    return (rankSet?.defaultTierId || tiers[0]?.id || null) as ID | null;
+    return (
+      (rankSet?.defaultTierId as ID) ||
+      (tiers[0]?.id as ID) ||
+      ("rank_default" as ID)
+    );
   }, [rankSet]);
 
-  /** ✅ categories (SettingsData는 CategoryItem[]) */
+  /** ✅ 카드에 내려줄 frameSettings(최소 구독 단위) */
+  const frameSettingsCreatures = useMemo(() => {
+    return (data.settings as any)?.frameSettings?.creatures;
+  }, [data.settings]);
+
+  /** ✅ categories */
   const categories: CategoryGroup[] = useMemo(() => {
     return toCategoryGroups(data.settings?.creatureCategories || []);
   }, [data.settings?.creatureCategories]);
 
-  /** ✅ normalize */
+  /** normalize cache */
+  const normalizedCacheRef = useRef<Map<ID, CreatureData>>(new Map());
+
   const creaturesNormalized: CreatureData[] = useMemo(() => {
-    const list = data.creatures || [];
-    return list.map((c: any) => {
+    const list: any[] = (data.creatures as any[]) || [];
+    const nextCache = new Map<ID, CreatureData>();
+    const prevCache = normalizedCacheRef.current;
+
+    const normalized = list.map((raw: any) => {
+      const id = String(raw?.id ?? makeId()) as ID;
+
       const rankId: ID =
-        (c.rankId as ID) || (defaultRankId as ID) || ("rank_default" as ID);
+        (raw?.rankId as ID) || defaultRankIdResolved || ("rank_default" as ID);
 
-      return {
-        id: String(c.id ?? makeId()) as ID,
-        name: String(c.name ?? "Unnamed"),
-
+      const nextObj: CreatureData = {
+        id,
+        name: String(raw?.name ?? "Unnamed"),
         rankId,
-
-        subCategories: Array.isArray(c.subCategories)
-          ? c.subCategories
-          : c.subCategory
-            ? [c.subCategory]
+        subCategories: Array.isArray(raw?.subCategories)
+          ? raw.subCategories
+          : raw?.subCategory
+            ? [raw.subCategory]
             : [],
-
-        profileImage: String(c.profileImage ?? ""),
-        mainImage: String(c.mainImage ?? ""),
-
-        subImages: Array.isArray(c.subImages)
-          ? (c.subImages as SubImage[])
+        profileImage: String(raw?.profileImage ?? ""),
+        mainImage: String(raw?.mainImage ?? ""),
+        subImages: Array.isArray(raw?.subImages) ? (raw.subImages as SubImage[]) : [],
+        tags: Array.isArray(raw?.tags) ? raw.tags : [],
+        symbolColors: Array.isArray(raw?.symbolColors)
+          ? (raw.symbolColors as SymbolColor[])
           : [],
-        tags: Array.isArray(c.tags) ? c.tags : [],
-        symbolColors: Array.isArray(c.symbolColors)
-          ? (c.symbolColors as SymbolColor[])
-          : [],
+        summary: String(raw?.summary ?? ""),
+        description: String(raw?.description ?? ""),
+        meta: raw?.meta ?? undefined,
+      };
 
-        summary: String(c.summary ?? ""),
-        description: String(c.description ?? ""),
+      const prevObj = prevCache.get(id);
+      const reused = prevObj && creatureEqual(prevObj, nextObj) ? prevObj : nextObj;
 
-        meta: c.meta ?? undefined,
-      } as CreatureData;
+      nextCache.set(id, reused);
+      return reused;
     });
-  }, [data.creatures, defaultRankId]);
+
+    normalizedCacheRef.current = nextCache;
+    return normalized;
+  }, [data.creatures, defaultRankIdResolved]);
 
   const [selectedId, setSelectedId] = useState<ID | null>(
     (creaturesNormalized[0]?.id as ID) || null
@@ -119,14 +185,30 @@ export default function Creatures() {
 
   const [confirmDeleteId, setConfirmDeleteId] = useState<ID | null>(null);
 
-  // ✅ selected(선택) 상태 프레임 설정 모달
+  // frame settings modal
   const [isFrameSettingsOpen, setIsFrameSettingsOpen] = useState(false);
 
-  // ✅ 현재 저장된 selectedExtra 읽기 (구 버전 {presets:[...]} 호환)
+  // preview delay
+  const [showFramePreviews, setShowFramePreviews] = useState(false);
+  useEffect(() => {
+    if (!isFrameSettingsOpen) {
+      setShowFramePreviews(false);
+      return;
+    }
+    let raf = 0;
+    const t = window.setTimeout(() => {
+      raf = window.requestAnimationFrame(() => setShowFramePreviews(true));
+    }, 60);
+    return () => {
+      window.clearTimeout(t);
+      if (raf) window.cancelAnimationFrame(raf);
+    };
+  }, [isFrameSettingsOpen]);
+
+  // selectedExtra (compat)
   const currentSelected = useMemo<FrameDraft>(() => {
     const raw = (data.settings as any)?.frameSettings?.creatures?.selectedExtra;
 
-    // 새 구조: { outer, inner }
     if (raw && (raw.outer || raw.inner)) {
       return {
         outer: (raw.outer as FramePresetId) ?? "none",
@@ -134,7 +216,6 @@ export default function Creatures() {
       };
     }
 
-    // 구 구조: { presets: ["electric"] }
     const presets: FramePresetId[] = raw?.presets ?? [];
     const first = presets[0] ?? "none";
 
@@ -151,15 +232,15 @@ export default function Creatures() {
   }, [currentSelected]);
 
   const setOuter = useCallback((id: FramePresetId) => {
-    setFrameDraft(prev => ({ ...prev, outer: id }));
+    setFrameDraft((prev) => ({ ...prev, outer: id }));
   }, []);
 
   const setInner = useCallback((id: FramePresetId) => {
-    setFrameDraft(prev => ({ ...prev, inner: id }));
+    setFrameDraft((prev) => ({ ...prev, inner: id }));
   }, []);
 
   const saveFrameSettings = useCallback(() => {
-    setData(prev => {
+    setData((prev) => {
       const prevSettings: any = prev.settings ?? {};
       const prevFrameSettings: any = prevSettings.frameSettings ?? {};
       const prevCreaturesFS: any = prevFrameSettings.creatures ?? {};
@@ -167,7 +248,6 @@ export default function Creatures() {
       const isNoneOuter = frameDraft.outer === "none";
       const isNoneInner = frameDraft.inner === "none";
 
-      // ✅ 둘 다 none이면 selectedExtra 제거(=선택 프레임 없음)
       const nextSelectedExtra =
         isNoneOuter && isNoneInner
           ? undefined
@@ -191,73 +271,82 @@ export default function Creatures() {
     setIsFrameSettingsOpen(false);
   }, [frameDraft, setData]);
 
-  // ✅ categories save handler
+  // categories save handler
   const handleSaveCategories = useCallback(
     (nextGroups: CategoryGroup[]) => {
-      setData({
-        ...data,
+      setData((prev) => ({
+        ...prev,
         settings: {
-          ...data.settings,
+          ...(prev.settings ?? {}),
           creatureCategories: toCategoryItems(nextGroups),
         },
-      });
+      }));
     },
-    [data, setData]
+    [setData]
   );
 
-  // ✅ category edit modal state (IMPORTANT: categories/handleSaveCategories 선언 이후)
+  // category modal state
   const [isEditingCategory, setIsEditingCategory] = useState(false);
-  const [draftCategories, setDraftCategories] = useState<CategoryGroup[]>(
-    () => categories
-  );
+  const [draftCategories, setDraftCategories] = useState<CategoryGroup[]>(() => categories);
 
   useEffect(() => {
-    setDraftCategories(categories);
-  }, [categories]);
+    if (isEditingCategory) setDraftCategories(categories);
+  }, [isEditingCategory, categories]);
 
   const saveCategories = useCallback(() => {
     handleSaveCategories(draftCategories);
     setIsEditingCategory(false);
   }, [draftCategories, handleSaveCategories]);
 
-  // maps
-  const mainToSubs = useMemo(() => {
-    const map = new Map<string, string[]>();
-    for (const cg of categories) map.set(cg.main, cg.subs || []);
+  // maps (main -> subs set)
+  const mainToSubsSet = useMemo(() => {
+    const map = new Map<string, Set<string>>();
+    for (const cg of categories) map.set(cg.main, new Set(cg.subs || []));
     return map;
   }, [categories]);
 
+  // 크리쳐별 subCategories Set 캐시
+  const charSubSet = useMemo(() => {
+    const m = new Map<ID, Set<string>>();
+    for (const c of creaturesNormalized) m.set(c.id, new Set(c.subCategories || []));
+    return m;
+  }, [creaturesNormalized]);
+
   const filtered = useMemo(() => {
-    return creaturesNormalized.filter(c => {
-      const subs = c.subCategories || [];
+    const activeMainSubsArr =
+      activeMain === ALL ? null : Array.from(mainToSubsSet.get(activeMain) || []);
+
+    return creaturesNormalized.filter((c) => {
+      const subs = charSubSet.get(c.id) || new Set<string>();
 
       const mainOk =
         activeMain === ALL
           ? true
-          : (mainToSubs.get(activeMain) || []).some(sub => subs.includes(sub));
+          : activeMainSubsArr
+            ? activeMainSubsArr.some((s) => subs.has(s))
+            : true;
 
-      const subOk = activeSub === ALL ? true : subs.includes(activeSub);
+      const subOk = activeSub === ALL ? true : subs.has(activeSub);
 
       return mainOk && subOk;
     });
-  }, [creaturesNormalized, activeMain, activeSub, mainToSubs]);
+  }, [creaturesNormalized, activeMain, activeSub, mainToSubsSet, charSubSet]);
 
   useEffect(() => {
     if (!filtered.length) {
       setSelectedId(null);
       return;
     }
-    const stillExists = filtered.some(c => c.id === selectedId);
+    const stillExists = filtered.some((c) => c.id === selectedId);
     if (!stillExists) setSelectedId(filtered[0]?.id || null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filtered, selectedId]);
 
   const viewModalChar = useMemo(
-    () => creaturesNormalized.find(c => c.id === viewModalId) || null,
+    () => creaturesNormalized.find((c) => c.id === viewModalId) || null,
     [creaturesNormalized, viewModalId]
   );
 
-  // ✅ sub categories only -> tagOptions
   const subTagOptions = useMemo(() => {
     const set = new Set<string>();
     for (const cg of categories) {
@@ -271,31 +360,23 @@ export default function Creatures() {
 
   const updateCreatures = useCallback(
     (next: CreatureData[]) => {
-      setData({
-        ...data,
-        creatures: next.map(c => ({
-          id: c.id,
-          name: c.name,
-
-          rankId: c.rankId || (defaultRankId as ID) || ("rank_default" as ID),
-
+      setData((prev) => ({
+        ...prev,
+        creatures: next.map((c) => ({
+          ...c,
+          rankId: (c.rankId || defaultRankIdResolved || ("rank_default" as ID)) as ID,
           subCategories: c.subCategories || [],
-
-          profileImage: c.profileImage || "",
-          mainImage: c.mainImage || "",
-
           subImages: c.subImages || [],
           tags: c.tags || [],
           symbolColors: c.symbolColors || [],
-
+          profileImage: c.profileImage || "",
+          mainImage: c.mainImage || "",
           summary: c.summary || "",
           description: c.description || "",
-
-          meta: c.meta,
         })),
-      });
+      }));
     },
-    [data, setData, defaultRankId]
+    [setData, defaultRankIdResolved]
   );
 
   const openDetail = useCallback((id: ID) => {
@@ -307,9 +388,7 @@ export default function Creatures() {
     const payload: CreatureData = {
       id: makeId(),
       name: "새 크리쳐",
-
-      rankId: (defaultRankId as ID) || ("rank_default" as ID),
-
+      rankId: defaultRankIdResolved,
       subCategories: [],
       profileImage: "",
       mainImage: "",
@@ -324,15 +403,15 @@ export default function Creatures() {
     updateCreatures([...creaturesNormalized, payload]);
     setSelectedId(payload.id);
     openDetail(payload.id);
-  }, [creaturesNormalized, updateCreatures, openDetail, defaultRankId]);
+  }, [creaturesNormalized, updateCreatures, openDetail, defaultRankIdResolved]);
 
   const deleteCreature = useCallback(
     (id: ID) => {
-      const next = creaturesNormalized.filter(c => c.id !== id);
+      const next = creaturesNormalized.filter((c) => c.id !== id);
       updateCreatures(next);
 
       setSelectedId((next[0]?.id as ID) || null);
-      setViewModalId(cur => (cur === id ? null : cur));
+      setViewModalId((cur) => (cur === id ? null : cur));
       setViewSubIndex(0);
     },
     [creaturesNormalized, updateCreatures]
@@ -340,7 +419,7 @@ export default function Creatures() {
 
   const patchCreature = useCallback(
     (id: ID, patch: Partial<CreatureData>) => {
-      const next = creaturesNormalized.map(c =>
+      const next = creaturesNormalized.map((c) =>
         c.id === id ? ({ ...c, ...patch } as CreatureData) : c
       );
       updateCreatures(next);
@@ -356,27 +435,27 @@ export default function Creatures() {
     };
   }, [creaturesNormalized.length, filtered.length, categories.length]);
 
+  const handleSelectCard = useCallback((id: ID) => setSelectedId(id), []);
+  const handleOpenCard = useCallback((id: ID) => openDetail(id), [openDetail]);
+  const handleEditCard = useCallback((id: ID) => openDetail(id), [openDetail]);
+  const handleAskDelete = useCallback((id: ID) => setConfirmDeleteId(id), []);
+
   return (
     <div
       className={cn(
-        "min-h-screen md:h-screen",
+        "min-h-screen md:h-screen w-full max-w-full overflow-x-hidden",
         "gyeol-bg text-white relative",
         "md:overflow-hidden"
       )}
     >
-      {/* background HUD vignette */}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(255,255,255,0.07),transparent_45%),radial-gradient(circle_at_85%_30%,rgba(99,102,241,0.10),transparent_45%)]" />
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.10),rgba(0,0,0,0.65))]" />
 
-      <div className="relative z-10 px-6 md:px-10 lg:px-12 py-10 md:h-full flex flex-col">
+      <div className="relative z-10 px-6 md:px-10 lg:px-12 py-10 md:h-full flex flex-col min-w-0">
         {/* TOP BAR */}
         <div className="flex items-center justify-between gap-3 shrink-0">
           <div className="flex items-center gap-2">
-            {editMode ? (
-              <HUDBadge tone="warn">EDIT MODE</HUDBadge>
-            ) : (
-              <HUDBadge>VIEW MODE</HUDBadge>
-            )}
+            {editMode ? <HUDBadge tone="warn">EDIT MODE</HUDBadge> : <HUDBadge>VIEW MODE</HUDBadge>}
             <HUDBadge>{`CREATURES ${stats.total}`}</HUDBadge>
             <HUDBadge>{`SHOWING ${stats.showing}`}</HUDBadge>
             <HUDBadge>{`CATS ${stats.categories}`}</HUDBadge>
@@ -402,25 +481,19 @@ export default function Creatures() {
           </div>
         </div>
 
-        {/* DOSSIER HEADER + CATEGORIES */}
-        <HUDPanel className="p-4 md:p-6 mt-6 shrink-0">
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between gap-4">
-              {/* LEFT */}
-              <div>
-                <div className="text-[11px] tracking-[0.26em] text-white/55">
-                  CREATURES
-                </div>
-                <div className="mt-2 text-3xl font-extrabold tracking-tight">
-                  크리쳐 소개
-                </div>
+        {/* HEADER + CATEGORIES */}
+        <HUDPanel className="p-4 md:p-6 mt-6 shrink-0 w-full max-w-full min-w-0 overflow-x-hidden">
+          <div className="flex flex-col gap-3 min-w-0">
+            <div className="flex items-center justify-between gap-4 min-w-0">
+              <div className="min-w-0">
+                <div className="text-[11px] tracking-[0.26em] text-white/55">CREATURES</div>
+                <div className="mt-2 text-3xl font-extrabold tracking-tight">크리쳐 소개</div>
                 <div className="mt-2 text-sm text-white/60">
                   카테고리로 필터링하고, 도감처럼 빠르게 열람하세요.
                 </div>
               </div>
 
-              {/* RIGHT */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 shrink-0">
                 {editMode && (
                   <GButton
                     variant="ghost"
@@ -432,8 +505,7 @@ export default function Creatures() {
               </div>
             </div>
 
-            {/* Filter bar */}
-            <div className="mt-2">
+            <div className="mt-2 w-full max-w-full min-w-0">
               <EntityCategoryBar
                 categories={categories}
                 activeMain={activeMain}
@@ -445,7 +517,7 @@ export default function Creatures() {
           </div>
         </HUDPanel>
 
-        {/* CONTENT: internal scroll */}
+        {/* CONTENT */}
         <div className="mt-4 flex-1 min-h-0">
           <div className="h-full overflow-hidden">
             <div className="h-full overflow-auto scroll-dark">
@@ -453,12 +525,8 @@ export default function Creatures() {
                 <HUDPanel className="p-4 md:p-6">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <div className="text-[11px] tracking-[0.26em] text-white/55">
-                        GRID
-                      </div>
-                      <div className="mt-1 text-sm text-white/60">
-                        선택 / 상세 열기
-                      </div>
+                      <div className="text-[11px] tracking-[0.26em] text-white/55">GRID</div>
+                      <div className="mt-1 text-sm text-white/60">선택 / 상세 열기</div>
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -470,9 +538,7 @@ export default function Creatures() {
                   <div className="mt-6">
                     {filtered.length === 0 ? (
                       <div className="rounded-2xl border border-white/10 bg-black/20 p-8 text-center">
-                        <div className="text-sm text-white/55">
-                          해당 카테고리에 크리쳐가 없습니다.
-                        </div>
+                        <div className="text-sm text-white/55">해당 카테고리에 크리쳐가 없습니다.</div>
                         {editMode && (
                           <div className="mt-4 flex justify-center">
                             <GButton
@@ -486,7 +552,7 @@ export default function Creatures() {
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-6">
-                        {filtered.map(c => (
+                        {filtered.map((c) => (
                           <EntityGridCard
                             key={c.id}
                             id={c.id}
@@ -497,10 +563,12 @@ export default function Creatures() {
                             selected={c.id === selectedId}
                             editMode={editMode}
                             rankId={c.rankId as ID}
-                            onSelect={id => setSelectedId(id as ID)}
-                            onOpen={id => openDetail(id as ID)}
-                            onEdit={id => openDetail(id as ID)}
-                            onDelete={id => setConfirmDeleteId(id as ID)}
+                            defaultRankId={defaultRankIdResolved}
+                            frameSettings={frameSettingsCreatures}
+                            onSelect={handleSelectCard}
+                            onOpen={handleOpenCard}
+                            onEdit={handleEditCard}
+                            onDelete={handleAskDelete}
                           />
                         ))}
                       </div>
@@ -508,7 +576,6 @@ export default function Creatures() {
                   </div>
                 </HUDPanel>
 
-                {/* subtle scanlines */}
                 <div className="pointer-events-none mt-4 opacity-[0.10] h-8 rounded-2xl bg-[linear-gradient(rgba(255,255,255,0.18)_1px,transparent_1px)] bg-[length:100%_3px]" />
               </div>
             </div>
@@ -516,30 +583,30 @@ export default function Creatures() {
         </div>
       </div>
 
-      {/* ✅ Category edit modal */}
+      {/* Category edit modal */}
       {editMode && isEditingCategory && (
         <CategoryGroupEditModal
           open
           title="카테고리 편집"
           draft={draftCategories}
           setDraft={setDraftCategories}
-          onClose={() => setIsEditingCategory(false)}
+          onClose={() => {
+            setDraftCategories(categories); // ✅ 원복
+            setIsEditingCategory(false);
+          }}
           onSave={saveCategories}
           mainLabel="메인 카테고리"
           subLabel="서브 카테고리"
         />
       )}
 
-      {/* ✅ Frame settings modal */}
+      {/* Frame settings modal (너 코드 그대로) */}
       {isFrameSettingsOpen && (
         <div className="fixed inset-0 z-[80]">
-          {/* backdrop */}
           <div
             className="absolute inset-0 bg-black/65 backdrop-blur-sm"
             onClick={() => setIsFrameSettingsOpen(false)}
           />
-
-          {/* modal */}
           <div className="absolute inset-0 flex items-center justify-center p-4">
             <HUDPanel className="w-full max-w-5xl p-5 md:p-6 max-h-[82vh] flex flex-col">
               <div className="flex items-start justify-between gap-4 shrink-0">
@@ -547,9 +614,7 @@ export default function Creatures() {
                   <div className="text-[11px] tracking-[0.26em] text-white/55">
                     CREATURE FRAME SETTINGS
                   </div>
-                  <div className="mt-2 text-2xl font-extrabold tracking-tight">
-                    선택 프레임 효과
-                  </div>
+                  <div className="mt-2 text-2xl font-extrabold tracking-tight">선택 프레임 효과</div>
                   <div className="mt-2 text-sm text-white/60">
                     크리쳐를 선택했을 때(선택 프레임) 적용할 효과를 고르세요.
                     <br />
@@ -558,28 +623,18 @@ export default function Creatures() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <GButton
-                    variant="ghost"
-                    text="닫기"
-                    onClick={() => setIsFrameSettingsOpen(false)}
-                  />
+                  <GButton variant="ghost" text="닫기" onClick={() => setIsFrameSettingsOpen(false)} />
                   <GButton variant="primary" text="저장" onClick={saveFrameSettings} />
                 </div>
               </div>
 
-              {/* ✅ OUTER / INNER split */}
               <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 min-h-0 overflow-auto scroll-dark">
-                {/* OUTER */}
                 <HUDPanel className="p-4">
-                  <div className="text-[11px] tracking-[0.26em] text-white/55">
-                    OUTER
-                  </div>
-                  <div className="mt-1 text-sm text-white/70">
-                    외곽 효과
-                  </div>
+                  <div className="text-[11px] tracking-[0.26em] text-white/55">OUTER</div>
+                  <div className="mt-1 text-sm text-white/70">외곽 효과</div>
 
                   <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {OUTER_OPTIONS.map(opt => {
+                    {OUTER_OPTIONS.map((opt) => {
                       const selected = frameDraft.outer === opt.id;
 
                       return (
@@ -590,39 +645,27 @@ export default function Creatures() {
                           className={[
                             "rounded-2xl border p-3 text-left transition",
                             "bg-black/20 border-white/20 hover:border-white/30",
-                            selected ? "ring-2 ring-white/20" : "",
+                            selected ? "ring-2 ring-white/20 is-selected" : "",
                           ].join(" ")}
                         >
                           <div className="flex items-center justify-between gap-2">
-                            <div className="text-sm font-semibold px-2">
-                              {opt.label}
-                            </div>
+                            <div className="text-sm font-semibold px-2">{opt.label}</div>
 
-                            {/* 원형 체크 */}
                             <div
                               className={[
                                 "w-5 h-5 rounded-full border flex items-center justify-center",
-                                selected
-                                  ? "border-white/70 bg-white/15"
-                                  : "border-white/25 bg-transparent",
+                                selected ? "border-white/70 bg-white/15" : "border-white/25 bg-transparent",
                               ].join(" ")}
                             >
-                              {selected && (
-                                <div className="w-2.5 h-2.5 rounded-full bg-white" />
-                              )}
+                              {selected && <div className="w-2.5 h-2.5 rounded-full bg-white" />}
                             </div>
                           </div>
 
-                          {/* preview */}
                           <div className="mt-3">
                             <div className="relative aspect-square overflow-visible rounded-xl border border-white/10 bg-black/25">
-                              {opt.id !== "none" && (
+                              {showFramePreviews && opt.id !== "none" && (
                                 <div
-                                  className={[
-                                    "frame-layer",
-                                    "frame-outer",
-                                    `frame-preset-${opt.id}`,
-                                  ].join(" ")}
+                                  className={["frame-layer", "frame-outer", `frame-preset-${opt.id}`].join(" ")}
                                   style={{
                                     ["--frame-thickness" as any]: `2px`,
                                     ["--frame-intensity" as any]: `0.9`,
@@ -631,9 +674,7 @@ export default function Creatures() {
                                   }}
                                 />
                               )}
-
-                              {/* inner clip only for preview framing */}
-                              <div className="relative h-full w-full overflow-hidden rounded-xl is-selected" />
+                              <div className="relative h-full w-full overflow-hidden rounded-xl" />
                             </div>
                           </div>
                         </button>
@@ -642,17 +683,12 @@ export default function Creatures() {
                   </div>
                 </HUDPanel>
 
-                {/* INNER */}
                 <HUDPanel className="p-4">
-                  <div className="text-[11px] tracking-[0.26em] text-white/55">
-                    INNER
-                  </div>
-                  <div className="mt-1 text-sm text-white/70">
-                    내부 효과
-                  </div>
+                  <div className="text-[11px] tracking-[0.26em] text-white/55">INNER</div>
+                  <div className="mt-1 text-sm text-white/70">내부 효과</div>
 
                   <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {INNER_OPTIONS.map(opt => {
+                    {INNER_OPTIONS.map((opt) => {
                       const selected = frameDraft.inner === opt.id;
 
                       return (
@@ -663,40 +699,28 @@ export default function Creatures() {
                           className={[
                             "rounded-2xl border p-3 text-left transition",
                             "bg-black/20 border-white/20 hover:border-white/30",
-                            selected ? "ring-2 ring-white/20" : "",
+                            selected ? "ring-2 ring-white/20 is-selected" : "",
                           ].join(" ")}
                         >
                           <div className="flex items-center justify-between gap-2">
-                            <div className="text-sm font-semibold px-2">
-                              {opt.label}
-                            </div>
+                            <div className="text-sm font-semibold px-2">{opt.label}</div>
 
-                            {/* 원형 체크 */}
                             <div
                               className={[
                                 "w-5 h-5 rounded-full border flex items-center justify-center",
-                                selected
-                                  ? "border-white/70 bg-white/15"
-                                  : "border-white/25 bg-transparent",
+                                selected ? "border-white/70 bg-white/15" : "border-white/25 bg-transparent",
                               ].join(" ")}
                             >
-                              {selected && (
-                                <div className="w-2.5 h-2.5 rounded-full bg-white" />
-                              )}
+                              {selected && <div className="w-2.5 h-2.5 rounded-full bg-white" />}
                             </div>
                           </div>
 
-                          {/* preview */}
                           <div className="mt-3">
                             <div className="relative aspect-square overflow-visible rounded-xl border border-white/10 bg-black/25">
-                              <div className="relative h-full w-full overflow-hidden rounded-xl is-selected">
-                                {opt.id !== "none" && (
+                              <div className="relative h-full w-full overflow-hidden rounded-xl">
+                                {showFramePreviews && opt.id !== "none" && (
                                   <div
-                                    className={[
-                                      "frame-layer",
-                                      "frame-inner",
-                                      `frame-preset-${opt.id}`,
-                                    ].join(" ")}
+                                    className={["frame-layer", "frame-inner", `frame-preset-${opt.id}`].join(" ")}
                                     style={{
                                       ["--frame-thickness" as any]: `1px`,
                                       ["--frame-intensity" as any]: `1`,
@@ -715,10 +739,8 @@ export default function Creatures() {
                 </HUDPanel>
               </div>
 
-              {/* 하단 요약 */}
               <div className="mt-5 text-xs text-white/55 shrink-0">
-                OUTER:{" "}
-                <span className="text-white/80">{frameDraft.outer}</span> · INNER:{" "}
+                OUTER: <span className="text-white/80">{frameDraft.outer}</span> · INNER:{" "}
                 <span className="text-white/80">{frameDraft.inner}</span>
               </div>
             </HUDPanel>
@@ -726,7 +748,7 @@ export default function Creatures() {
         </div>
       )}
 
-      {/* ✅ Detail */}
+      {/* Detail */}
       {viewModalChar && (
         <EntityDetailFullscreen
           entity={viewModalChar}
@@ -738,7 +760,7 @@ export default function Creatures() {
           }}
           editable={editMode}
           onDelete={() => setConfirmDeleteId(viewModalChar.id)}
-          onPatch={p => patchCreature(viewModalChar.id, p as any)}
+          onPatch={(p) => patchCreature(viewModalChar.id, p as any)}
           tagOptions={subTagOptions}
         />
       )}

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState, useDeferredValue } from "react";
 import { useLocation } from "wouter";
 import { ChevronLeft, ChevronRight, Plus, Trash2, Edit2 } from "lucide-react";
 
@@ -16,13 +16,15 @@ import type {
   WorldCharacterRef,
   WorldCreatureRef,
   WorldData,
+  CharacterData,
+  CreatureData,
 } from "@/types";
 
 import { DEFAULT_WORLD_PROPER_NOUN_KINDS } from "@/lib/defaultData";
 import { cn } from "@/lib/utils";
 
 import EntityDetailFullscreen from "@/components/entities/detail/EntityDetailFullscreen";
-import type { CharacterData, CreatureData } from "@/types";
+import { useResolvedImage } from "@/hooks/useResolvedImage";
 
 function makeId(): ID {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -43,6 +45,22 @@ export default function Worlds() {
   const [currentWorldIndex, setCurrentWorldIndex] = useState(0);
   const currentWorld = worlds[currentWorldIndex] ?? null;
 
+  // ✅ 전경 배경 이미지 해석 (img: 키 포함 대응)
+  const resolvedWorldBg = useResolvedImage(currentWorld?.backgroundImage ?? "");
+
+  // ✅ entity lookup maps (O(1))
+  const characterById = useMemo(() => {
+    const m = new Map<ID, CharacterData>();
+    (data.characters ?? []).forEach((c) => m.set(c.id, c));
+    return m;
+  }, [data.characters]);
+
+  const creatureById = useMemo(() => {
+    const m = new Map<ID, CreatureData>();
+    (data.creatures ?? []).forEach((c) => m.set(c.id, c));
+    return m;
+  }, [data.creatures]);
+
   // modals
   const [isAddingWorld, setIsAddingWorld] = useState(false);
   const [isAddingItem, setIsAddingItem] = useState(false);
@@ -62,57 +80,104 @@ export default function Worlds() {
   const [addTab, setAddTab] = useState<AddTab>("character");
   const [search, setSearch] = useState("");
 
-  const [detailOpen, setDetailOpen] = useState<{
-    type: AddTab; // "character" | "creature"
-    id: ID;
-  } | null>(null);
+  // ✅ 타이핑 부하 완화
+  const deferredSearch = useDeferredValue(search);
 
+  const [detailOpen, setDetailOpen] = useState<{ type: AddTab; id: ID } | null>(null);
   const [detailSubIndex, setDetailSubIndex] = useState(0);
+
+  // ✅ edit drafts (avoid setData on every keystroke)
+  const [nameDraft, setNameDraft] = useState("");
+  const [descDraft, setDescDraft] = useState("");
 
   useEffect(() => {
     if (!worlds.length) return;
-    setCurrentWorldIndex(i => Math.min(Math.max(i, 0), worlds.length - 1));
+    setCurrentWorldIndex((i) => Math.min(Math.max(i, 0), worlds.length - 1));
   }, [worlds.length]);
 
-  const updateWorldAtIndex = (index: number, patch: Partial<WorldData>) => {
-    setData(prev => {
-      const nextWorlds = [...(prev.worlds ?? [])];
-      const target = nextWorlds[index];
-      if (!target) return prev;
-      nextWorlds[index] = { ...target, ...patch };
-      return { ...prev, worlds: nextWorlds };
-    });
-  };
+  const updateWorldAtIndex = useCallback(
+    (index: number, patch: Partial<WorldData>) => {
+      setData((prev) => {
+        const nextWorlds = [...(prev.worlds ?? [])];
+        const target = nextWorlds[index];
+        if (!target) return prev;
+        nextWorlds[index] = { ...target, ...patch };
+        return { ...prev, worlds: nextWorlds };
+      });
+    },
+    [setData]
+  );
 
-  const openBackgroundModal = () => {
+  // ✅ keep drafts in sync when switching worlds
+  useEffect(() => {
+    if (!currentWorld) return;
+    setNameDraft(currentWorld.name ?? "");
+    setDescDraft(currentWorld.description ?? "");
+  }, [currentWorld?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ✅ debounce patch (name/desc)
+  useEffect(() => {
+    if (!editMode || !currentWorld) return;
+
+    const t = window.setTimeout(() => {
+      const nextName = nameDraft ?? "";
+      if ((currentWorld.name ?? "") !== nextName) {
+        updateWorldAtIndex(currentWorldIndex, { name: nextName });
+      }
+    }, 250);
+
+    return () => window.clearTimeout(t);
+  }, [nameDraft, editMode, currentWorld, currentWorldIndex, updateWorldAtIndex]);
+
+  useEffect(() => {
+    if (!editMode || !currentWorld) return;
+
+    const t = window.setTimeout(() => {
+      const nextDesc = descDraft ?? "";
+      if ((currentWorld.description ?? "") !== nextDesc) {
+        updateWorldAtIndex(currentWorldIndex, { description: nextDesc });
+      }
+    }, 250);
+
+    return () => window.clearTimeout(t);
+  }, [descDraft, editMode, currentWorld, currentWorldIndex, updateWorldAtIndex]);
+
+  const openBackgroundModal = useCallback(() => {
     setBackgroundUrl(currentWorld?.backgroundImage ?? "");
     setWorldIconUrl(currentWorld?.iconImage ?? "");
     setIsEditingBackground(true);
-  };
+  }, [currentWorld]);
 
-  const closeBackgroundModal = () => {
+  const closeBackgroundModal = useCallback(() => {
     setIsEditingBackground(false);
     setBackgroundUrl("");
     setWorldIconUrl("");
-  };
+  }, []);
 
-  const saveBackground = () => {
+  const saveBackground = useCallback(() => {
     if (!currentWorld) return;
     updateWorldAtIndex(currentWorldIndex, {
       backgroundImage: backgroundUrl,
       iconImage: worldIconUrl,
     });
     closeBackgroundModal();
-  };
+  }, [
+    currentWorld,
+    currentWorldIndex,
+    backgroundUrl,
+    worldIconUrl,
+    updateWorldAtIndex,
+    closeBackgroundModal,
+  ]);
 
-  const resetAddWorldDraft = () => {
+  const resetAddWorldDraft = useCallback(() => {
     setNewWorldName("");
     setNewWorldDesc("");
     setNewWorldIconImage("");
     setNewWorldBackgroundImage("");
-  };
+  }, []);
 
-  const handleAddWorld = () => {
+  const handleAddWorld = useCallback(() => {
     if (!newWorldName.trim()) return;
 
     const newWorld: WorldData = {
@@ -127,7 +192,7 @@ export default function Worlds() {
       worldCharacters: [],
       worldCreatures: [],
 
-      properNounKinds: DEFAULT_WORLD_PROPER_NOUN_KINDS.map(k => ({
+      properNounKinds: DEFAULT_WORLD_PROPER_NOUN_KINDS.map((k) => ({
         ...k,
         meta: { ...(k as any).meta },
       })) as any,
@@ -137,115 +202,116 @@ export default function Worlds() {
       events: [],
     };
 
-    setData(prev => ({ ...prev, worlds: [...(prev.worlds ?? []), newWorld] }));
+    setData((prev) => ({ ...prev, worlds: [...(prev.worlds ?? []), newWorld] }));
 
     setIsAddingWorld(false);
     resetAddWorldDraft();
     setCurrentWorldIndex(worlds.length);
-  };
+  }, [
+    newWorldName,
+    newWorldDesc,
+    newWorldIconImage,
+    newWorldBackgroundImage,
+    setData,
+    resetAddWorldDraft,
+    worlds.length,
+  ]);
 
-  const handleDeleteWorld = () => {
+  const handleDeleteWorld = useCallback(() => {
     if (worlds.length <= 1) return;
 
-    setData(prev => {
-      const nextWorlds = (prev.worlds ?? []).filter(
-        (_, i) => i !== currentWorldIndex
-      );
+    setData((prev) => {
+      const nextWorlds = (prev.worlds ?? []).filter((_, i) => i !== currentWorldIndex);
       return { ...prev, worlds: nextWorlds };
     });
 
-    setCurrentWorldIndex(i => Math.max(0, i - 1));
-  };
+    setCurrentWorldIndex((i) => Math.max(0, i - 1));
+  }, [worlds.length, setData, currentWorldIndex]);
 
-  const handleNextWorld = () => {
+  const handleNextWorld = useCallback(() => {
     if (!worlds.length) return;
-    setCurrentWorldIndex(prev => (prev + 1) % worlds.length);
-  };
+    setCurrentWorldIndex((prev) => (prev + 1) % worlds.length);
+  }, [worlds.length]);
 
-  const handlePrevWorld = () => {
+  const handlePrevWorld = useCallback(() => {
     if (!worlds.length) return;
-    setCurrentWorldIndex(prev => (prev - 1 + worlds.length) % worlds.length);
-  };
+    setCurrentWorldIndex((prev) => (prev - 1 + worlds.length) % worlds.length);
+  }, [worlds.length]);
 
-  const handleAddItem = (id: ID) => {
-    if (!currentWorld) return;
+  const handleAddItem = useCallback(
+    (id: ID) => {
+      if (!currentWorld) return;
 
-    if (addTab === "character") {
-      const newRef: WorldCharacterRef = { id: makeId(), characterId: id };
-      updateWorldAtIndex(currentWorldIndex, {
-        worldCharacters: [...(currentWorld.worldCharacters ?? []), newRef],
-      });
-    } else {
-      const newRef: WorldCreatureRef = { id: makeId(), creatureId: id };
-      updateWorldAtIndex(currentWorldIndex, {
-        worldCreatures: [...(currentWorld.worldCreatures ?? []), newRef],
-      });
-    }
+      if (addTab === "character") {
+        const newRef: WorldCharacterRef = { id: makeId(), characterId: id };
+        updateWorldAtIndex(currentWorldIndex, {
+          worldCharacters: [...(currentWorld.worldCharacters ?? []), newRef],
+        });
+      } else {
+        const newRef: WorldCreatureRef = { id: makeId(), creatureId: id };
+        updateWorldAtIndex(currentWorldIndex, {
+          worldCreatures: [...(currentWorld.worldCreatures ?? []), newRef],
+        });
+      }
 
-    setIsAddingItem(false);
-    setSearch("");
-  };
-
-  const handleDeleteItemByRefId = (refId: ID, type: AddTab) => {
-    if (!currentWorld) return;
-
-    if (type === "character") {
-      updateWorldAtIndex(currentWorldIndex, {
-        worldCharacters: (currentWorld.worldCharacters ?? []).filter(
-          r => r.id !== refId
-        ),
-      });
-    } else {
-      updateWorldAtIndex(currentWorldIndex, {
-        worldCreatures: (currentWorld.worldCreatures ?? []).filter(
-          r => r.id !== refId
-        ),
-      });
-    }
-  };
+      setIsAddingItem(false);
+      setSearch("");
+    },
+    [addTab, currentWorld, currentWorldIndex, updateWorldAtIndex]
+  );
 
   const displayItems = useMemo(() => {
     if (!currentWorld) return [];
 
     const chars = (currentWorld.worldCharacters ?? [])
-      .map(ref => {
-        const found = (data.characters ?? []).find(
-          c => c.id === ref.characterId
-        );
+      .map((ref) => {
+        const found = characterById.get(ref.characterId);
         if (!found) return null;
         return { type: "character" as const, refId: ref.id, data: found };
       })
       .filter(Boolean) as any[];
 
     const cres = (currentWorld.worldCreatures ?? [])
-      .map(ref => {
-        const found = (data.creatures ?? []).find(c => c.id === ref.creatureId);
+      .map((ref) => {
+        const found = creatureById.get(ref.creatureId);
         if (!found) return null;
         return { type: "creature" as const, refId: ref.id, data: found };
       })
       .filter(Boolean) as any[];
 
     return [...chars, ...cres];
-  }, [currentWorld, data.characters, data.creatures]);
+  }, [currentWorld, characterById, creatureById]);
 
-  const q = search.trim().toLowerCase();
+  const q = deferredSearch.trim().toLowerCase();
 
-  const filteredAddList = useMemo(() => {
+  // ✅ Add modal list: "필터링 + 표시용 shape"까지 한번에 memo
+  const addModalItems = useMemo(() => {
     if (!currentWorld) return [];
 
-    const added = new Set<ID>();
     if (addTab === "character") {
-      (currentWorld.worldCharacters ?? []).forEach(r =>
-        added.add(r.characterId)
-      );
+      const added = new Set<ID>();
+      (currentWorld.worldCharacters ?? []).forEach((r) => added.add(r.characterId));
+
       return (data.characters ?? [])
-        .filter(c => !added.has(c.id))
-        .filter(c => (!q ? true : (c.name ?? "").toLowerCase().includes(q)));
+        .filter((c) => !added.has(c.id))
+        .filter((c) => (!q ? true : (c.name ?? "").toLowerCase().includes(q)))
+        .map((c) => ({
+          id: c.id,
+          name: c.name,
+          profileImage: c.profileImage,
+        }));
     } else {
-      (currentWorld.worldCreatures ?? []).forEach(r => added.add(r.creatureId));
+      const added = new Set<ID>();
+      (currentWorld.worldCreatures ?? []).forEach((r) => added.add(r.creatureId));
+
       return (data.creatures ?? [])
-        .filter(c => !added.has(c.id))
-        .filter(c => (!q ? true : (c.name ?? "").toLowerCase().includes(q)));
+        .filter((c) => !added.has(c.id))
+        .filter((c) => (!q ? true : (c.name ?? "").toLowerCase().includes(q)))
+        .map((c) => ({
+          id: c.id,
+          name: c.name,
+          profileImage: c.profileImage,
+        }));
     }
   }, [addTab, currentWorld, data.characters, data.creatures, q]);
 
@@ -254,8 +320,7 @@ export default function Worlds() {
 
   const stats = useMemo(() => {
     const linked =
-      (currentWorld?.worldCharacters?.length ?? 0) +
-      (currentWorld?.worldCreatures?.length ?? 0);
+      (currentWorld?.worldCharacters?.length ?? 0) + (currentWorld?.worldCreatures?.length ?? 0);
 
     return {
       worlds: worlds.length,
@@ -267,18 +332,11 @@ export default function Worlds() {
 
   const detailEntity = useMemo(() => {
     if (!detailOpen) return null;
+    if (detailOpen.type === "character") return characterById.get(detailOpen.id) ?? null;
+    return creatureById.get(detailOpen.id) ?? null;
+  }, [detailOpen, characterById, creatureById]);
 
-    if (detailOpen.type === "character") {
-      return (data.characters ?? []).find(c => c.id === detailOpen.id) ?? null;
-    }
-    return (data.creatures ?? []).find(c => c.id === detailOpen.id) ?? null;
-  }, [detailOpen, data.characters, data.creatures]);
-
-  const detailTagOptions = useMemo(() => {
-    // Worlds에서는 tagOptions가 꼭 필요 없으면 []로 두고,
-    // 필요하면 settings의 카테고리에서 뽑는 방식(Characters.tsx처럼)로 확장 가능.
-    return [] as string[];
-  }, []);
+  const detailTagOptions = useMemo(() => [] as string[], []);
 
   // Empty state (no worlds)
   if (!currentWorld) {
@@ -287,17 +345,11 @@ export default function Worlds() {
         <div className="max-w-xl mx-auto space-y-4 flex flex-col items-center">
           <div className="text-2xl font-bold">세계관이 없습니다</div>
           <div className="text-white/60 text-sm">
-            {editMode
-              ? "편집 모드에서 세계관을 추가할 수 있어요."
-              : "잠시 후 찾아와주세요."}
+            {editMode ? "편집 모드에서 세계관을 추가할 수 있어요." : "잠시 후 찾아와주세요."}
           </div>
 
           {editMode && (
-            <GButton
-              variant="primary"
-              text="세계관 추가"
-              onClick={() => setIsAddingWorld(true)}
-            />
+            <GButton variant="primary" text="세계관 추가" onClick={() => setIsAddingWorld(true)} />
           )}
 
           <AddWorldModal
@@ -322,13 +374,7 @@ export default function Worlds() {
   }
 
   return (
-    <div
-      className={cn(
-        "min-h-screen md:h-screen",
-        "gyeol-bg text-white relative",
-        "md:overflow-hidden"
-      )}
-    >
+    <div className={cn("min-h-screen md:h-screen", "gyeol-bg text-white relative", "md:overflow-hidden")}>
       {/* background HUD vignette */}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(255,255,255,0.07),transparent_45%),radial-gradient(circle_at_85%_30%,rgba(99,102,241,0.10),transparent_45%)]" />
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.10),rgba(0,0,0,0.60))]" />
@@ -337,11 +383,7 @@ export default function Worlds() {
         {/* TOP BAR */}
         <div className="flex items-center justify-between gap-3 shrink-0">
           <div className="flex items-center gap-2">
-            {editMode ? (
-              <HUDBadge tone="warn">EDIT MODE</HUDBadge>
-            ) : (
-              <HUDBadge>VIEW MODE</HUDBadge>
-            )}
+            {editMode ? <HUDBadge tone="warn">EDIT MODE</HUDBadge> : <HUDBadge>VIEW MODE</HUDBadge>}
             <HUDBadge>{`WORLDS ${stats.worlds}`}</HUDBadge>
             <HUDBadge>{`LINKED ${stats.linked}`}</HUDBadge>
           </div>
@@ -350,26 +392,17 @@ export default function Worlds() {
         {/* DOSSIER */}
         <HUDPanel className="p-6 mt-6 shrink-0">
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-            <div className="min-w-0 flex-1 max-w-80">
-              <div className="text-[11px] tracking-[0.26em] text-white/55">
-                WORLDS
-              </div>
+            <div className="min-w-0 flex-1 max-w-120">
+              <div className="text-[11px] tracking-[0.26em] text-white/55">WORLDS</div>
               <div className="mt-2 flex items-center gap-3 min-w-0">
                 <div className="w-11 h-11 rounded-xl overflow-hidden bg-white/5 flex items-center justify-center shrink-0">
-                  <WorldThumbCard
-                    name={currentWorld.name}
-                    image={currentWorld.iconImage}
-                  />
+                  <WorldThumbCard name={currentWorld.name} image={currentWorld.iconImage} />
                 </div>
 
                 {editMode ? (
                   <input
-                    value={currentWorld.name}
-                    onChange={e =>
-                      updateWorldAtIndex(currentWorldIndex, {
-                        name: e.target.value,
-                      })
-                    }
+                    value={nameDraft}
+                    onChange={(e) => setNameDraft(e.target.value)}
                     className="min-w-0 flex-1 bg-white/10 border border-white/0 rounded-xl px-3 py-2 text-white font-normal
                       focus:outline-none focus:ring-2 focus:ring-white/20"
                     placeholder="세계관 이름"
@@ -390,26 +423,21 @@ export default function Worlds() {
                   />
                 )}
               </div>
+
               <div className="mt-4">
-                <div className="text-[12px] tracking-[0.26em] text-white/55">
-                  WORLD BRIEF
-                </div>
+                <div className="text-[12px] tracking-[0.26em] text-white/55">WORLD BRIEF</div>
 
                 <div className="mt-3">
                   {editMode ? (
                     <textarea
-                      value={currentWorld.description}
-                      onChange={e =>
-                        updateWorldAtIndex(currentWorldIndex, {
-                          description: e.target.value,
-                        })
-                      }
-                      className="w-full min-h-18 p-3 rounded-xl bg-black/25 text-white border border-white/10
-                            placeholder:text-white/30 outline-none focus:ring-2 focus:ring-white/15 focus:border-white/20 transition resize-none"
+                      value={descDraft}
+                      onChange={(e) => setDescDraft(e.target.value)}
+                      className="w-full min-h-24 p-3 rounded-xl bg-black/25 text-white border border-white/10
+                            placeholder:text-white/30 outline-none focus:ring-2 focus:ring-white/15 focus:border-white/20 transition resize-none scroll-dark"
                       placeholder="세계관 설정을 입력하세요"
                     />
                   ) : (
-                    <p className="text-sm text-white/70 leading-relaxed whitespace-pre-wrap">
+                    <p className="min-h-0 max-h-24 overflow-y-auto scroll-dark text-sm text-white/70 leading-relaxed whitespace-pre-wrap">
                       {currentWorld.description || "설명이 없습니다"}
                     </p>
                   )}
@@ -458,21 +486,19 @@ export default function Worlds() {
             </div>
           </div>
 
-          <div className="mt-6"></div>
+          <div className="mt-6" />
         </HUDPanel>
 
-        {/* CONTENT: md+ fixed + internal scroll */}
+        {/* CONTENT */}
         <div className="mt-4 flex-1 min-h-0">
           <div className="h-full overflow-hidden">
             <div className="h-full overflow-auto scroll-dark">
               <div className="grid grid-cols-1 lg:grid-cols-[1.25fr_0.95fr] gap-4">
-                {/* LEFT: Preview + Description */}
+                {/* LEFT */}
                 <HUDPanel className="p-4 md:p-6">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <div className="text-[11px] tracking-[0.26em] text-white/55">
-                        SCENE PREVIEW
-                      </div>
+                      <div className="text-[11px] tracking-[0.26em] text-white/55">SCENE PREVIEW</div>
                       <div className="mt-1 text-sm text-white/60">전경</div>
                     </div>
 
@@ -485,36 +511,26 @@ export default function Worlds() {
 
                   <div className="mt-4">
                     <div
-                      className="w-full aspect-[16/9] rounded-2xl overflow-hidden relative border border-white/10 bg-black/20"
+                      className="w-full aspect-[16/9] rounded-2xl overflow-hidden relative border border-white/10 bg-black/10"
                       style={{
-                        backgroundImage: currentWorld.backgroundImage
-                          ? `url(${currentWorld.backgroundImage})`
-                          : undefined,
+                        backgroundImage: resolvedWorldBg ? `url(${resolvedWorldBg})` : undefined,
                         backgroundSize: "cover",
                         backgroundPosition: "center",
                       }}
                     >
-                      {!currentWorld.backgroundImage && (
-                        <div className="absolute inset-0 gyeol-bg" />
-                      )}
-                      <div className="absolute inset-0 bg-black/45 pointer-events-none" />
-
-                      {/* subtle scanlines */}
+                      {!resolvedWorldBg && <div className="absolute inset-0 gyeol-bg" />}
+                      <div className="absolute inset-0 bg-black/10 pointer-events-none" />
                       <div className="pointer-events-none absolute inset-0 opacity-[0.12] bg-[linear-gradient(rgba(255,255,255,0.12)_1px,transparent_1px)] bg-[length:100%_3px]" />
                     </div>
                   </div>
                 </HUDPanel>
 
-                {/* RIGHT: Linked items */}
+                {/* RIGHT */}
                 <HUDPanel className="p-4 md:p-6">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <div className="text-[11px] tracking-[0.26em] text-white/55">
-                        LINKED ENTITIES
-                      </div>
-                      <div className="mt-1 text-sm text-white/60">
-                        캐릭터/크리쳐
-                      </div>
+                      <div className="text-[11px] tracking-[0.26em] text-white/55">LINKED ENTITIES</div>
+                      <div className="mt-1 text-sm text-white/60">캐릭터/크리쳐</div>
                     </div>
 
                     {editMode && (
@@ -539,7 +555,7 @@ export default function Worlds() {
                       </div>
                     ) : (
                       <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3">
-                        {displayItems.map(it => (
+                        {displayItems.map((it) => (
                           <button
                             key={it.refId}
                             type="button"
@@ -565,7 +581,7 @@ export default function Worlds() {
           </div>
         </div>
 
-        {/* ✅ Modals */}
+        {/* Modals */}
         <AddWorldModal
           open={isAddingWorld && editMode}
           onClose={() => {
@@ -605,11 +621,7 @@ export default function Worlds() {
           setSearch={setSearch}
           label={label}
           isSearching={isSearching}
-          items={filteredAddList.map(x => ({
-            id: x.id,
-            name: x.name,
-            profileImage: x.profileImage,
-          }))}
+          items={addModalItems}
           onPick={handleAddItem}
         />
 
@@ -622,7 +634,7 @@ export default function Worlds() {
               setDetailOpen(null);
               setDetailSubIndex(0);
             }}
-            editable={editMode}
+            editable={false}
             onDelete={undefined}
             onPatch={undefined}
             tagOptions={detailTagOptions}

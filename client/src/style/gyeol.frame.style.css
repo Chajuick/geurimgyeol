@@ -63,11 +63,11 @@
 /* 선택된 카드에서만 애니메이션 실행 */
 .frame-layer::before,
 .frame-layer::after {
-  animation-play-state: paused;
+  animation-play-state: paused !important;
 }
 .is-selected .frame-layer::before,
 .is-selected .frame-layer::after {
-  animation-play-state: running;
+  animation-play-state: running !important;
 }
 
 /* =========================================
@@ -228,29 +228,6 @@
   }
 }
 
-.frame-preset-scan-sweep::after {
-  content: "";
-  position: absolute;
-  inset: -40% 0;
-
-  background: linear-gradient(
-    to bottom,
-    transparent 0%,
-    transparent 44%,
-    color-mix(in oklab, transparent, var(--p1) 40%) 49%,
-    color-mix(in oklab, transparent, white 35%) 50%,
-    color-mix(in oklab, transparent, var(--p2) 40%) 51%,
-    transparent 56%,
-    transparent 100%
-  );
-
-  transform: translateY(-70%);
-  opacity: 0;
-
-  filter: drop-shadow(0 0 6px var(--p1)) drop-shadow(0 0 12px var(--p2));
-
-  animation: scan-sweep 2s ease-in-out infinite;
-}
 /* =========================================
    GLASS SURFACE — AAA HUD GLASS
 ========================================= */
@@ -397,16 +374,6 @@
   animation: steel-sheen 3.6s ease-in-out infinite;
 }
 
-/* ✅ 너 규칙: selected일 때만 애니메이션 ON */
-.frame-layer::after,
-.frame-layer::before {
-  animation-play-state: paused;
-}
-.is-selected .frame-layer::after,
-.is-selected .frame-layer::before {
-  animation-play-state: running;
-}
-
 @keyframes steel-sheen {
   0% {
     transform: translateX(-45%) rotate(6deg);
@@ -452,23 +419,4 @@
       color-mix(in oklab, transparent, var(--c1, #888) 90%),
     /* 3) 조금 약한 퍼짐 */ 0 0 24px
       color-mix(in oklab, transparent, var(--c2, #888) 55%);
-}
-
-
-/* electric: base border(지글) + glow + overlay */
-.frame-preset-electric {
-  /* 1) 테두리(스트로크) 자체를 지글지글 */
-  border: var(--t) solid color-mix(in oklab, var(--p1) 75%, white 25%);
-  filter: url(#turbulent-displace);
-
-  /* 2) 빈 외곽선 줄이기 = 베이스 스트로크를 확실히 */
-  opacity: 0.95;
-
-  /* 3) 카드 주변 글로우(원본 코드의 glow-layer 느낌) */
-  box-shadow:
-    0 0 10px color-mix(in oklab, transparent, var(--p1) 35%),
-    0 0 22px color-mix(in oklab, transparent, var(--p2) 22%);
-
-  /* 애니메이션은 선택시에만 (네 시스템 유지) */
-  animation-play-state: paused;
 }

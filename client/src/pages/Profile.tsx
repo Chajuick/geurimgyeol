@@ -165,7 +165,7 @@ export default function Profile() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(255,255,255,0.07),transparent_45%),radial-gradient(circle_at_85%_30%,rgba(99,102,241,0.10),transparent_45%)]" />
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.10),rgba(0,0,0,0.65))]" />
 
-      <div className="relative z-10 px-6 md:px-12 py-14 md:py-20">
+      <div className="relative z-10 px-6 md:px-12 py-10">
         {/* ===== TOP HUD BAR ===== */}
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
@@ -224,10 +224,6 @@ export default function Profile() {
                 {profile?.name || "그림결"}
               </h1>
 
-              <p className="mt-4 text-white/70 leading-relaxed max-w-3xl whitespace-pre-wrap">
-                {profile?.bio || "나만의 세계관을 만들어보세요"}
-              </p>
-
               {/* Connect */}
               <div className="mt-8">
                 <div className="flex items-center gap-2">
@@ -272,15 +268,12 @@ export default function Profile() {
         </HUDPanel>
 
         {/* ===== SECONDARY PANELS (optional, keeps premium UI balance) ===== */}
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <HUDPanel className="p-5 md:p-6 md:col-span-2">
+        <div className="mt-6 grid grid-cols-1 gap-4">
+          <HUDPanel className="p-5 md:p-6">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <div className="text-[11px] tracking-[0.26em] text-white/55">
                   SUMMARY
-                </div>
-                <div className="mt-2 text-sm text-white/70">
-                  프로필 소개는 카드/도감 상단에도 표시돼요.
                 </div>
               </div>
               <HUDBadge>ACTIVE</HUDBadge>
@@ -290,37 +283,6 @@ export default function Profile() {
               {profile?.bio?.trim()
                 ? profile.bio
                 : "소개가 비어있습니다. 편집 모드에서 내용을 추가해보세요."}
-            </div>
-          </HUDPanel>
-
-          <HUDPanel className="p-5 md:p-6">
-            <div className="text-[11px] tracking-[0.26em] text-white/55">
-              STATUS
-            </div>
-            <div className="mt-3 space-y-2 text-sm">
-              <div className="flex items-center justify-between">
-                <span className="text-white/55">이름</span>
-                <span className="text-white/85 truncate max-w-[60%]">
-                  {profile?.name?.trim() ? profile.name : "미설정"}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-white/55">이미지</span>
-                <span className="text-white/85">
-                  {profile?.profileImage ? "설정됨" : "없음"}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-white/55">링크</span>
-                <span className="text-white/85">{cleanedViewLinks.length}</span>
-              </div>
-            </div>
-
-            <div className="mt-5 rounded-2xl border border-white/10 bg-black/20 p-4">
-              <div className="flex items-center gap-2 text-xs text-white/55">
-                <Link2 className="w-4 h-4" />
-                <span>링크는 platform 기준으로 아이콘이 매칭돼요.</span>
-              </div>
             </div>
           </HUDPanel>
         </div>
@@ -333,25 +295,12 @@ export default function Profile() {
           maxWidthClassName="max-w-3xl"
           footer={
             <div className="flex justify-end gap-2">
-              <GButton variant="default" text="취소" onClick={closeEdit} />
-              <GButton variant="dark" text="저장" onClick={handleSaveProfile} />
+              <GButton variant="neutral" text="취소" onClick={closeEdit} />
+              <GButton variant="primary" text="저장" onClick={handleSaveProfile} />
             </div>
           }
         >
-          <div className="space-y-8">
-            {/* HUD header inside modal */}
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-[11px] tracking-[0.26em] text-white/55">
-                  EDITOR
-                </div>
-                <div className="mt-2 text-lg font-extrabold text-white/90">
-                  Profile Settings
-                </div>
-              </div>
-              <HUDBadge tone="warn">LIVE</HUDBadge>
-            </div>
-
+          <div className="space-y-8 px-2">
             {/* 프로필 이미지 */}
             <HUDPanel className="p-4 md:p-5">
               <div className="text-[11px] tracking-[0.26em] text-white/55">
@@ -366,10 +315,10 @@ export default function Profile() {
             </HUDPanel>
 
             {/* 이름/소개 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               <HUDPanel className="p-4 md:p-5">
                 <div className="text-[11px] tracking-[0.26em] text-white/55">
-                  NAME
+                  INTRO
                 </div>
                 <div className="mt-3">
                   <input
@@ -379,12 +328,6 @@ export default function Profile() {
                     className={inputCls}
                     placeholder="이름을 입력하세요"
                   />
-                </div>
-              </HUDPanel>
-
-              <HUDPanel className="p-4 md:p-5">
-                <div className="text-[11px] tracking-[0.26em] text-white/55">
-                  BIO
                 </div>
                 <div className="mt-3">
                   <textarea

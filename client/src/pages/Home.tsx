@@ -49,7 +49,7 @@ export default function Home() {
             : undefined
         }
       >
-        <div className="absolute top-6 right-6 z-20 flex items-center gap-2">
+        <div className="absolute top-6 left-6 z-20 flex items-center gap-2">
           <GButton
             variant="neutral"
             size="icon"

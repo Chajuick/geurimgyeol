@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo } from "react";
 import type { CategoryGroup } from "@/components/entities/category-group-edit-modal";
+import { cn } from "@/lib/utils";
 
 const ALL = "전체";
 
@@ -51,11 +52,11 @@ export default function EntityCategoryBar(props: {
   }, [activeMain, mainToSubs, allSubs]);
 
   return (
-    <div className={[className || ""].join(" ")}>
+    <div className={cn("w-full max-w-full min-w-0", className)}>
       <div className="mt-2 space-y-4">
         {/* main */}
-        <div className="overflow-x-auto whitespace-nowrap no-scrollbar scroll-dark pb-2">
-          <div className="flex flex-nowrap gap-3 min-w-max">
+        <div className="w-full max-w-full min-w-0 overflow-x-auto overflow-y-hidden no-scrollbar scroll-dark pb-2 overscroll-x-contain">
+          <div className="inline-flex gap-3 whitespace-nowrap">
             <button
               onClick={() => {
                 setActiveMain(ALL);
@@ -95,8 +96,8 @@ export default function EntityCategoryBar(props: {
         </div>
 
         {/* sub */}
-        <div className="overflow-x-auto whitespace-nowrap no-scrollbar scroll-dark pb-2">
-          <div className="flex flex-nowrap gap-2 min-w-max">
+        <div className="w-full max-w-full min-w-0 overflow-x-auto overflow-y-hidden no-scrollbar scroll-dark pb-2 overscroll-x-contain">
+          <div className="inline-flex gap-2 whitespace-nowrap">
             {subsOfActiveMain.map(s => {
               const active = s === activeSub;
               return (

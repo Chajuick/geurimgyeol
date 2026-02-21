@@ -52,7 +52,10 @@ function migratePortfolioData(raw: any): PortfolioData {
     characters: Array.isArray(raw.characters) ? raw.characters : base.characters,
     creatures: Array.isArray(raw.creatures) ? raw.creatures : base.creatures,
   };
-
+  merged.settings.editMode =
+    typeof (merged.settings as any).editMode === "boolean"
+      ? (merged.settings as any).editMode
+      : false;
   // settings 필수값 보정(새 구조 기준)
   merged.settings.rankSets = merged.settings.rankSets ?? base.settings.rankSets;
   merged.settings.frameSettings =
