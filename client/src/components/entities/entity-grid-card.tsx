@@ -175,7 +175,7 @@ const EntityGridCard = memo(function EntityGridCard({
               className={[
                 "h-full w-full object-cover transition-all duration-500",
                 selected
-                  ? "scale-110 brightness-100 saturate-100 grayscale-0 will-change-transform group-hover:scale-120"
+                  ? "scale-110 brightness-100 saturate-100 grayscale-0 will-change-transform"
                   : "grayscale brightness-75 contrast-105 group-hover:grayscale-0 group-hover:brightness-90 group-hover:scale-105",
               ].join(" ")}
             />

@@ -79,7 +79,7 @@ export default function HomeHelpContent({ editMode }: { editMode: boolean }) {
                 </span>{" "}
                 실행 →{" "}
                 <span className="text-white/90 font-semibold">
-                  geurim-gyeol-portfolio.zip
+                  seed.zip
                 </span>{" "}
                 다운로드
               </li>

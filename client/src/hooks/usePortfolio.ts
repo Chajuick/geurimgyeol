@@ -282,7 +282,7 @@ export function usePortfolio() {
     const url = URL.createObjectURL(outBlob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "geurim-gyeol-portfolio.zip";
+    a.download = "seed.zip";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
