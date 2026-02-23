@@ -41,7 +41,7 @@ export default function LeftPanel<T extends EntityBase>(props: {
         {displayed ? (
           <div
             key={imgAnimKey}
-            className="w-full h-full entityFxWrap"
+            className="w-full h-full entityFxWrap md:place-content-center items-start"
             style={
               primaryHex
                 ? ({
@@ -64,7 +64,7 @@ export default function LeftPanel<T extends EntityBase>(props: {
                 loading="eager"
                 decoding="async"
                 className={[
-                  "entityImg w-full max-h-[100svh] object-contain object-top lg:pt-10 object-top",
+                  "entityImg w-full max-h-[100svh] object-contain lg:pt-10 object-top pt-4 md:pt-0",
                   // ✅ PC에서 너무 커지지 않게 제한
                   "lg:max-w-[820px] lg:mx-auto",
                   "lg:entityImg",

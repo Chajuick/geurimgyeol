@@ -647,66 +647,66 @@ export default function Worlds() {
           </div>
         </div>
 
-        {/* Modals */}
-        <AddWorldModal
-          open={isAddingWorld && editMode}
-          onClose={() => {
-            setIsAddingWorld(false);
-            resetAddWorldDraft();
-          }}
-          name={newWorldName}
-          setName={setNewWorldName}
-          desc={newWorldDesc}
-          setDesc={setNewWorldDesc}
-          iconImage={newWorldIconImage}
-          setIconImage={setNewWorldIconImage}
-          bgImage={newWorldBackgroundImage}
-          setBgImage={setNewWorldBackgroundImage}
-          onSubmit={handleAddWorld}
-        />
 
-        <EditWorldMediaModal
-          open={isEditingBackground && editMode}
-          onClose={closeBackgroundModal}
-          onSave={saveBackground}
-          backgroundUrl={backgroundUrl}
-          setBackgroundUrl={setBackgroundUrl}
-          iconUrl={worldIconUrl}
-          setIconUrl={setWorldIconUrl}
-        />
-
-        <AddWorldItemModal
-          open={isAddingItem && editMode}
-          onClose={() => {
-            setIsAddingItem(false);
-            setSearch("");
-          }}
-          addTab={addTab}
-          setAddTab={setAddTab}
-          search={search}
-          setSearch={setSearch}
-          label={label}
-          isSearching={isSearching}
-          items={addModalItems}
-          onPick={handleAddItem}
-        />
-
-        {detailEntity && (
-          <EntityDetailFullscreen
-            entity={detailEntity as any}
-            viewSubIndex={detailSubIndex}
-            setViewSubIndex={setDetailSubIndex}
-            onClose={() => {
-              setDetailOpen(null);
-              setDetailSubIndex(0);
-            }}
-            editable={false}
-            onDelete={undefined}
-            onPatch={undefined}
-            tagOptions={detailTagOptions}
-          />
-        )}
       </div>
+      {/* Modals */}
+      <AddWorldModal
+        open={isAddingWorld && editMode}
+        onClose={() => {
+          setIsAddingWorld(false);
+          resetAddWorldDraft();
+        }}
+        name={newWorldName}
+        setName={setNewWorldName}
+        desc={newWorldDesc}
+        setDesc={setNewWorldDesc}
+        iconImage={newWorldIconImage}
+        setIconImage={setNewWorldIconImage}
+        bgImage={newWorldBackgroundImage}
+        setBgImage={setNewWorldBackgroundImage}
+        onSubmit={handleAddWorld}
+      />
+
+      <EditWorldMediaModal
+        open={isEditingBackground && editMode}
+        onClose={closeBackgroundModal}
+        onSave={saveBackground}
+        backgroundUrl={backgroundUrl}
+        setBackgroundUrl={setBackgroundUrl}
+        iconUrl={worldIconUrl}
+        setIconUrl={setWorldIconUrl}
+      />
+
+      <AddWorldItemModal
+        open={isAddingItem && editMode}
+        onClose={() => {
+          setIsAddingItem(false);
+          setSearch("");
+        }}
+        addTab={addTab}
+        setAddTab={setAddTab}
+        search={search}
+        setSearch={setSearch}
+        label={label}
+        isSearching={isSearching}
+        items={addModalItems}
+        onPick={handleAddItem}
+      />
+      {detailEntity && (
+        <EntityDetailFullscreen
+          entity={detailEntity as any}
+          viewSubIndex={detailSubIndex}
+          setViewSubIndex={setDetailSubIndex}
+          onClose={() => {
+            setDetailOpen(null);
+            setDetailSubIndex(0);
+          }}
+          editable={false}
+          onDelete={undefined}
+          onPatch={undefined}
+          tagOptions={detailTagOptions}
+        />
+      )}
     </div>
   );
 }
