@@ -14,6 +14,7 @@ import WorldChronologyTab from "./tabs/WorldChronologyTab";
 
 import EntityDetailFullscreen from "@/components/entities/detail/EntityDetailFullscreen";
 import type { ID, CharacterData, CreatureData } from "@/types";
+import { LoadingOverlay } from "@/components/ui/loading-overlay";
 
 type TabKey = "overview" | "events" | "properNouns" | "chronology";
 const TAB_KEYS: TabKey[] = ["overview", "events", "properNouns", "chronology"];
@@ -155,7 +156,7 @@ export default function WorldDetail() {
   if (!worldId) {
     return (
       <div className="min-h-[100svh] gyeol-bg text-white relative overflow-hidden">
-        <LocatingOverlay show text="LOCATING ROUTE" />
+        <LoadingOverlay show text="LOCATING ROUTE" />
       </div>
     );
   }
@@ -304,7 +305,7 @@ export default function WorldDetail() {
         </>
       )}
 
-      <LocatingOverlay show={isLocating} text="LOCATING WORLD" />
+      <LoadingOverlay show={isLocating} title="LOCATING WORLD" text="길을 찾는 중입니다." />
     </div>
   );
 }
@@ -320,49 +321,6 @@ function DossierStat({ label, value }: { label: string; value: number }) {
     >
       <div className="text-[10px] tracking-[0.26em] text-white/45">{label}</div>
       <div className="mt-1 text-lg font-semibold text-white/85">{value}</div>
-    </div>
-  );
-}
-
-function LocatingOverlay({ show, text }: { show: boolean; text?: string }) {
-  return (
-    <div
-      className={cn(
-        "pointer-events-none absolute inset-0 z-[80]",
-        "transition-opacity duration-300 ease-out",
-        show ? "opacity-100" : "opacity-0"
-      )}
-      aria-hidden={!show}
-    >
-      <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" />
-
-      <div className="absolute inset-0 flex items-center justify-center px-4">
-        <div
-          className={cn(
-            "rounded-2xl border border-white/10 bg-black/40",
-            "px-5 sm:px-6 py-4 shadow-[0_18px_45px_rgba(0,0,0,0.45)]"
-          )}
-        >
-          <div className="flex items-center gap-3">
-            <div className="h-4 w-4 rounded-full border border-white/30 border-t-white/80 animate-spin" />
-            <div className="text-[11px] tracking-[0.26em] text-white/70">
-              {text ?? "LOCATING"}
-              <span className="inline-block w-6 align-baseline">
-                <span className="animate-[gyeolDots_1.2s_infinite]">...</span>
-              </span>
-            </div>
-          </div>
-          <div className="mt-1 text-xs text-white/45 text-center">길을 찾는 중입니다.</div>
-        </div>
-      </div>
-
-      <style>{`
-        @keyframes gyeolDots {
-          0% { opacity: .2 }
-          50% { opacity: 1 }
-          100% { opacity: .2 }
-        }
-      `}</style>
     </div>
   );
 }

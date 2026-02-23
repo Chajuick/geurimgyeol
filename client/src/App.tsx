@@ -14,6 +14,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { PortfolioProvider } from "./contexts/PortfolioContext";
 import { usePortfolio } from "./hooks/usePortfolio";
 import { useCallback } from "react";
+import { LoadingOverlay } from "./components/ui/loading-overlay";
 
 function Router() {
   return (
@@ -47,6 +48,7 @@ function AppContent() {
 
   return (
     <PortfolioProvider value={{ ...portfolio, editMode, setEditMode }}>
+      <LoadingOverlay show={!portfolio.isLoaded} />
       <div className="min-h-[100svh] bg-background text-foreground relative overflow-x-clip">
         <Sidebar />
         <main className="w-full min-w-0 pl-0 md:pl-20">
