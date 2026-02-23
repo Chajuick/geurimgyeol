@@ -41,7 +41,7 @@ export default function LeftPanel<T extends EntityBase>(props: {
         {displayed ? (
           <div
             key={imgAnimKey}
-            className="w-full h-full entityFxWrap"
+            className="w-full h-full entityFxWrap items-start md:place-items-center"
             style={
               primaryHex
                 ? ({
@@ -50,7 +50,7 @@ export default function LeftPanel<T extends EntityBase>(props: {
                 : undefined
             }
           >
-            <div className="entityInner">
+            <div className="entityInner pt-4 md:p-0">
               <div
                 className={["entityGlow", shadowOn ? "entityGlow--on" : ""].join(" ")}
                 style={{

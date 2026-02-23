@@ -245,7 +245,8 @@ export default function Sidebar() {
         open={resetOpen}
         title="초기화"
         description={
-          "정말 초기화할까요?\n현재 데이터와 이미지가 삭제되고, 기본 상태로 복구됩니다."
+          editMode ? 
+          "정말 초기화할까요?\n현재 데이터와 이미지가 삭제되고, seed.zip의 상태로 돌아갑니다." : "세계관을 동기화할까요?"
         }
         confirmText="초기화"
         cancelText="취소"
@@ -399,7 +400,7 @@ export default function Sidebar() {
           <div className="mt-3">
             <SidebarRow
               icon={<RotateCcw size={18} />}
-              label="초기화"
+              label={editMode ? "초기화" : "동기화"}
               collapsed={collapsed}
               className="bg-zinc-200 hover:bg-zinc-300 text-black hover:text-black"
               onClick={() => setResetOpen(true)}
