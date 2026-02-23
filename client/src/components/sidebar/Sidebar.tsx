@@ -82,7 +82,8 @@ function SidebarRow(props: {
     active
       ? "bg-black text-white"
       : "text-muted-foreground hover:bg-zinc-200 hover:text-black",
-    disabled && "opacity-60 cursor-not-allowed hover:bg-transparent hover:text-inherit",
+    disabled &&
+      "opacity-60 cursor-not-allowed hover:bg-transparent hover:text-inherit",
     className
   );
 
@@ -162,10 +163,10 @@ export default function Sidebar() {
 
   const closeMobile = React.useCallback(() => setIsOpen(false), []);
   const toggleMobile = React.useCallback(() => {
-    setIsOpen((v) => !v);
+    setIsOpen(v => !v);
     setIsCollapsed(false);
   }, []);
-  const toggleCollapsed = React.useCallback(() => setIsCollapsed((v) => !v), []);
+  const toggleCollapsed = React.useCallback(() => setIsCollapsed(v => !v), []);
 
   const onPickZip = React.useCallback(() => {
     fileInputRef.current?.click();
@@ -189,11 +190,19 @@ export default function Sidebar() {
     resetData();
   }, [resetData]);
 
+  // ✅ 내보내기/가져오기는 편집+dev에서만 노출
   const tools = React.useMemo(
     () => [
-      { icon: <Download size={18} />, label: "내보내기(.zip)", onClick: exportToZip },
-      { icon: <Upload size={18} />, label: "가져오기(.zip)", onClick: onPickZip },
-      { icon: <RotateCcw size={18} />, label: "초기화", onClick: () => setResetOpen(true) },
+      {
+        icon: <Download size={18} />,
+        label: "내보내기(.zip)",
+        onClick: exportToZip,
+      },
+      {
+        icon: <Upload size={18} />,
+        label: "가져오기(.zip)",
+        onClick: onPickZip,
+      },
     ],
     [exportToZip, onPickZip]
   );
@@ -251,7 +260,9 @@ export default function Sidebar() {
           onClick={toggleMobile}
           size="icon"
           variant="neutral"
-          icon={isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          icon={
+            isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />
+          }
           title={isOpen ? "닫기" : "메뉴"}
         />
       </div>
@@ -295,14 +306,17 @@ export default function Sidebar() {
             >
               <ChevronLeft
                 size={18}
-                className={cn("w-8 transition-transform duration-300", collapsed && "rotate-180")}
+                className={cn(
+                  "w-8 transition-transform duration-300",
+                  collapsed && "rotate-180"
+                )}
               />
             </button>
           </div>
 
           {/* Nav */}
           <nav className="flex-1 mt-6 space-y-1">
-            {navItems.map((item) => {
+            {navItems.map(item => {
               const Icon = item.icon;
               const active = isActivePath(location, item.path);
 
@@ -327,14 +341,28 @@ export default function Sidebar() {
           {/* Mode toggle (prod면 비활성) */}
           <div className="mt-4">
             <SidebarRow
-              icon={effectiveEditMode ? <Pencil size={18} /> : <Eye size={18} />}
-              label={LOCK_VIEW_MODE ? "감상 모드" : effectiveEditMode ? "편집 모드" : "감상 모드"}
+              icon={
+                effectiveEditMode ? <Pencil size={18} /> : <Eye size={18} />
+              }
+              label={
+                LOCK_VIEW_MODE
+                  ? "감상 모드"
+                  : effectiveEditMode
+                    ? "편집 모드"
+                    : "감상 모드"
+              }
               collapsed={collapsed}
               disabled={LOCK_VIEW_MODE}
-              title={LOCK_VIEW_MODE ? "빌드 버전에서는 감상 모드만 사용됩니다." : undefined}
+              title={
+                LOCK_VIEW_MODE
+                  ? "빌드 버전에서는 감상 모드만 사용됩니다."
+                  : undefined
+              }
               className={cn(
                 "hover:brightness-95",
-                effectiveEditMode ? "bg-zinc-900 text-white" : "bg-zinc-200 text-black",
+                effectiveEditMode
+                  ? "bg-zinc-900 text-white"
+                  : "bg-zinc-200 text-black",
                 effectiveEditMode
                   ? "hover:bg-zinc-700 hover:text-white"
                   : "hover:bg-zinc-200"
@@ -343,10 +371,10 @@ export default function Sidebar() {
             />
           </div>
 
-          {/* Tools (prod에서는 숨김) */}
+          {/* Tools (prod에서는 숨김, 편집모드에서만) */}
           {!LOCK_VIEW_MODE && effectiveEditMode && (
             <div className="mt-3 space-y-1">
-              {tools.map((t) => (
+              {tools.map(t => (
                 <SidebarRow
                   key={t.label}
                   icon={t.icon}
@@ -366,6 +394,17 @@ export default function Sidebar() {
               />
             </div>
           )}
+
+          {/* ✅ Reset: prod(감상모드 고정)에서도 항상 노출 */}
+          <div className="mt-3">
+            <SidebarRow
+              icon={<RotateCcw size={18} />}
+              label="초기화"
+              collapsed={collapsed}
+              className="bg-zinc-200 hover:bg-zinc-300 text-black hover:text-black"
+              onClick={() => setResetOpen(true)}
+            />
+          </div>
         </div>
       </aside>
     </>
