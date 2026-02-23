@@ -635,9 +635,8 @@ export default function ProperNounDetailModal(props: {
                       ) : (
                         <div className="grid gap-3 grid-cols-3 sm:grid-cols-4 md:grid-cols-6 xl:grid-cols-7">
                           {linkedItems.map((it) => (
-                            <button
+                            <div
                               key={`${it.type}:${it.id}`}
-                              type="button"
                               className="text-left"
                               onClick={() => {
                                 setDetailOpen({ type: it.type, id: it.id });
@@ -661,7 +660,7 @@ export default function ProperNounDetailModal(props: {
                                   </button>
                                 )}
                               </div>
-                            </button>
+                            </div>
                           ))}
                         </div>
                       )}

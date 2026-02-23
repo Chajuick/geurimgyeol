@@ -452,7 +452,7 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
           </div>
 
           {/* top bar */}
-          <div className="px-6 h-[60px] flex items-end justify-end relative gap-2">
+          <div className="h-[60px] flex items-end justify-end fixed gap-2 top-0 right-6 z-[100000]">
             {editable && (
               <button
                 type="button"
@@ -478,7 +478,7 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
           </div>
 
           {/* body */}
-          <div className="relative h-[calc(100vh-60px)]">
+          <div className="relative h-[100svh]">
             {/* ✅ 모바일: 이미지가 전체 배경 / 데스크탑: 좌측 패널 */}
             <div className="absolute inset-0 lg:right-[460px]">
               <LeftPanel
@@ -503,9 +503,9 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
                   "absolute pointer-events-auto",
                   // 모바일: 하단 시트
                   "left-0 right-0 bottom-0",
-                  "h-[40vh] rounded-t-[28px]",
+                  "h-[50vh] rounded-t-[28px]",
                   // 데스크탑: 우측 카드
-                  "lg:left-auto lg:right-6 lg:top-6 lg:bottom-6 lg:h-auto lg:w-[420px] lg:rounded-3xl",
+                  "lg:left-auto lg:right-6 lg:top-6 lg:bottom-6 lg:h-auto lg:w-[420px] lg:rounded-3xl lg:pt-14",
                 ].join(" ")}
               >
                 <RightPanel

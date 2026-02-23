@@ -11,6 +11,9 @@ const SEED_ZIP_URL = "/seed/seed.zip";
 
 const IMG_PREFIX = "img:";
 
+// ✅ Vite: prod(build)에서는 감상모드 고정
+const LOCK_VIEW_MODE = import.meta.env.PROD;
+
 /** data 전체에서 "img:" 키를 수집 */
 function collectImageKeys(obj: any, out = new Set<string>()) {
   if (typeof obj === "string") {
@@ -52,10 +55,12 @@ function migratePortfolioData(raw: any): PortfolioData {
     characters: Array.isArray(raw.characters) ? raw.characters : base.characters,
     creatures: Array.isArray(raw.creatures) ? raw.creatures : base.creatures,
   };
+
   merged.settings.editMode =
     typeof (merged.settings as any).editMode === "boolean"
       ? (merged.settings as any).editMode
       : false;
+
   // settings 필수값 보정(새 구조 기준)
   merged.settings.rankSets = merged.settings.rankSets ?? base.settings.rankSets;
   merged.settings.frameSettings =
@@ -81,6 +86,11 @@ function migratePortfolioData(raw: any): PortfolioData {
     ...c,
     rankId: c?.rankId || labelToCreId.get(c?.rank) || creDefault,
   }));
+
+  // ✅ prod(build)에서는 무조건 감상모드
+  if (LOCK_VIEW_MODE) {
+    merged.settings.editMode = false;
+  }
 
   return merged;
 }
@@ -211,10 +221,8 @@ export function usePortfolio() {
         }
 
         // 2) 저장된 데이터 없으면 seed.zip 주입 시도
-        //    - seeded 플래그가 있어도, storage가 없다면(유저가 지웠거나) seed 재주입이 더 자연스럽다.
         const seeded = localStorage.getItem(SEED_FLAG_KEY);
 
-        // seed.zip 시도
         try {
           const seedFile = await fetchSeedZipAsFile();
 
@@ -293,7 +301,6 @@ export function usePortfolio() {
   const importFromZip = useCallback(
     async (file: File) => {
       await importZipToStorage(file, (next) => {
-        // setData로 보내면 migrate + debounce 저장까지 보장됨
         setData(next);
       });
     },
@@ -306,7 +313,6 @@ export function usePortfolio() {
    * - seed 실패 시 DEFAULT로 fallback
    */
   const resetData = useCallback(async () => {
-    // 1) 기존 저장/이미지 정리
     if (saveTimer.current) window.clearTimeout(saveTimer.current);
     saveTimer.current = null;
 
@@ -314,7 +320,6 @@ export function usePortfolio() {
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(SEED_FLAG_KEY);
 
-    // 2) 즉시 seed 재주입(주석/의도대로)
     try {
       const seedFile = await fetchSeedZipAsFile();
       await importZipToStorage(seedFile, (next) => {
@@ -335,7 +340,6 @@ export function usePortfolio() {
     setData,
     isLoaded,
 
-    // zip-only
     exportToZip,
     importFromZip,
 

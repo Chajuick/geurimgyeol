@@ -529,7 +529,7 @@ export default function Worlds() {
             "[@media(max-height:973px)]:md:h-auto",
             "[@media(max-height:973px)]:md:overflow-visible"
           )}>
-            <div className="grid grid-cols-1 lg:grid-cols-[1.25fr_0.95fr] gap-4 md:h-full md:min-h-0 items-stretch">
+            <div className="grid grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] gap-4 md:h-full md:min-h-0 items-stretch">
               {/* LEFT */}
               <HUDPanel className="p-6 md:h-full md:min-h-0 flex flex-col overflow-hidden">
                 {/* header */}
@@ -564,7 +564,7 @@ export default function Worlds() {
               </HUDPanel>
 
               {/* RIGHT */}
-              <HUDPanel className="p-6 md:h-full md:min-h-0 flex flex-col">
+              <HUDPanel className="p-6 md:h-full md:min-h-0 flex flex-col min-h-0 md:max-h-[40vw] md:overflow-y-scroll">
                 <div className="flex items-center justify-between gap-3 shrink-0">
                   <div>
                     <div className="text-[11px] tracking-[0.26em] text-white/55">LINKED ENTITIES</div>

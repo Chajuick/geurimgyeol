@@ -126,9 +126,7 @@ body {
   position: relative;
   z-index: 1;
   width: 100%;
-  height: 100svh;
   object-fit: contain;
-
   animation: entitySlideIn 240ms cubic-bezier(.2, .9, .2, 1) both;
 }
 
@@ -144,12 +142,6 @@ body {
   }
 }
 
-/* 글로우 레이어 (마스크는 JS/inline style로 mask-image 지정 필요)
-   예) style={{
-     WebkitMaskImage: `url(${imgUrl})`,
-     maskImage: `url(${imgUrl})`,
-   }}
-*/
 .entityGlow {
   position: absolute;
   inset: 0;
@@ -163,7 +155,7 @@ body {
   mask-position: center;
   mask-size: contain;
 
-  background: var(--glow, rgba(0, 255, 200, 0.35));
+  background: var(--glow, rgba(120, 120, 120, 0.35));
   filter: blur(10px);
   opacity: 0;
   transform: translateX(44px);

@@ -20,6 +20,9 @@ import GButton from "@/components/ui/gyeol-button";
 import ConfirmModal from "@/components/ui/confirm-modal";
 import { cn } from "@/lib/utils";
 
+// ✅ Vite: prod(build)에서는 감상모드 고정
+const LOCK_VIEW_MODE = import.meta.env.PROD;
+
 type NavItem = {
   label: string;
   path: string;
@@ -36,7 +39,6 @@ function useMediaQuery(query: string) {
     const onChange = () => setMatches(mql.matches);
 
     onChange();
-    // safari 구버전 대응
     if (mql.addEventListener) mql.addEventListener("change", onChange);
     else mql.addListener(onChange);
 
@@ -59,6 +61,7 @@ function SidebarRow(props: {
   title?: string;
   role?: "button" | "label";
   right?: React.ReactNode;
+  disabled?: boolean; // ✅ 추가
 }) {
   const {
     icon,
@@ -70,6 +73,7 @@ function SidebarRow(props: {
     title,
     role = "button",
     right,
+    disabled,
   } = props;
 
   const base = cn(
@@ -78,6 +82,7 @@ function SidebarRow(props: {
     active
       ? "bg-black text-white"
       : "text-muted-foreground hover:bg-zinc-200 hover:text-black",
+    disabled && "opacity-60 cursor-not-allowed hover:bg-transparent hover:text-inherit",
     className
   );
 
@@ -109,9 +114,11 @@ function SidebarRow(props: {
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
       className={base}
       title={title ?? label}
+      aria-disabled={disabled ? true : undefined}
     >
       {content}
     </button>
@@ -129,13 +136,10 @@ function isActivePath(location: string, basePath: string) {
 }
 
 export default function Sidebar() {
-  // ✅ mobile: open/close (slide)
   const [isOpen, setIsOpen] = React.useState(false);
-  // ✅ desktop: collapsed/expanded (width)
   const [isCollapsed, setIsCollapsed] = React.useState(false);
 
   const isDesktop = useMediaQuery("(min-width: 768px)");
-  // ✅ 모바일에서는 무조건 펼쳐진 상태로(텍스트 항상 보이게)
   const collapsed = isDesktop ? isCollapsed : false;
 
   const [location, setLocation] = useLocation();
@@ -158,11 +162,10 @@ export default function Sidebar() {
 
   const closeMobile = React.useCallback(() => setIsOpen(false), []);
   const toggleMobile = React.useCallback(() => {
-    setIsOpen(v => !v);
-    // ✅ 모바일에서 열 때 PC 접힘 상태가 남아있으면 글자 안 보이므로 강제 해제
+    setIsOpen((v) => !v);
     setIsCollapsed(false);
   }, []);
-  const toggleCollapsed = React.useCallback(() => setIsCollapsed(v => !v), []);
+  const toggleCollapsed = React.useCallback(() => setIsCollapsed((v) => !v), []);
 
   const onPickZip = React.useCallback(() => {
     fileInputRef.current?.click();
@@ -221,11 +224,11 @@ export default function Sidebar() {
     };
   }, [isOpen]);
 
-  // ✅ 모바일: transform 슬라이드 / 데스크탑: 항상 제자리
   const mobileSlideClass = isOpen ? "translate-x-0" : "-translate-x-full";
-
-  // ✅ 데스크탑 폭 토글
   const desktopWidthClass = collapsed ? "md:w-20" : "md:w-64";
+
+  // ✅ prod면 감상모드 고정이라 UI 표시도 고정
+  const effectiveEditMode = LOCK_VIEW_MODE ? false : editMode;
 
   return (
     <>
@@ -258,13 +261,10 @@ export default function Sidebar() {
         className={cn(
           "fixed left-0 top-0 h-[100svh] z-50",
           "bg-background border-r border-border",
-          // ✅ 모바일은 w-full, 데스크탑은 md에서 폭 토글
           "w-full",
           desktopWidthClass,
-          // ✅ transform only
           "transform-gpu will-change-transform",
           "transition-transform duration-300 ease-in-out",
-          // ✅ mobile slide, desktop pinned
           mobileSlideClass,
           "md:translate-x-0"
         )}
@@ -295,17 +295,14 @@ export default function Sidebar() {
             >
               <ChevronLeft
                 size={18}
-                className={cn(
-                  "w-8 transition-transform duration-300",
-                  collapsed && "rotate-180"
-                )}
+                className={cn("w-8 transition-transform duration-300", collapsed && "rotate-180")}
               />
             </button>
           </div>
 
           {/* Nav */}
           <nav className="flex-1 mt-6 space-y-1">
-            {navItems.map(item => {
+            {navItems.map((item) => {
               const Icon = item.icon;
               const active = isActivePath(location, item.path);
 
@@ -327,27 +324,29 @@ export default function Sidebar() {
             })}
           </nav>
 
-          {/* Mode toggle */}
+          {/* Mode toggle (prod면 비활성) */}
           <div className="mt-4">
             <SidebarRow
-              icon={editMode ? <Pencil size={18} /> : <Eye size={18} />}
-              label={editMode ? "편집 모드" : "감상 모드"}
+              icon={effectiveEditMode ? <Pencil size={18} /> : <Eye size={18} />}
+              label={LOCK_VIEW_MODE ? "감상 모드" : effectiveEditMode ? "편집 모드" : "감상 모드"}
               collapsed={collapsed}
+              disabled={LOCK_VIEW_MODE}
+              title={LOCK_VIEW_MODE ? "빌드 버전에서는 감상 모드만 사용됩니다." : undefined}
               className={cn(
                 "hover:brightness-95",
-                editMode ? "bg-zinc-900 text-white" : "bg-zinc-200 text-black",
-                editMode
+                effectiveEditMode ? "bg-zinc-900 text-white" : "bg-zinc-200 text-black",
+                effectiveEditMode
                   ? "hover:bg-zinc-700 hover:text-white"
                   : "hover:bg-zinc-200"
               )}
-              onClick={() => setEditMode(!editMode)}
+              onClick={() => setEditMode(!effectiveEditMode)}
             />
           </div>
 
-          {/* Tools */}
-          {editMode && (
+          {/* Tools (prod에서는 숨김) */}
+          {!LOCK_VIEW_MODE && effectiveEditMode && (
             <div className="mt-3 space-y-1">
-              {tools.map(t => (
+              {tools.map((t) => (
                 <SidebarRow
                   key={t.label}
                   icon={t.icon}

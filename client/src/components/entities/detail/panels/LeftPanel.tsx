@@ -35,7 +35,7 @@ export default function LeftPanel<T extends EntityBase>(props: {
   } = props;
 
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-[100svh]">
       {/* ✅ 이미지 영역: 모바일은 화면 전체 배경 / 데스크탑은 좌측 큰 영역 느낌 */}
       <div className="absolute inset-0">
         {displayed ? (
@@ -64,7 +64,7 @@ export default function LeftPanel<T extends EntityBase>(props: {
                 loading="eager"
                 decoding="async"
                 className={[
-                  "entityImg w-full h-[120vh] object-contain object-top",
+                  "entityImg w-full max-h-[100svh] object-contain object-top lg:pt-10 object-top",
                   // ✅ PC에서 너무 커지지 않게 제한
                   "lg:max-w-[820px] lg:mx-auto",
                   "lg:entityImg",
@@ -79,7 +79,7 @@ export default function LeftPanel<T extends EntityBase>(props: {
         )}
 
         {/* ✅ 아래 그라디언트(모바일에서 시트 가독성 확보) */}
-        <div className="absolute inset-x-0 bottom-[40vh] h-[60%] pointer-events-none lg:bottom-0">
+        <div className="absolute inset-x-0 bottom-[50vh] h-[60%] pointer-events-none lg:bottom-0">
           {/* ✅ 모바일용 (약함) */}
           <div
             className="absolute inset-0 lg:hidden"
@@ -102,7 +102,7 @@ export default function LeftPanel<T extends EntityBase>(props: {
         {/* ✅ 이름/태그: 모바일은 좌하단, 데스크탑은 기존처럼 살짝 안쪽 */}
         <div
           className={[
-            "absolute left-2 lg:left-1/2 lg:-translate-x-1/2 bottom-[calc(40vh+16px)] z-20",
+            "absolute left-2 lg:left-1/2 lg:-translate-x-1/2 bottom-[50vh] z-20",
             "lg:bottom-10",
             "max-w-[calc(100svw-1rem)] lg:max-w-[calc(100vw-520px)]",
           ].join(" ")}
