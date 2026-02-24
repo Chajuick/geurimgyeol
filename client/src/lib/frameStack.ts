@@ -3,6 +3,7 @@ import type {
   FramePresetId,
   FrameStack,
   ID,
+  SelectedExtraStack,
 } from "@/types";
 
 const uniq = <T,>(arr: T[]) => Array.from(new Set(arr));
@@ -11,27 +12,17 @@ const uniq = <T,>(arr: T[]) => Array.from(new Set(arr));
  * - OLD: { presets: FramePresetId[]; thickness?; intensity? }
  * - NEW: { outer: FramePresetId; inner: FramePresetId; thickness?; intensity? }
  */
-function readSelectedExtraPresets(selectedExtra: any): FramePresetId[] {
-  if (!selectedExtra) return [];
-
+function readSelectedExtraPresets(selectedExtra: SelectedExtraStack): FramePresetId[] {
   // ✅ NEW: outer/inner 2슬롯
-  if (typeof selectedExtra === "object" && (selectedExtra.outer || selectedExtra.inner)) {
-    const outer = (selectedExtra.outer as FramePresetId) ?? "none";
-    const inner = (selectedExtra.inner as FramePresetId) ?? "none";
-
-    // "none"은 섞이면 제거되도록 아래 normalize에서 정리됨
+  if ("outer" in selectedExtra || "inner" in selectedExtra) {
     const out: FramePresetId[] = [];
-    if (outer) out.push(outer);
-    if (inner) out.push(inner);
-    return out.filter(Boolean);
+    if (selectedExtra.outer) out.push(selectedExtra.outer);
+    if (selectedExtra.inner) out.push(selectedExtra.inner);
+    return out;
   }
 
-  // ✅ OLD: presets 배열
-  if (Array.isArray(selectedExtra.presets)) {
-    return (selectedExtra.presets as FramePresetId[]).filter(Boolean);
-  }
-
-  return [];
+  // ✅ OLD: presets 배열 (FrameStack 브랜치)
+  return (selectedExtra as FrameStack).presets.filter(Boolean);
 }
 
 export function resolveFrameStack(
@@ -42,7 +33,7 @@ export function resolveFrameStack(
   const base = settings?.base ?? { presets: ["none"] as FramePresetId[] };
 
   const ov = (settings?.byRank ?? []).find(x => x.rankId === rankId);
-  const selectedExtra = selected ? (settings as any)?.selectedExtra : undefined;
+  const selectedExtra = selected ? settings?.selectedExtra : undefined;
 
   // 1) base
   let presets: FramePresetId[] = (base.presets ?? ["none"]).filter(Boolean);
@@ -64,13 +55,11 @@ export function resolveFrameStack(
   }
 
   // 3) ✅ selectedExtra는 무조건 덮어쓰기 (최우선)
-  const extraPresets = readSelectedExtraPresets(selectedExtra);
+  const extraPresets = selectedExtra ? readSelectedExtraPresets(selectedExtra) : [];
   if (extraPresets.length) {
     presets = extraPresets;
-    thickness =
-      (selectedExtra?.thickness as number | undefined) ?? thickness;
-    intensity =
-      (selectedExtra?.intensity as number | undefined) ?? intensity;
+    thickness = selectedExtra?.thickness ?? thickness;
+    intensity = selectedExtra?.intensity ?? intensity;
   }
 
   // normalize

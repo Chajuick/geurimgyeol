@@ -187,15 +187,13 @@ export function usePortfolio() {
             ? (next as (p: PortfolioData) => PortfolioData)(prev)
             : next;
 
-        const migrated = migratePortfolioData(computed);
-
         if (saveTimer.current) window.clearTimeout(saveTimer.current);
         saveTimer.current = window.setTimeout(() => {
-          persistToStorage(migrated);
+          persistToStorage(computed);
           saveTimer.current = null;
         }, 200);
 
-        return migrated;
+        return computed;
       });
     },
     [persistToStorage]

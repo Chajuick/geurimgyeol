@@ -30,7 +30,7 @@ function getQueryTab(loc: string): TabKey | null {
 type EntityKind = "character" | "creature";
 
 export default function WorldDetail() {
-  const { data, setData, editMode } = usePortfolioContext();
+  const { data, setData, editMode, isLoaded } = usePortfolioContext();
   const [location, setLocation] = useLocation();
 
   const [match, params] = useRoute("/worlds/:worldId");
@@ -130,24 +130,18 @@ export default function WorldDetail() {
     return { linked, events, nouns };
   }, [world]);
 
-  // ✅ "로딩 vs 진짜 not found" 판별
-  const worldsArr = data.worlds ?? [];
-  const [worldsHydrated, setWorldsHydrated] = useState(false);
+  // ✅ "로딩 vs 진짜 not found" 판별: isLoaded 기준
   const [notFound, setNotFound] = useState(false);
-
-  useEffect(() => {
-    if (worldsArr.length > 0) setWorldsHydrated(true);
-  }, [worldsArr.length]);
 
   useEffect(() => {
     if (!match || !worldId) return;
 
-    if (!worldsHydrated) {
+    if (!isLoaded) {
       setNotFound(false);
       return;
     }
     setNotFound(!world);
-  }, [match, worldId, worldsHydrated, world]);
+  }, [match, worldId, isLoaded, world]);
 
   const isLocating = !!match && !!worldId && !world && !notFound;
 

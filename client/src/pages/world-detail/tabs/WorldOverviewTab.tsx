@@ -448,6 +448,7 @@ export default function WorldOverviewTab({
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
                 {filteredAddList.map((item: any) => (
                   <AddItemCard
+                    key={item.id}
                     id={item.id}
                     name={item.name}
                     image={item.profileImage}

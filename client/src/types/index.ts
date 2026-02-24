@@ -90,13 +90,18 @@ export type RankFrameOverride = {
   stack: FrameStack;
 };
 
+/** ✅ selectedExtra 포맷: 구형(presets 배열) / 신형(outer+inner 2슬롯) 모두 허용 */
+export type SelectedExtraStack =
+  | FrameStack
+  | { outer?: FramePresetId; inner?: FramePresetId; thickness?: number; intensity?: number };
+
 /** ✅ 캐릭터/크리쳐 메뉴별 프레임 설정 */
 export type EntityMenuFrameSettings = {
   /** 모든 카드 공통 기본 프레임 */
   base: FrameStack;
 
   /** 선택 상태(selected)에서만 추가로 얹고 싶은 프레임(선택) */
-  selectedExtra?: FrameStack;
+  selectedExtra?: SelectedExtraStack;
 
   /** 등급별 오버라이드(선택) */
   byRank?: RankFrameOverride[];
@@ -285,24 +290,6 @@ export interface WorldCreatureRef {
   creatureId: ID;
 }
 
-export interface WorldCreature {
-  id: ID;
-  name: string;
-  image: ImageRef;
-  summary: string;
-  description: string;
-  meta?: Meta;
-}
-
-export interface WorldCharacter {
-  id: ID;
-  name: string;
-  image: ImageRef;
-  summary: string;
-  description: string;
-  meta?: Meta;
-}
-
 export interface WorldData {
   id: ID;
   name: string;
@@ -311,9 +298,6 @@ export interface WorldData {
   iconImage: ImageRef;
   mainImage: ImageRef;
   backgroundImage: ImageRef;
-
-  characters?: WorldCharacter[];
-  creatures?: WorldCreature[];
 
   worldCharacters: WorldCharacterRef[];
   worldCreatures: WorldCreatureRef[];
@@ -389,15 +373,3 @@ export interface PortfolioData {
 }
 
 
-/* =========================================================
-    🖥️ UI State (Client Only)
-========================================================= */
-
-export interface UIState {
-  currentPage: "home" | "worlds" | "characters" | "creatures" | "profile";
-  editMode: boolean;
-
-  selectedWorldId?: ID;
-  selectedCharacterId?: ID;
-  selectedCreatureId?: ID;
-}

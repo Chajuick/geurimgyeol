@@ -1,0 +1,99 @@
+{
+  "timestamp": "2026-02-24T03:28:54.085Z",
+  "reason": "compaction",
+  "status": {
+    "version": "2.0",
+    "lastUpdated": "2026-02-24T02:58:29.854Z",
+    "activeFeatures": [
+      "client"
+    ],
+    "primaryFeature": "client",
+    "features": {
+      "client": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-24T02:56:55.877Z",
+          "lastUpdated": "2026-02-24T02:58:29.854Z"
+        },
+        "lastFile": "/c/Users/USER/Desktop/Project/private/geurimgyeol/client/src/lib/frameStack.ts"
+      }
+    },
+    "pipeline": {
+      "currentPhase": 1,
+      "level": "Dynamic",
+      "phaseHistory": []
+    },
+    "session": {
+      "startedAt": "2026-02-24T02:23:19.747Z",
+      "onboardingCompleted": false,
+      "lastActivity": "2026-02-24T02:58:29.854Z"
+    },
+    "history": [
+      {
+        "timestamp": "2026-02-24T02:56:55.877Z",
+        "feature": "client",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T02:56:59.867Z",
+        "feature": "client",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T02:57:09.639Z",
+        "feature": "client",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T02:57:14.566Z",
+        "feature": "client",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T02:57:19.236Z",
+        "feature": "client",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T02:57:23.527Z",
+        "feature": "client",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T02:57:47.734Z",
+        "feature": "client",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T02:57:53.101Z",
+        "feature": "client",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T02:58:25.295Z",
+        "feature": "client",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T02:58:29.854Z",
+        "feature": "client",
+        "phase": "do",
+        "action": "updated"
+      }
+    ]
+  }
+}

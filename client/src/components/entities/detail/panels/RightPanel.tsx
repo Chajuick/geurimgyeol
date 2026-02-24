@@ -132,13 +132,13 @@ export default function RightPanel<T extends EntityBase>(props: {
         <section className="mt-2">
           <div>
             <p className="text-lg text-white/85 text-left leading-relaxed whitespace-pre-wrap">
-              {(entity as any).summary || "요약이 없습니다"}
+              {entity.summary || "요약이 없습니다"}
             </p>
           </div>
 
           {/* ✅ 내부 스크롤 금지: 한 패널에서만 스크롤 */}
           <p className="mt-3 text-sm text-white/70 text-left leading-relaxed whitespace-pre-wrap">
-            {(entity as any).description || "설명이 없습니다"}
+            {entity.description || "설명이 없습니다"}
           </p>
         </section>
 
@@ -163,7 +163,7 @@ export default function RightPanel<T extends EntityBase>(props: {
                     const active = idx === viewSubIndex;
                     return (
                       <button
-                        key={idx}
+                        key={s.image || String(idx)}
                         type="button"
                         onClick={() => onPickSubImage(idx)}
                         className={[
