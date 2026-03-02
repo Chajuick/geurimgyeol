@@ -1,0 +1,30 @@
+{
+  "id": "/",
+  "name": "결 - 그려나가는 내 결",
+  "short_name": "결",
+  "description": "캐릭터와 세계, 그리고 그들의 흔적을 기록하는 오프라인 퍼스트 아카이브 앱",
+
+  "start_url": "/",
+  "scope": "/",
+
+  "display": "standalone",
+  "orientation": "portrait",
+
+  "theme_color": "#0b0b0b",
+  "background_color": "#0e0e0e",
+
+  "icons": [
+    {
+      "src": "/web-app-manifest-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

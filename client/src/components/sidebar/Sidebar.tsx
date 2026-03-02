@@ -138,7 +138,7 @@ function isActivePath(location: string, basePath: string) {
 
 export default function Sidebar() {
   const [isOpen, setIsOpen] = React.useState(false);
-  const [isCollapsed, setIsCollapsed] = React.useState(false);
+  const [isCollapsed, setIsCollapsed] = React.useState(true);
 
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const collapsed = isDesktop ? isCollapsed : false;

@@ -371,11 +371,10 @@ export default function WorldProperNounsTab({ world, editMode, updateWorld, data
       <div
         className={cn(
           "mt-4 sm:mt-5 flex-1 min-h-0",
-          "overflow-y-auto",
-          "overscroll-contain",
+          "md:overflow-y-auto md:overscroll-contain",
           "[scrollbar-gutter:stable]",
           "scroll-dark",
-          "webkit-overflow-scrolling-touch",
+          "md:webkit-overflow-scrolling-touch",
           "pr-1"
         )}
       >

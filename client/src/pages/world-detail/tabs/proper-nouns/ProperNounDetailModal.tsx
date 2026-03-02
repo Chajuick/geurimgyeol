@@ -277,7 +277,7 @@ export default function ProperNounDetailModal(props: {
             </div>
 
             {draft?.summary ? (
-              <div className="mt-1 text-sm text-white/65 line-clamp-1 whitespace-pre-wrap">
+              <div className="hidden sm:block mt-1 text-sm text-white/65 line-clamp-1 whitespace-pre-wrap">
                 {draft.summary}
               </div>
             ) : (

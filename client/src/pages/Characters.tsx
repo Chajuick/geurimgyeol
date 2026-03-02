@@ -498,7 +498,7 @@ export default function Characters() {
 
         {/* CONTENT (✅ 여기만 세로 스크롤) */}
         <div className="mt-4 flex-1 min-h-0">
-          <div className="h-full min-h-0 overflow-y-auto overscroll-contain scroll-dark pr-1">
+          <div className="min-h-0 md:h-full md:overflow-y-auto md:overscroll-contain scroll-dark pr-1">
             <div className="pb-6">
               <HUDPanel className="p-6">
                 <div className="flex items-center justify-between gap-3 flex-wrap">
