@@ -3,7 +3,10 @@ import React from "react";
 import type { EntityBase } from "@/types";
 import { FileText, Palette, Tags } from "lucide-react";
 import SubThumbInner from "../parts/SubThumbInner";
-import type { SymbolColorDraft, SubImageDraft } from "../EntityDetailFullscreen";
+import type {
+  SymbolColorDraft,
+  SubImageDraft,
+} from "../EntityDetailFullscreen";
 
 export default function RightPanel<T extends EntityBase>(props: {
   entity: T;
@@ -103,7 +106,7 @@ export default function RightPanel<T extends EntityBase>(props: {
           ) : (
             <div className="overflow-x-auto pb-2 scroll-dark mt-3">
               <div className="flex gap-2 min-w-max flex-nowrap">
-                {symbolColors.map((c) => (
+                {symbolColors.map(c => (
                   <div
                     key={c.id}
                     className="flex items-center gap-2 rounded-full border border-white/10 bg-black/20 px-3 h-9 flex-shrink-0"

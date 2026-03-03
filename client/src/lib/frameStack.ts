@@ -6,13 +6,15 @@ import type {
   SelectedExtraStack,
 } from "@/types";
 
-const uniq = <T,>(arr: T[]) => Array.from(new Set(arr));
+const uniq = <T>(arr: T[]) => Array.from(new Set(arr));
 
 /** selectedExtra 호환:
  * - OLD: { presets: FramePresetId[]; thickness?; intensity? }
  * - NEW: { outer: FramePresetId; inner: FramePresetId; thickness?; intensity? }
  */
-function readSelectedExtraPresets(selectedExtra: SelectedExtraStack): FramePresetId[] {
+function readSelectedExtraPresets(
+  selectedExtra: SelectedExtraStack
+): FramePresetId[] {
   // ✅ NEW: outer/inner 2슬롯
   if ("outer" in selectedExtra || "inner" in selectedExtra) {
     const out: FramePresetId[] = [];
@@ -55,7 +57,9 @@ export function resolveFrameStack(
   }
 
   // 3) ✅ selectedExtra는 무조건 덮어쓰기 (최우선)
-  const extraPresets = selectedExtra ? readSelectedExtraPresets(selectedExtra) : [];
+  const extraPresets = selectedExtra
+    ? readSelectedExtraPresets(selectedExtra)
+    : [];
   if (extraPresets.length) {
     presets = extraPresets;
     thickness = selectedExtra?.thickness ?? thickness;

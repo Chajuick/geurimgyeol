@@ -12,17 +12,17 @@ Express 서버는 정적 파일 서빙 전용으로만 사용됩니다.
 
 ## 기술 스택
 
-| 계층 | 기술 |
-|------|------|
-| UI | React 19, shadcn/ui, Radix UI |
-| 스타일 | Tailwind CSS v4 |
-| 애니메이션 | framer-motion |
-| 라우팅 | wouter |
-| 상태 | React Context |
-| 폼 | react-hook-form + Zod |
-| 로컬 저장소 | idb-keyval (IndexedDB) |
-| 빌드 | Vite |
-| 서버 | Express (정적 파일만) |
+| 계층        | 기술                          |
+| ----------- | ----------------------------- |
+| UI          | React 19, shadcn/ui, Radix UI |
+| 스타일      | Tailwind CSS v4               |
+| 애니메이션  | framer-motion                 |
+| 라우팅      | wouter                        |
+| 상태        | React Context                 |
+| 폼          | react-hook-form + Zod         |
+| 로컬 저장소 | idb-keyval (IndexedDB)        |
+| 빌드        | Vite                          |
+| 서버        | Express (정적 파일만)         |
 
 ## 폴더 구조 원칙
 
@@ -48,11 +48,11 @@ client/src/
 
 ## 새 파일 배치 기준
 
-| 파일 유형 | 위치 |
-|----------|------|
-| 도메인 컴포넌트 | `components/entities/` |
-| 페이지 | `pages/` |
-| 비즈니스 로직 훅 | `hooks/` |
-| 전역 상태 | `contexts/` |
-| 공유 타입/상수 | `shared/` |
-| 유틸리티 | `lib/` |
+| 파일 유형        | 위치                   |
+| ---------------- | ---------------------- |
+| 도메인 컴포넌트  | `components/entities/` |
+| 페이지           | `pages/`               |
+| 비즈니스 로직 훅 | `hooks/`               |
+| 전역 상태        | `contexts/`            |
+| 공유 타입/상수   | `shared/`              |
+| 유틸리티         | `lib/`                 |

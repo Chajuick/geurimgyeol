@@ -1,5 +1,11 @@
 // src/components/entities/detail/EntityDetailFullscreen.tsx
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { EntityBase, SubImage, SymbolColor } from "@/types";
 import { useResolvedImage } from "@/hooks/useResolvedImage";
 
@@ -18,7 +24,11 @@ import {
 } from "@/lib/entityNormalize";
 
 export type SymbolColorDraft = { id: string; name: string; hex: string };
-export type SubImageDraft = { image: string; summary: string; description: string };
+export type SubImageDraft = {
+  image: string;
+  summary: string;
+  description: string;
+};
 
 // (구 코드 호환) RightSlideSheet가 아직 rarityDraft를 요구하는 경우를 위해 남겨둠
 export type Rarity = "S" | "A" | "B" | "C" | "D";
@@ -75,7 +85,7 @@ function useDebounced<T extends (...args: any[]) => void>(fn: T, delay = 120) {
 }
 
 function toSymbolDrafts(raw: any): SymbolColorDraft[] {
-  return normalizeSymbolColors(raw).map((c) => ({
+  return normalizeSymbolColors(raw).map(c => ({
     id: c.id,
     name: c.name,
     hex: c.hex,
@@ -83,7 +93,7 @@ function toSymbolDrafts(raw: any): SymbolColorDraft[] {
 }
 
 function toSubDrafts(raw: any): SubImageDraft[] {
-  return normalizeSubImages(raw).map((s) => ({
+  return normalizeSubImages(raw).map(s => ({
     image: s.image,
     summary: s.summary,
     description: s.description,
@@ -123,17 +133,20 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
    *  - debounced patch로 저장
    *  - flush로 닫기/전환 전에 강제 저장
    * ------------------------------ */
-  const [symbolColorsDraft, setSymbolColorsDraft] = useState<SymbolColorDraft[]>(
-    () => toSymbolDrafts((entity as any).symbolColors)
-  );
-  const [subImagesDraft, setSubImagesDraft] = useState<SubImageDraft[]>(
-    () => toSubDrafts((entity as any).subImages)
+  const [symbolColorsDraft, setSymbolColorsDraft] = useState<
+    SymbolColorDraft[]
+  >(() => toSymbolDrafts((entity as any).symbolColors));
+  const [subImagesDraft, setSubImagesDraft] = useState<SubImageDraft[]>(() =>
+    toSubDrafts((entity as any).subImages)
   );
 
-  const debouncedPatchSymbolColors = useDebounced((next: SymbolColorDraft[]) => {
-    // ✅ 저장은 항상 신 스키마로 고정
-    patch({ symbolColors: sanitizeSymbolColors(next) as any } as any);
-  }, 120);
+  const debouncedPatchSymbolColors = useDebounced(
+    (next: SymbolColorDraft[]) => {
+      // ✅ 저장은 항상 신 스키마로 고정
+      patch({ symbolColors: sanitizeSymbolColors(next) as any } as any);
+    },
+    120
+  );
 
   const debouncedPatchSubImages = useDebounced((next: SubImageDraft[]) => {
     // ✅ 저장은 항상 신 스키마로 고정
@@ -158,13 +171,17 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
   const [sheetOpen, setSheetOpen] = useState(false);
 
   const [nameDraft, setNameDraft] = useState(entity.name || "");
-  const [summaryDraft, setSummaryDraft] = useState((entity as any).summary || "");
+  const [summaryDraft, setSummaryDraft] = useState(
+    (entity as any).summary || ""
+  );
   const [descDraft, setDescDraft] = useState((entity as any).description || "");
   const [rarityDraft, setRarityDraft] = useState<Rarity>(
     (((entity as any).rank as Rarity) || "S") as Rarity
   );
 
-  const [mainImageDraft, setMainImageDraft] = useState((entity as any).mainImage || "");
+  const [mainImageDraft, setMainImageDraft] = useState(
+    (entity as any).mainImage || ""
+  );
 
   const [tagDraft, setTagDraft] = useState<string[]>(
     ((((entity as any).subCategories || []) as string[]) ?? []) as string[]
@@ -205,7 +222,9 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
   /** -----------------------------
    * Images: 표시/resolve는 draft 기준
    * ------------------------------ */
-  const main = useResolvedImage(mainImageDraft || (entity as any).mainImage || "");
+  const main = useResolvedImage(
+    mainImageDraft || (entity as any).mainImage || ""
+  );
   const profile = useResolvedImage((entity as any).profileImage || "");
 
   const subDraftUrl = subImagesDraft?.[viewSubIndex]?.image || "";
@@ -232,7 +251,7 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
   useEffect(() => {
     if (!displayed) return;
     setShadowOn(false);
-    setImgAnimKey((k) => k + 1);
+    setImgAnimKey(k => k + 1);
     const t = window.setTimeout(() => setShadowOn(true), 260);
     return () => window.clearTimeout(t);
   }, [displayed]);
@@ -295,14 +314,14 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
    * ------------------------------ */
   const onClickProfile = useCallback(() => {
     if (!subImagesDraft.length) return;
-    setShowSubOnMain((v) => !v);
+    setShowSubOnMain(v => !v);
   }, [subImagesDraft.length]);
 
   /** -----------------------------
    * Symbol draft helpers (UI 즉시 반영 + debounce 저장)
    * ------------------------------ */
   const addSymbolColor = useCallback(() => {
-    setSymbolColorsDraft((prev) => {
+    setSymbolColorsDraft(prev => {
       const next = [
         ...prev,
         {
@@ -318,8 +337,8 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
 
   const updateSymbolColor = useCallback(
     (id: string, p: Partial<SymbolColorDraft>) => {
-      setSymbolColorsDraft((prev) => {
-        const next = prev.map((c) => (c.id === id ? { ...c, ...p } : c));
+      setSymbolColorsDraft(prev => {
+        const next = prev.map(c => (c.id === id ? { ...c, ...p } : c));
         debouncedPatchSymbolColors.run(next);
         return next;
       });
@@ -329,8 +348,8 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
 
   const removeSymbolColor = useCallback(
     (id: string) => {
-      setSymbolColorsDraft((prev) => {
-        const next = prev.filter((c) => c.id !== id);
+      setSymbolColorsDraft(prev => {
+        const next = prev.filter(c => c.id !== id);
         debouncedPatchSymbolColors.run(next);
         return next;
       });
@@ -342,7 +361,7 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
    * SubImages draft helpers (UI 즉시 반영 + debounce 저장)
    * ------------------------------ */
   const addSubImage = useCallback(() => {
-    setSubImagesDraft((prev) => {
+    setSubImagesDraft(prev => {
       const next = [...prev, { image: "", summary: "", description: "" }];
       debouncedPatchSubImages.run(next);
 
@@ -357,7 +376,7 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
 
   const updateSubImage = useCallback(
     (idx: number, p: Partial<SubImageDraft>) => {
-      setSubImagesDraft((prev) => {
+      setSubImagesDraft(prev => {
         const next = prev.map((s, i) => (i === idx ? { ...s, ...p } : s));
         debouncedPatchSubImages.run(next);
         return next;
@@ -368,7 +387,7 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
 
   const removeSubImage = useCallback(
     (idx: number) => {
-      setSubImagesDraft((prev) => {
+      setSubImagesDraft(prev => {
         const next = prev.filter((_, i) => i !== idx);
         debouncedPatchSubImages.run(next);
 
@@ -382,7 +401,8 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
     [debouncedPatchSubImages, setViewSubIndex, viewSubIndex]
   );
 
-  const subCategories: string[] = ((entity as any).subCategories || []) as string[];
+  const subCategories: string[] = ((entity as any).subCategories ||
+    []) as string[];
 
   return (
     <div className="fixed inset-0 z-[9999]">
@@ -392,7 +412,7 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
       {/* content */}
       <div
         className="absolute inset-0 text-white overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
+        onClick={e => e.stopPropagation()}
       >
         {/* bg */}
         <div className="absolute inset-0 pointer-events-none">
@@ -401,7 +421,9 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
           <div
             className={[
               "absolute inset-0 transition-all duration-500 ease-out will-change-transform",
-              mounted ? "opacity-100 translate-x-0" : "opacity-0 translate-x-[80px]",
+              mounted
+                ? "opacity-100 translate-x-0"
+                : "opacity-0 translate-x-[80px]",
             ].join(" ")}
             style={{
               transitionDelay: "80ms",
@@ -413,7 +435,9 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
           <div
             className={[
               "absolute inset-0 transition-all duration-500 ease-out will-change-transform",
-              mounted ? "opacity-100 translate-x-0" : "opacity-0 translate-x-[110px]",
+              mounted
+                ? "opacity-100 translate-x-0"
+                : "opacity-0 translate-x-[110px]",
             ].join(" ")}
             style={{
               transitionDelay: "220ms",
@@ -491,7 +515,7 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
                 shadowOn={shadowOn}
                 mounted={mounted}
                 onOpenBasic={() => setEditPanel("basic")}
-                profileUrl={profile} 
+                profileUrl={profile}
                 onClickProfile={onClickProfile}
               />
             </div>
@@ -517,7 +541,7 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
                   onOpenSymbolColors={() => setEditPanel("symbolColors")}
                   onOpenBasic={() => setEditPanel("basic")}
                   onOpenSubImages={() => setEditPanel("subImages")}
-                  onPickSubImage={(idx) => {
+                  onPickSubImage={idx => {
                     setViewSubIndex(idx);
                     setShowSubOnMain(true);
                   }}

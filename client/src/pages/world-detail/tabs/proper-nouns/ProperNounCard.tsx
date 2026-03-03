@@ -72,7 +72,9 @@ function ProperNounCardInner(props: Props) {
                 decoding="async"
               />
             ) : (
-              <div className="text-[10px] sm:text-[11px] text-white/40">NO ICON</div>
+              <div className="text-[10px] sm:text-[11px] text-white/40">
+                NO ICON
+              </div>
             )}
           </div>
         </div>
@@ -93,14 +95,16 @@ function ProperNounCardInner(props: Props) {
               {n.summary}
             </div>
           ) : (
-            <div className="hidden sm:block mt-2 text-sm text-white/50">요약 없음</div>
+            <div className="hidden sm:block mt-2 text-sm text-white/50">
+              요약 없음
+            </div>
           )}
         </div>
 
         {/* ACTIONS */}
         <div
           className="shrink-0 flex items-center gap-1.5 sm:gap-2 pt-0.5"
-          onClick={(e) => e.stopPropagation()}
+          onClick={e => e.stopPropagation()}
         >
           {editMode && (
             <>

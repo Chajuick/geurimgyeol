@@ -23,7 +23,9 @@ const PortfolioContext = createContext<PortfolioContextType | undefined>(
 export function usePortfolioContext() {
   const context = useContext(PortfolioContext);
   if (!context) {
-    throw new Error("usePortfolioContext must be used within PortfolioProvider");
+    throw new Error(
+      "usePortfolioContext must be used within PortfolioProvider"
+    );
   }
   return context;
 }

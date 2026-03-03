@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Plus, Pencil, SlidersHorizontal } from "lucide-react";
 
 import { usePortfolioContext } from "@/contexts/PortfolioContext";
@@ -13,12 +19,7 @@ import CategoryGroupEditModal, {
   CategoryGroup,
 } from "@/components/entities/category-group-edit-modal";
 
-import type {
-  CharacterData,
-  ID,
-  CategoryItem,
-  FramePresetId,
-} from "@/types";
+import type { CharacterData, ID, CategoryItem, FramePresetId } from "@/types";
 
 import { cn } from "@/lib/utils";
 import { OUTER_PRESETS } from "@/lib/framePresets";
@@ -48,11 +49,11 @@ function makeId(): ID {
 
 /** SettingsData(CategoryItem[]) -> UI(CategoryGroup[]) 어댑터 */
 function toCategoryGroups(items: CategoryItem[] = []): CategoryGroup[] {
-  return items.map((x) => ({ main: x.main, subs: x.subs || [] }));
+  return items.map(x => ({ main: x.main, subs: x.subs || [] }));
 }
 /** UI(CategoryGroup[]) -> SettingsData(CategoryItem[]) 어댑터 */
 function toCategoryItems(groups: CategoryGroup[] = []): CategoryItem[] {
-  return groups.map((g) => ({ main: g.main, subs: g.subs || [] }));
+  return groups.map(g => ({ main: g.main, subs: g.subs || [] }));
 }
 
 /** ✅ 프레임 draft: OUTER 1개 + INNER 1개 */
@@ -145,7 +146,8 @@ export default function Characters() {
       };
 
       const prevObj = prevCache.get(id);
-      const reused = prevObj && characterEqual(prevObj, nextObj) ? prevObj : nextObj;
+      const reused =
+        prevObj && characterEqual(prevObj, nextObj) ? prevObj : nextObj;
 
       nextCache.set(id, reused);
       return reused;
@@ -172,7 +174,8 @@ export default function Characters() {
 
   // selectedExtra (compat)
   const currentSelected = useMemo<FrameDraft>(() => {
-    const raw = (data.settings as any)?.frameSettings?.characters?.selectedExtra;
+    const raw = (data.settings as any)?.frameSettings?.characters
+      ?.selectedExtra;
 
     if (raw && (raw.outer || raw.inner)) {
       return {
@@ -190,22 +193,24 @@ export default function Characters() {
     };
   }, [data.settings]);
 
-  const [frameDraft, setFrameDraft] = useState<FrameDraft>(() => currentSelected);
+  const [frameDraft, setFrameDraft] = useState<FrameDraft>(
+    () => currentSelected
+  );
 
   useEffect(() => {
     setFrameDraft(currentSelected);
   }, [currentSelected]);
 
   const setOuter = useCallback((id: FramePresetId) => {
-    setFrameDraft((prev) => ({ ...prev, outer: id }));
+    setFrameDraft(prev => ({ ...prev, outer: id }));
   }, []);
 
   const setInner = useCallback((id: FramePresetId) => {
-    setFrameDraft((prev) => ({ ...prev, inner: id }));
+    setFrameDraft(prev => ({ ...prev, inner: id }));
   }, []);
 
   const saveFrameSettings = useCallback(() => {
-    setData((prev) => {
+    setData(prev => {
       const prevSettings: any = prev.settings ?? {};
       const prevFrameSettings: any = prevSettings.frameSettings ?? {};
       const prevCharactersFS: any = prevFrameSettings.characters ?? {};
@@ -239,7 +244,7 @@ export default function Characters() {
   // categories save handler
   const handleSaveCategories = useCallback(
     (nextGroups: CategoryGroup[]) => {
-      setData((prev) => ({
+      setData(prev => ({
         ...prev,
         settings: {
           ...(prev.settings ?? {}),
@@ -252,7 +257,9 @@ export default function Characters() {
 
   // category modal state
   const [isEditingCategory, setIsEditingCategory] = useState(false);
-  const [draftCategories, setDraftCategories] = useState<CategoryGroup[]>(() => categories);
+  const [draftCategories, setDraftCategories] = useState<CategoryGroup[]>(
+    () => categories
+  );
 
   useEffect(() => {
     if (isEditingCategory) setDraftCategories(categories);
@@ -273,22 +280,25 @@ export default function Characters() {
   // 캐릭터별 subCategories Set 캐시
   const charSubSet = useMemo(() => {
     const m = new Map<ID, Set<string>>();
-    for (const c of charactersNormalized) m.set(c.id, new Set(c.subCategories || []));
+    for (const c of charactersNormalized)
+      m.set(c.id, new Set(c.subCategories || []));
     return m;
   }, [charactersNormalized]);
 
   const filtered = useMemo(() => {
     const activeMainSubsArr =
-      activeMain === ALL ? null : Array.from(mainToSubsSet.get(activeMain) || []);
+      activeMain === ALL
+        ? null
+        : Array.from(mainToSubsSet.get(activeMain) || []);
 
-    return charactersNormalized.filter((c) => {
+    return charactersNormalized.filter(c => {
       const subs = charSubSet.get(c.id) || new Set<string>();
 
       const mainOk =
         activeMain === ALL
           ? true
           : activeMainSubsArr
-            ? activeMainSubsArr.some((s) => subs.has(s))
+            ? activeMainSubsArr.some(s => subs.has(s))
             : true;
 
       const subOk = activeSub === ALL ? true : subs.has(activeSub);
@@ -302,13 +312,13 @@ export default function Characters() {
       setSelectedId(null);
       return;
     }
-    const stillExists = filtered.some((c) => c.id === selectedId);
+    const stillExists = filtered.some(c => c.id === selectedId);
     if (!stillExists) setSelectedId(filtered[0]?.id || null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filtered, selectedId]);
 
   const viewModalChar = useMemo(
-    () => charactersNormalized.find((c) => c.id === viewModalId) || null,
+    () => charactersNormalized.find(c => c.id === viewModalId) || null,
     [charactersNormalized, viewModalId]
   );
 
@@ -326,11 +336,13 @@ export default function Characters() {
   /** ✅ 저장 시에도 신 스키마로 고정(sanitize) */
   const updateCharacters = useCallback(
     (next: CharacterData[]) => {
-      setData((prev) => ({
+      setData(prev => ({
         ...prev,
-        characters: next.map((c) => ({
+        characters: next.map(c => ({
           ...c,
-          rankId: (c.rankId || defaultRankIdResolved || ("rank_default" as ID)) as ID,
+          rankId: (c.rankId ||
+            defaultRankIdResolved ||
+            ("rank_default" as ID)) as ID,
           subCategories: c.subCategories || [],
 
           subImages: sanitizeSubImages(c.subImages) as any,
@@ -371,15 +383,20 @@ export default function Characters() {
     updateCharacters([...charactersNormalized, payload]);
     setSelectedId(payload.id);
     openDetail(payload.id);
-  }, [charactersNormalized, updateCharacters, openDetail, defaultRankIdResolved]);
+  }, [
+    charactersNormalized,
+    updateCharacters,
+    openDetail,
+    defaultRankIdResolved,
+  ]);
 
   const deleteCharacter = useCallback(
     (id: ID) => {
-      const next = charactersNormalized.filter((c) => c.id !== id);
+      const next = charactersNormalized.filter(c => c.id !== id);
       updateCharacters(next);
 
       setSelectedId((next[0]?.id as ID) || null);
-      setViewModalId((cur) => (cur === id ? null : cur));
+      setViewModalId(cur => (cur === id ? null : cur));
       setViewSubIndex(0);
     },
     [charactersNormalized, updateCharacters]
@@ -387,7 +404,7 @@ export default function Characters() {
 
   const patchCharacter = useCallback(
     (id: ID, patch: Partial<CharacterData>) => {
-      const next = charactersNormalized.map((c) =>
+      const next = charactersNormalized.map(c =>
         c.id === id ? ({ ...c, ...patch } as CharacterData) : c
       );
       updateCharacters(next);
@@ -427,8 +444,8 @@ export default function Characters() {
         )}
       >
         {/* TOP BAR (✅ 모바일: 줄바꿈/스크롤 자연스럽게) */}
-        <div className="shrink-0">
-          <div className="flex flex-row items-center md:justify-between gap-3">
+        <div className="flex items-center shrink-0 h-10 w-full">
+          <div className="flex flex-row items-center md:justify-between gap-3 w-full">
             {/* badges */}
             <div
               className={cn(
@@ -437,7 +454,11 @@ export default function Characters() {
                 "max-w-full"
               )}
             >
-              {editMode ? <HUDBadge tone="warn">EDIT</HUDBadge> : <HUDBadge>VIEW</HUDBadge>}
+              {editMode ? (
+                <HUDBadge tone="warn">EDIT</HUDBadge>
+              ) : (
+                <HUDBadge>VIEW</HUDBadge>
+              )}
             </div>
 
             {/* actions */}
@@ -465,10 +486,14 @@ export default function Characters() {
           <div className="flex flex-col gap-3 min-w-0">
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 min-w-0">
               <div className="min-w-0">
-                <div className="text-[11px] tracking-[0.26em] text-white/55">CHARACTERS</div>
-                <div className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight">캐릭터 소개</div>
+                <div className="text-[11px] tracking-[0.26em] text-white/55">
+                  CHARACTERS
+                </div>
+                <div className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight">
+                  캐릭터 소개
+                </div>
                 <div className="mt-2 text-sm text-white/60">
-                  세계관의 캐릭터들을 살펴보세요.
+                  기록된 인물 정보와 특성을 열람할 수 있습니다.
                 </div>
               </div>
 
@@ -503,8 +528,12 @@ export default function Characters() {
               <HUDPanel className="p-6">
                 <div className="flex items-center justify-between gap-3 flex-wrap">
                   <div>
-                    <div className="text-[11px] tracking-[0.26em] text-white/55">GRID</div>
-                    <div className="mt-1 text-sm text-white/60">선택 / 상세 열기</div>
+                    <div className="text-[11px] tracking-[0.26em] text-white/55">
+                      GRID
+                    </div>
+                    <div className="mt-1 text-sm text-white/60">
+                      선택 / 상세 열기
+                    </div>
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -516,7 +545,9 @@ export default function Characters() {
                 <div className="mt-5 sm:mt-6">
                   {filtered.length === 0 ? (
                     <div className="rounded-2xl border border-white/10 bg-black/20 p-6 sm:p-8 text-center">
-                      <div className="text-sm text-white/55">해당 카테고리에 캐릭터가 없습니다.</div>
+                      <div className="text-sm text-white/55">
+                        해당 카테고리에 캐릭터가 없습니다.
+                      </div>
                       {editMode && (
                         <div className="mt-4 flex justify-center">
                           <GButton
@@ -540,7 +571,7 @@ export default function Characters() {
                         "xl:grid-cols-7"
                       )}
                     >
-                      {filtered.map((c) => (
+                      {filtered.map(c => (
                         <EntityGridCard
                           key={c.id}
                           id={c.id}
@@ -608,7 +639,7 @@ export default function Characters() {
           }}
           editable={editMode}
           onDelete={() => setConfirmDeleteId(viewModalChar.id)}
-          onPatch={(p) => patchCharacter(viewModalChar.id, p as any)}
+          onPatch={p => patchCharacter(viewModalChar.id, p as any)}
           tagOptions={subTagOptions}
         />
       )}

@@ -44,9 +44,9 @@ function getCompressPolicy(kind: ImageKind) {
   switch (kind) {
     case "profile":
       return {
-        maxDim: 640,          // 긴 변 기준
-        quality: 0.82,        // webp 품질
-        maxBytes: 220_000,    // 목표 용량(대략)
+        maxDim: 640, // 긴 변 기준
+        quality: 0.82, // webp 품질
+        maxBytes: 220_000, // 목표 용량(대략)
       };
     case "illustration":
       return {
@@ -95,12 +95,8 @@ async function compressToWebp(input: Blob, kind: ImageKind): Promise<Blob> {
   ctx.drawImage(bitmap, 0, 0, outW, outH);
 
   // toBlob은 비동기
-  const blob: Blob | null = await new Promise((resolve) => {
-    canvas.toBlob(
-      (b) => resolve(b),
-      "image/webp",
-      policy.quality
-    );
+  const blob: Blob | null = await new Promise(resolve => {
+    canvas.toBlob(b => resolve(b), "image/webp", policy.quality);
   });
 
   // webp 변환 실패 시 원본

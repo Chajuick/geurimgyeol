@@ -26,13 +26,15 @@ export default function HomeHelpContent({ editMode }: { editMode: boolean }) {
             <ul className="list-disc pl-5 space-y-1 text-white/70">
               <li>
                 <span className="text-white/90 font-semibold">세계관</span>:
-                배경/아이콘을 먼저 넣고, 설정을 짧게 요약한 뒤 빠져들기 메뉴에서 디테일을 추가해요.
+                배경/아이콘을 먼저 넣고, 설정을 짧게 요약한 뒤 빠져들기 메뉴에서
+                디테일을 추가해요.
               </li>
               <li>
                 <span className="text-white/90 font-semibold">
                   캐릭터/크리쳐
                 </span>
-                : 프로필은 얼굴/전신, 메인은 “대표 장면”, 서브는 변형/소품/관계 컷으로 구성하면 좋아요.
+                : 프로필은 얼굴/전신, 메인은 “대표 장면”, 서브는 변형/소품/관계
+                컷으로 구성하면 좋아요.
               </li>
               <li>
                 이미지는 가능하면{" "}
@@ -78,9 +80,7 @@ export default function HomeHelpContent({ editMode }: { editMode: boolean }) {
                   내보내기(ZIP)
                 </span>{" "}
                 실행 →{" "}
-                <span className="text-white/90 font-semibold">
-                  seed.zip
-                </span>{" "}
+                <span className="text-white/90 font-semibold">seed.zip</span>{" "}
                 다운로드
               </li>
               <li>
@@ -125,11 +125,13 @@ export default function HomeHelpContent({ editMode }: { editMode: boolean }) {
                 결을따라서
               </li>
               <li>
-                <span className="text-white/90 font-semibold">캐릭터</span>와 <span className="text-white/90 font-semibold">크리쳐</span>
-                의 서사를 즐겨주세요.
+                <span className="text-white/90 font-semibold">캐릭터</span>와{" "}
+                <span className="text-white/90 font-semibold">크리쳐</span>의
+                서사를 즐겨주세요.
               </li>
               <li>
-                마음에 드셨다면, <span className="text-white/90 font-semibold">프로필</span>의
+                마음에 드셨다면,{" "}
+                <span className="text-white/90 font-semibold">프로필</span>의
                 링크를 통해 더 많은 작품을 감상하실 수 있습니다.
               </li>
             </ol>

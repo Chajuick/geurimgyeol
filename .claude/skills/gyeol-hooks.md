@@ -40,15 +40,19 @@ export function useExample({ initialValue = "" }: UseExampleOptions = {}) {
 ## 주요 훅 설명
 
 ### `usePortfolio`
+
 포트폴리오 콘텐츠 데이터를 관리합니다. `PortfolioContext`와 연동.
 
 ### `useResolvedImage`
+
 IndexedDB(`idb-keyval`)에 저장된 이미지 데이터를 URL로 변환합니다.
 
 ### `useComposition`
+
 한글 등 IME 입력 조합 중인지 여부를 추적합니다 (`isComposing` 상태).
 
 ### `useMobile`
+
 미디어 쿼리로 모바일 환경 여부를 반환합니다.
 
 ## 규칙

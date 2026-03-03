@@ -115,20 +115,16 @@ export default function Modal({
 
   // Portal로 body에 직접 붙여서 stacking context(사이드바 토글 등) 이슈 제거
   return createPortal(
-    <div
-      className="fixed inset-0"
-      style={{ zIndex }}
-      data-modal-root
-    >
+    <div className="fixed inset-0" style={{ zIndex }} data-modal-root>
       {/* backdrop */}
       <div
         className="absolute inset-0 bg-black/55 backdrop-blur-[2px]"
-        onMouseDown={(e) => {
+        onMouseDown={e => {
           // 드래그 시작이 backdrop이면 닫기(클릭/터치 안정)
           if (!closeOnBackdrop) return;
           if (e.target === e.currentTarget) onClose();
         }}
-        onTouchStart={(e) => {
+        onTouchStart={e => {
           if (!closeOnBackdrop) return;
           if (e.target === e.currentTarget) onClose();
         }}

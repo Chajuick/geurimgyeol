@@ -1,6 +1,19 @@
-import React, { useCallback, useEffect, useMemo, useState, useDeferredValue } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useDeferredValue,
+} from "react";
 import { useLocation } from "wouter";
-import { ChevronLeft, ChevronRight, Plus, Trash2, Edit2, Unlink } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  Trash2,
+  Edit2,
+  Unlink,
+} from "lucide-react";
 
 import GButton from "@/components/ui/gyeol-button";
 import { HUDPanel, HUDBadge } from "@/components/ui/hud";
@@ -51,13 +64,13 @@ export default function Worlds() {
   // ✅ entity lookup maps (O(1))
   const characterById = useMemo(() => {
     const m = new Map<ID, CharacterData>();
-    (data.characters ?? []).forEach((c) => m.set(c.id, c));
+    (data.characters ?? []).forEach(c => m.set(c.id, c));
     return m;
   }, [data.characters]);
 
   const creatureById = useMemo(() => {
     const m = new Map<ID, CreatureData>();
-    (data.creatures ?? []).forEach((c) => m.set(c.id, c));
+    (data.creatures ?? []).forEach(c => m.set(c.id, c));
     return m;
   }, [data.creatures]);
 
@@ -81,7 +94,9 @@ export default function Worlds() {
   const [search, setSearch] = useState("");
   const deferredSearch = useDeferredValue(search);
 
-  const [detailOpen, setDetailOpen] = useState<{ type: AddTab; id: ID } | null>(null);
+  const [detailOpen, setDetailOpen] = useState<{ type: AddTab; id: ID } | null>(
+    null
+  );
   const [detailSubIndex, setDetailSubIndex] = useState(0);
 
   // ✅ edit drafts (avoid setData on every keystroke)
@@ -90,12 +105,12 @@ export default function Worlds() {
 
   useEffect(() => {
     if (!worlds.length) return;
-    setCurrentWorldIndex((i) => Math.min(Math.max(i, 0), worlds.length - 1));
+    setCurrentWorldIndex(i => Math.min(Math.max(i, 0), worlds.length - 1));
   }, [worlds.length]);
 
   const updateWorldAtIndex = useCallback(
     (index: number, patch: Partial<WorldData>) => {
-      setData((prev) => {
+      setData(prev => {
         const nextWorlds = [...(prev.worlds ?? [])];
         const target = nextWorlds[index];
         if (!target) return prev;
@@ -125,7 +140,13 @@ export default function Worlds() {
     }, 250);
 
     return () => window.clearTimeout(t);
-  }, [nameDraft, editMode, currentWorld, currentWorldIndex, updateWorldAtIndex]);
+  }, [
+    nameDraft,
+    editMode,
+    currentWorld,
+    currentWorldIndex,
+    updateWorldAtIndex,
+  ]);
 
   useEffect(() => {
     if (!editMode || !currentWorld) return;
@@ -138,7 +159,13 @@ export default function Worlds() {
     }, 250);
 
     return () => window.clearTimeout(t);
-  }, [descDraft, editMode, currentWorld, currentWorldIndex, updateWorldAtIndex]);
+  }, [
+    descDraft,
+    editMode,
+    currentWorld,
+    currentWorldIndex,
+    updateWorldAtIndex,
+  ]);
 
   const openBackgroundModal = useCallback(() => {
     setBackgroundUrl(currentWorld?.backgroundImage ?? "");
@@ -190,7 +217,7 @@ export default function Worlds() {
       worldCharacters: [],
       worldCreatures: [],
 
-      properNounKinds: DEFAULT_WORLD_PROPER_NOUN_KINDS.map((k) => ({
+      properNounKinds: DEFAULT_WORLD_PROPER_NOUN_KINDS.map(k => ({
         ...k,
         meta: { ...(k as any).meta },
       })) as any,
@@ -200,7 +227,7 @@ export default function Worlds() {
       events: [],
     };
 
-    setData((prev) => ({ ...prev, worlds: [...(prev.worlds ?? []), newWorld] }));
+    setData(prev => ({ ...prev, worlds: [...(prev.worlds ?? []), newWorld] }));
 
     setIsAddingWorld(false);
     resetAddWorldDraft();
@@ -218,22 +245,24 @@ export default function Worlds() {
   const handleDeleteWorld = useCallback(() => {
     if (worlds.length <= 1) return;
 
-    setData((prev) => {
-      const nextWorlds = (prev.worlds ?? []).filter((_, i) => i !== currentWorldIndex);
+    setData(prev => {
+      const nextWorlds = (prev.worlds ?? []).filter(
+        (_, i) => i !== currentWorldIndex
+      );
       return { ...prev, worlds: nextWorlds };
     });
 
-    setCurrentWorldIndex((i) => Math.max(0, i - 1));
+    setCurrentWorldIndex(i => Math.max(0, i - 1));
   }, [worlds.length, setData, currentWorldIndex]);
 
   const handleNextWorld = useCallback(() => {
     if (!worlds.length) return;
-    setCurrentWorldIndex((prev) => (prev + 1) % worlds.length);
+    setCurrentWorldIndex(prev => (prev + 1) % worlds.length);
   }, [worlds.length]);
 
   const handlePrevWorld = useCallback(() => {
     if (!worlds.length) return;
-    setCurrentWorldIndex((prev) => (prev - 1 + worlds.length) % worlds.length);
+    setCurrentWorldIndex(prev => (prev - 1 + worlds.length) % worlds.length);
   }, [worlds.length]);
 
   const handleAddItem = useCallback(
@@ -264,11 +293,15 @@ export default function Worlds() {
 
       if (type === "character") {
         updateWorldAtIndex(currentWorldIndex, {
-          worldCharacters: (currentWorld.worldCharacters ?? []).filter((r) => r.id !== refId),
+          worldCharacters: (currentWorld.worldCharacters ?? []).filter(
+            r => r.id !== refId
+          ),
         });
       } else {
         updateWorldAtIndex(currentWorldIndex, {
-          worldCreatures: (currentWorld.worldCreatures ?? []).filter((r) => r.id !== refId),
+          worldCreatures: (currentWorld.worldCreatures ?? []).filter(
+            r => r.id !== refId
+          ),
         });
       }
     },
@@ -279,7 +312,7 @@ export default function Worlds() {
     if (!currentWorld) return [];
 
     const chars = (currentWorld.worldCharacters ?? [])
-      .map((ref) => {
+      .map(ref => {
         const found = characterById.get(ref.characterId);
         if (!found) return null;
         return { type: "character" as const, refId: ref.id, data: found };
@@ -287,7 +320,7 @@ export default function Worlds() {
       .filter(Boolean) as any[];
 
     const cres = (currentWorld.worldCreatures ?? [])
-      .map((ref) => {
+      .map(ref => {
         const found = creatureById.get(ref.creatureId);
         if (!found) return null;
         return { type: "creature" as const, refId: ref.id, data: found };
@@ -304,24 +337,26 @@ export default function Worlds() {
 
     if (addTab === "character") {
       const added = new Set<ID>();
-      (currentWorld.worldCharacters ?? []).forEach((r) => added.add(r.characterId));
+      (currentWorld.worldCharacters ?? []).forEach(r =>
+        added.add(r.characterId)
+      );
 
       return (data.characters ?? [])
-        .filter((c) => !added.has(c.id))
-        .filter((c) => (!q ? true : (c.name ?? "").toLowerCase().includes(q)))
-        .map((c) => ({
+        .filter(c => !added.has(c.id))
+        .filter(c => (!q ? true : (c.name ?? "").toLowerCase().includes(q)))
+        .map(c => ({
           id: c.id,
           name: c.name,
           profileImage: c.profileImage,
         }));
     } else {
       const added = new Set<ID>();
-      (currentWorld.worldCreatures ?? []).forEach((r) => added.add(r.creatureId));
+      (currentWorld.worldCreatures ?? []).forEach(r => added.add(r.creatureId));
 
       return (data.creatures ?? [])
-        .filter((c) => !added.has(c.id))
-        .filter((c) => (!q ? true : (c.name ?? "").toLowerCase().includes(q)))
-        .map((c) => ({
+        .filter(c => !added.has(c.id))
+        .filter(c => (!q ? true : (c.name ?? "").toLowerCase().includes(q)))
+        .map(c => ({
           id: c.id,
           name: c.name,
           profileImage: c.profileImage,
@@ -334,7 +369,8 @@ export default function Worlds() {
 
   const stats = useMemo(() => {
     const linked =
-      (currentWorld?.worldCharacters?.length ?? 0) + (currentWorld?.worldCreatures?.length ?? 0);
+      (currentWorld?.worldCharacters?.length ?? 0) +
+      (currentWorld?.worldCreatures?.length ?? 0);
 
     return {
       worlds: worlds.length,
@@ -346,7 +382,8 @@ export default function Worlds() {
 
   const detailEntity = useMemo(() => {
     if (!detailOpen) return null;
-    if (detailOpen.type === "character") return characterById.get(detailOpen.id) ?? null;
+    if (detailOpen.type === "character")
+      return characterById.get(detailOpen.id) ?? null;
     return creatureById.get(detailOpen.id) ?? null;
   }, [detailOpen, characterById, creatureById]);
 
@@ -359,11 +396,17 @@ export default function Worlds() {
         <div className="max-w-xl mx-auto space-y-4 flex flex-col items-center">
           <div className="text-2xl font-bold">세계관이 없습니다</div>
           <div className="text-white/60 text-sm text-center">
-            {editMode ? "편집 모드에서 세계관을 추가할 수 있어요." : "잠시 후 찾아와주세요."}
+            {editMode
+              ? "편집 모드에서 세계관을 추가할 수 있어요."
+              : "잠시 후 찾아와주세요."}
           </div>
 
           {editMode && (
-            <GButton variant="primary" text="세계관 추가" onClick={() => setIsAddingWorld(true)} />
+            <GButton
+              variant="primary"
+              text="세계관 추가"
+              onClick={() => setIsAddingWorld(true)}
+            />
           )}
 
           <AddWorldModal
@@ -412,27 +455,35 @@ export default function Worlds() {
         {/* TOP BAR */}
         <div className="flex items-center justify-between gap-3 shrink-0 h-10">
           <div className="flex items-center gap-2 flex-wrap">
-            {editMode ? <HUDBadge tone="warn">EDIT</HUDBadge> : <HUDBadge>VIEW</HUDBadge>}
+            {editMode ? (
+              <HUDBadge tone="warn">EDIT</HUDBadge>
+            ) : (
+              <HUDBadge>VIEW</HUDBadge>
+            )}
           </div>
         </div>
 
         {/* DOSSIER */}
         <HUDPanel className="p-6 mt-4 sm:mt-6 shrink-0">
           <div className="flex flex-col">
-            <div className="text-[11px] tracking-[0.26em] text-white/55 pb-4">WORLDS</div>
+            <div className="text-[11px] tracking-[0.26em] text-white/55 pb-4">
+              WORLDS
+            </div>
             {/* ✅ 모바일에서 버튼 줄바꿈/정렬 안정화 */}
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
               <div className="min-w-0 flex-1">
-
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="w-11 h-11 rounded-xl overflow-hidden bg-white/5 flex items-center justify-center shrink-0">
-                    <WorldThumbCard name={currentWorld.name} image={currentWorld.iconImage} />
+                    <WorldThumbCard
+                      name={currentWorld.name}
+                      image={currentWorld.iconImage}
+                    />
                   </div>
 
                   {editMode ? (
                     <input
                       value={nameDraft}
-                      onChange={(e) => setNameDraft(e.target.value)}
+                      onChange={e => setNameDraft(e.target.value)}
                       className="min-w-0 flex-1 bg-white/10 border border-white/0 rounded-xl px-3 py-2 text-white font-normal
                       focus:outline-none focus:ring-2 focus:ring-white/20"
                       placeholder="세계관 이름"
@@ -499,13 +550,15 @@ export default function Worlds() {
 
             {/* brief */}
             <div className="mt-4">
-              <div className="text-[12px] tracking-[0.26em] text-white/55">WORLD BRIEF</div>
+              <div className="text-[12px] tracking-[0.26em] text-white/55">
+                WORLD BRIEF
+              </div>
 
               <div className="mt-3">
                 {editMode ? (
                   <textarea
                     value={descDraft}
-                    onChange={(e) => setDescDraft(e.target.value)}
+                    onChange={e => setDescDraft(e.target.value)}
                     className="w-full min-h-24 p-3 rounded-xl bg-black/25 text-white border border-white/10
                             placeholder:text-white/30 outline-none focus:ring-2 focus:ring-white/15 focus:border-white/20 transition resize-none scroll-dark"
                     placeholder="세계관 설정을 입력하세요"
@@ -524,18 +577,22 @@ export default function Worlds() {
         {/* ✅ 모바일: 자연스럽게 아래로 늘어남 / md+: 남은 영역 flex-1로 고정 */}
         <div className="mt-4 md:mt-6 flex-1 min-h-0">
           {/* md 이상에선 내부 높이 고정이 필요 */}
-          <div className={cn(
-            "md:h-full md:overflow-hidden",
-            "[@media(max-height:973px)]:md:h-auto",
-            "[@media(max-height:973px)]:md:overflow-visible"
-          )}>
+          <div
+            className={cn(
+              "md:h-full md:overflow-hidden",
+              "[@media(max-height:973px)]:md:h-auto",
+              "[@media(max-height:973px)]:md:overflow-visible"
+            )}
+          >
             <div className="grid grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] gap-4 md:h-full md:min-h-0 items-stretch">
               {/* LEFT */}
               <HUDPanel className="p-6 md:h-full md:min-h-0 flex flex-col overflow-hidden">
                 {/* header */}
                 <div className="flex items-center justify-between gap-3 shrink-0">
                   <div>
-                    <div className="text-[11px] tracking-[0.26em] text-white/55">SCENE PREVIEW</div>
+                    <div className="text-[11px] tracking-[0.26em] text-white/55">
+                      SCENE PREVIEW
+                    </div>
                     <div className="mt-1 text-sm text-white/60">전경</div>
                   </div>
 
@@ -551,12 +608,16 @@ export default function Worlds() {
                   <div
                     className="w-full h-full rounded-2xl overflow-hidden relative border border-white/10 bg-black/10"
                     style={{
-                      backgroundImage: resolvedWorldBg ? `url(${resolvedWorldBg})` : undefined,
+                      backgroundImage: resolvedWorldBg
+                        ? `url(${resolvedWorldBg})`
+                        : undefined,
                       backgroundSize: "cover",
                       backgroundPosition: "center",
                     }}
                   >
-                    {!resolvedWorldBg && <div className="absolute inset-0 gyeol-bg" />}
+                    {!resolvedWorldBg && (
+                      <div className="absolute inset-0 gyeol-bg" />
+                    )}
                     <div className="absolute inset-0 bg-black/10 pointer-events-none" />
                     <div className="pointer-events-none absolute inset-0 opacity-[0.12] bg-[linear-gradient(rgba(255,255,255,0.12)_1px,transparent_1px)] bg-[length:100%_3px]" />
                   </div>
@@ -567,8 +628,12 @@ export default function Worlds() {
               <HUDPanel className="p-6 md:h-full md:min-h-0 flex flex-col min-h-0 md:max-h-[40vw] md:overflow-y-scroll">
                 <div className="flex items-center justify-between gap-3 shrink-0">
                   <div>
-                    <div className="text-[11px] tracking-[0.26em] text-white/55">LINKED ENTITIES</div>
-                    <div className="mt-1 text-sm text-white/60">캐릭터/크리쳐</div>
+                    <div className="text-[11px] tracking-[0.26em] text-white/55">
+                      LINKED ENTITIES
+                    </div>
+                    <div className="mt-1 text-sm text-white/60">
+                      캐릭터/크리쳐
+                    </div>
                   </div>
 
                   {editMode && (
@@ -588,12 +653,14 @@ export default function Worlds() {
                 {/* body */}
                 {/* ✅ 모바일: 그냥 늘어나되, 너무 길면 자연 스크롤(페이지 스크롤) */}
                 {/* ✅ md 이상: 이 영역만 스크롤 */}
-                <div className={cn(
-                  "mt-4 flex-1 min-h-0 scroll-dark pr-1",
-                  "md:overflow-y-auto",
-                  "[@media(max-height:973px)]:md:overflow-visible",
-                  "[@media(max-height:973px)]:md:flex-none"
-                )}>
+                <div
+                  className={cn(
+                    "mt-4 flex-1 min-h-0 scroll-dark pr-1",
+                    "md:overflow-y-auto",
+                    "[@media(max-height:973px)]:md:overflow-visible",
+                    "[@media(max-height:973px)]:md:flex-none"
+                  )}
+                >
                   {displayItems.length === 0 ? (
                     <div className="rounded-2xl border border-white/10 bg-black/20 p-4 text-xs text-white/45">
                       등록된 항목이 없습니다.
@@ -601,7 +668,7 @@ export default function Worlds() {
                     </div>
                   ) : (
                     <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3">
-                      {displayItems.map((it) => (
+                      {displayItems.map(it => (
                         <div key={it.refId} className="relative group">
                           {/* 썸네일 클릭 = 상세 */}
                           <button
@@ -627,14 +694,12 @@ export default function Worlds() {
                               size="icon"
                               icon={<Unlink className="w-4 h-4" />}
                               title="연결 해제"
-                              onClick={(e) => {
+                              onClick={e => {
                                 e.preventDefault();
                                 e.stopPropagation();
                                 handleUnlinkItem(it.refId, it.type);
                               }}
-                              className={cn(
-                                "absolute top-2 right-2 z-20",
-                              )}
+                              className={cn("absolute top-2 right-2 z-20")}
                             />
                           )}
                         </div>
@@ -646,8 +711,6 @@ export default function Worlds() {
             </div>
           </div>
         </div>
-
-
       </div>
       {/* Modals */}
       <AddWorldModal

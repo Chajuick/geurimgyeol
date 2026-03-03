@@ -28,7 +28,8 @@ function cx(...v: Array<string | false | null | undefined>) {
 /** ✅ stable id (key 고정용) */
 function makeId() {
   try {
-    if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
+    if (typeof crypto !== "undefined" && "randomUUID" in crypto)
+      return crypto.randomUUID();
   } catch {}
   return `cg_${Math.random().toString(36).slice(2)}_${Date.now()}`;
 }
@@ -99,7 +100,7 @@ const CategoryGroupCard = React.memo(
         <div className="relative flex flex-col sm:flex-row sm:items-center gap-2 min-w-0">
           <input
             value={cg.main}
-            onChange={(e) => renameMain(idx, e.target.value)}
+            onChange={e => renameMain(idx, e.target.value)}
             className={cx(inputCls, "min-w-0")}
             placeholder={`${mainLabel} 카테고리 이름`}
           />
@@ -121,8 +122,8 @@ const CategoryGroupCard = React.memo(
         <div className="relative flex flex-col sm:flex-row sm:items-center gap-2 min-w-0">
           <input
             value={curSub}
-            onChange={(e) => setCurSub(e.target.value)}
-            onKeyDown={(e) => {
+            onChange={e => setCurSub(e.target.value)}
+            onKeyDown={e => {
               if (e.key === "Enter") {
                 e.preventDefault();
                 addSub(idx, curSub);
@@ -152,9 +153,11 @@ const CategoryGroupCard = React.memo(
         {/* 서브 chips (✅ 터치 타겟 조금 키움) */}
         <div className="relative flex flex-wrap gap-2">
           {subs.length === 0 ? (
-            <span className="text-xs text-white/40">{subLabel} 카테고리가 없습니다.</span>
+            <span className="text-xs text-white/40">
+              {subLabel} 카테고리가 없습니다.
+            </span>
           ) : (
-            subs.map((s) => (
+            subs.map(s => (
               <span
                 key={s}
                 className={cx(
@@ -163,7 +166,9 @@ const CategoryGroupCard = React.memo(
                   "text-xs"
                 )}
               >
-                <span className="max-w-[220px] sm:max-w-[280px] truncate">{s}</span>
+                <span className="max-w-[220px] sm:max-w-[280px] truncate">
+                  {s}
+                </span>
                 <button
                   type="button"
                   onClick={() => removeSub(idx, s)}
@@ -197,7 +202,9 @@ export default function CategoryGroupEditModal({
   mainLabel = "메인 카테고리",
   subLabel = "서브 카테고리",
 }: Props) {
-  const [confirmDeleteMainIdx, setConfirmDeleteMainIdx] = useState<number | null>(null);
+  const [confirmDeleteMainIdx, setConfirmDeleteMainIdx] = useState<
+    number | null
+  >(null);
 
   // ✅ 메인별 서브 입력 상태(키: __id)
   const [subDraft, setSubDraft] = useState<Record<string, string>>({});
@@ -205,7 +212,7 @@ export default function CategoryGroupEditModal({
   // ✅ open되면 draft에 __id를 채워서 key가 타이핑마다 바뀌지 않게 함
   useEffect(() => {
     if (!open) return;
-    setDraft((d) => d.map((x) => (x.__id ? x : { ...x, __id: makeId() })));
+    setDraft(d => d.map(x => (x.__id ? x : { ...x, __id: makeId() })));
   }, [open, setDraft]);
 
   useEffect(() => {
@@ -235,12 +242,15 @@ export default function CategoryGroupEditModal({
   );
 
   const addMain = useCallback(() => {
-    setDraft((d) => [...d, { main: `새 ${mainLabel}`, subs: [], __id: makeId() }]);
+    setDraft(d => [
+      ...d,
+      { main: `새 ${mainLabel}`, subs: [], __id: makeId() },
+    ]);
   }, [setDraft, mainLabel]);
 
   const renameMain = useCallback(
     (idx: number, v: string) => {
-      setDraft((d) =>
+      setDraft(d =>
         d.map((x, i) => {
           if (i !== idx) return x;
           if (x.main === v) return x;
@@ -253,7 +263,7 @@ export default function CategoryGroupEditModal({
 
   const removeMain = useCallback(
     (idx: number) => {
-      setDraft((d) => d.filter((_, i) => i !== idx));
+      setDraft(d => d.filter((_, i) => i !== idx));
     },
     [setDraft]
   );
@@ -263,7 +273,7 @@ export default function CategoryGroupEditModal({
       const v = (sub || "").trim();
       if (!v) return;
 
-      setDraft((d) =>
+      setDraft(d =>
         d.map((x, i) => {
           if (i !== idx) return x;
           const subs = x.subs || [];
@@ -277,12 +287,12 @@ export default function CategoryGroupEditModal({
 
   const removeSub = useCallback(
     (idx: number, sub: string) => {
-      setDraft((d) =>
+      setDraft(d =>
         d.map((x, i) => {
           if (i !== idx) return x;
           const subs = x.subs || [];
           if (!subs.includes(sub)) return x;
-          return { ...x, subs: subs.filter((s) => s !== sub) };
+          return { ...x, subs: subs.filter(s => s !== sub) };
         })
       );
     },
@@ -313,7 +323,12 @@ export default function CategoryGroupEditModal({
               onClick={onClose}
               className={cx("flex-1", softBtnClass)}
             />
-            <GButton variant="primary" text="저장" onClick={onSave} className="flex-1" />
+            <GButton
+              variant="primary"
+              text="저장"
+              onClick={onSave}
+              className="flex-1"
+            />
           </div>
         }
       >
@@ -349,7 +364,6 @@ export default function CategoryGroupEditModal({
             )}
           >
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-
               <div className="px-2 sm:px-0">
                 <GButton
                   variant="ghost"
@@ -384,8 +398,8 @@ export default function CategoryGroupEditModal({
                       inputCls={inputCls}
                       softBtnClass={softBtnClass}
                       curSub={curSub}
-                      setCurSub={(v) =>
-                        setSubDraft((s) => (s[k] === v ? s : { ...s, [k]: v }))
+                      setCurSub={v =>
+                        setSubDraft(s => (s[k] === v ? s : { ...s, [k]: v }))
                       }
                       renameMain={renameMain}
                       askDeleteMain={askDeleteMain}
@@ -419,7 +433,7 @@ export default function CategoryGroupEditModal({
           const target = draft[confirmDeleteMainIdx];
           const k = target ? groupKey(target, confirmDeleteMainIdx) : null;
           if (k) {
-            setSubDraft((s) => {
+            setSubDraft(s => {
               if (!(k in s)) return s;
               const next = { ...s };
               delete next[k];

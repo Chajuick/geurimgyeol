@@ -1,6 +1,14 @@
 import { cn } from "@/lib/utils";
 
-export function LoadingOverlay({ show, title, text }: { show: boolean; title?: string, text?: string; }) {
+export function LoadingOverlay({
+  show,
+  title,
+  text,
+}: {
+  show: boolean;
+  title?: string;
+  text?: string;
+}) {
   return (
     <div
       className={cn(
@@ -28,7 +36,9 @@ export function LoadingOverlay({ show, title, text }: { show: boolean; title?: s
               </span>
             </div>
           </div>
-          <div className="mt-1 text-xs text-white/45 text-center">{text || "로딩 중입니다."}</div>
+          <div className="mt-1 text-xs text-white/45 text-center">
+            {text || "로딩 중입니다."}
+          </div>
         </div>
       </div>
 

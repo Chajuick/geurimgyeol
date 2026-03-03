@@ -32,7 +32,7 @@ export default function SelectBox({
   const [open, setOpen] = React.useState(false);
   const rootRef = React.useRef<HTMLDivElement>(null);
 
-  const selected = options.find((o) => o.id === value);
+  const selected = options.find(o => o.id === value);
 
   // ✅ 외부 클릭 시 닫기
   React.useEffect(() => {
@@ -58,7 +58,7 @@ export default function SelectBox({
       <button
         type="button"
         disabled={disabled}
-        onClick={() => !disabled && setOpen((v) => !v)}
+        onClick={() => !disabled && setOpen(v => !v)}
         className={cn(
           "w-full px-3 py-2 rounded-xl",
           "bg-white/5 border border-white/15",
@@ -66,7 +66,9 @@ export default function SelectBox({
           "flex items-center justify-between gap-2",
           "transition-all duration-200",
           // HUD pop
-          open ? "bg-white/8 border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.06),0_18px_40px_rgba(0,0,0,0.45)]" : "",
+          open
+            ? "bg-white/8 border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.06),0_18px_40px_rgba(0,0,0,0.45)]"
+            : "",
           disabled
             ? "opacity-40 cursor-not-allowed"
             : "hover:bg-white/10 hover:border-white/25 active:scale-[0.99]"
@@ -114,8 +116,10 @@ export default function SelectBox({
           role="listbox"
         >
           {/* 스크롤 영역 */}
-          <div className={cn("overflow-auto", maxHeightClassName, "scroll-dark")}>
-            {options.map((o) => {
+          <div
+            className={cn("overflow-auto", maxHeightClassName, "scroll-dark")}
+          >
+            {options.map(o => {
               const active = o.id === value;
               return (
                 <button

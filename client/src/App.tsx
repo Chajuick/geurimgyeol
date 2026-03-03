@@ -7,6 +7,7 @@ import Worlds from "@/pages/Worlds";
 import WorldDetail from "@/pages/world-detail/WorldDetail";
 import Characters from "@/pages/Characters";
 import Creatures from "@/pages/Creatures";
+import Battle from "@/pages/Battle";
 import Sidebar from "@/components/sidebar/Sidebar";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -25,6 +26,7 @@ function Router() {
       {/* ✅ 추가 */}
       <Route path={"/characters"} component={Characters} />
       <Route path={"/creatures"} component={Creatures} />
+      <Route path={"/battle"} component={Battle} />
       <Route path={"/profile"} component={Profile} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />

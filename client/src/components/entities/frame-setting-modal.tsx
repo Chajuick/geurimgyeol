@@ -81,11 +81,13 @@ export default function EntityFrameSettingsModal({
         <div className="mt-4 sm:mt-6 grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
           {/* OUTER */}
           <HUDPanel className="p-4">
-            <div className="text-[11px] tracking-[0.26em] text-white/55">OUTER</div>
+            <div className="text-[11px] tracking-[0.26em] text-white/55">
+              OUTER
+            </div>
             <div className="mt-1 text-sm text-white/70">외곽 효과</div>
 
             <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {OUTER_OPTIONS.map((opt) => {
+              {OUTER_OPTIONS.map(opt => {
                 const selected = value.outer === opt.id;
 
                 return (
@@ -100,7 +102,9 @@ export default function EntityFrameSettingsModal({
                     ].join(" ")}
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <div className="text-sm font-semibold px-2">{opt.label}</div>
+                      <div className="text-sm font-semibold px-2">
+                        {opt.label}
+                      </div>
 
                       <div
                         className={[
@@ -110,7 +114,9 @@ export default function EntityFrameSettingsModal({
                             : "border-white/25 bg-transparent",
                         ].join(" ")}
                       >
-                        {selected && <div className="w-2.5 h-2.5 rounded-full bg-white" />}
+                        {selected && (
+                          <div className="w-2.5 h-2.5 rounded-full bg-white" />
+                        )}
                       </div>
                     </div>
 
@@ -142,11 +148,13 @@ export default function EntityFrameSettingsModal({
 
           {/* INNER */}
           <HUDPanel className="p-4">
-            <div className="text-[11px] tracking-[0.26em] text-white/55">INNER</div>
+            <div className="text-[11px] tracking-[0.26em] text-white/55">
+              INNER
+            </div>
             <div className="mt-1 text-sm text-white/70">내부 효과</div>
 
             <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {INNER_OPTIONS.map((opt) => {
+              {INNER_OPTIONS.map(opt => {
                 const selected = value.inner === opt.id;
 
                 return (
@@ -161,7 +169,9 @@ export default function EntityFrameSettingsModal({
                     ].join(" ")}
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <div className="text-sm font-semibold px-2">{opt.label}</div>
+                      <div className="text-sm font-semibold px-2">
+                        {opt.label}
+                      </div>
 
                       <div
                         className={[
@@ -171,7 +181,9 @@ export default function EntityFrameSettingsModal({
                             : "border-white/25 bg-transparent",
                         ].join(" ")}
                       >
-                        {selected && <div className="w-2.5 h-2.5 rounded-full bg-white" />}
+                        {selected && (
+                          <div className="w-2.5 h-2.5 rounded-full bg-white" />
+                        )}
                       </div>
                     </div>
 

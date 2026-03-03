@@ -26,7 +26,7 @@ function makeId() {
 function toTags(text: string) {
   return text
     .split(",")
-    .map((t) => t.trim())
+    .map(t => t.trim())
     .filter(Boolean);
 }
 
@@ -61,18 +61,22 @@ export default function WorldEventsTab({ world, editMode, updateWorld }: any) {
 
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
-    return events
-      .filter((e) => {
-        if (onlyTimeline && !e.showOnTimeline) return false;
-        if (!s) return true;
-        return (
-          (e.title || "").toLowerCase().includes(s) ||
-          (e.summary || "").toLowerCase().includes(s)
-        );
-      })
-      .slice()
-      // 대충 정렬(추후 chronology 기준 정렬 로직으로 교체 가능)
-      .sort((a, b) => (b.meta?.updatedAt || "").localeCompare(a.meta?.updatedAt || ""));
+    return (
+      events
+        .filter(e => {
+          if (onlyTimeline && !e.showOnTimeline) return false;
+          if (!s) return true;
+          return (
+            (e.title || "").toLowerCase().includes(s) ||
+            (e.summary || "").toLowerCase().includes(s)
+          );
+        })
+        .slice()
+        // 대충 정렬(추후 chronology 기준 정렬 로직으로 교체 가능)
+        .sort((a, b) =>
+          (b.meta?.updatedAt || "").localeCompare(a.meta?.updatedAt || "")
+        )
+    );
   }, [events, q, onlyTimeline]);
 
   const openCreate = () => {
@@ -83,7 +87,10 @@ export default function WorldEventsTab({ world, editMode, updateWorld }: any) {
       summary: "",
       description: "",
       tags: [],
-      date: { kind: "point", at: { eraId: world.chronology?.defaultEraId || "ERA", year: 0 } },
+      date: {
+        kind: "point",
+        at: { eraId: world.chronology?.defaultEraId || "ERA", year: 0 },
+      },
       showOnTimeline: true,
       importance: 3,
     };
@@ -127,7 +134,7 @@ export default function WorldEventsTab({ world, editMode, updateWorld }: any) {
 
     if (editingId) {
       updateWorld({
-        events: events.map((e) => (e.id === editingId ? { ...e, ...next } : e)),
+        events: events.map(e => (e.id === editingId ? { ...e, ...next } : e)),
       });
     } else {
       updateWorld({ events: [...events, next] });
@@ -136,7 +143,7 @@ export default function WorldEventsTab({ world, editMode, updateWorld }: any) {
   };
 
   const remove = (id: string) => {
-    updateWorld({ events: events.filter((e) => e.id !== id) });
+    updateWorld({ events: events.filter(e => e.id !== id) });
   };
 
   return (
@@ -165,7 +172,7 @@ export default function WorldEventsTab({ world, editMode, updateWorld }: any) {
           <Search className="w-4 h-4 text-white/40 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             value={q}
-            onChange={(e) => setQ(e.target.value)}
+            onChange={e => setQ(e.target.value)}
             placeholder="제목/요약 검색"
             className={`${uiInput} pl-9`}
           />
@@ -175,7 +182,7 @@ export default function WorldEventsTab({ world, editMode, updateWorld }: any) {
           <GButton
             variant={onlyTimeline ? "primary" : "neutral"}
             text={onlyTimeline ? "타임라인만" : "전체"}
-            onClick={() => setOnlyTimeline((v) => !v)}
+            onClick={() => setOnlyTimeline(v => !v)}
           />
         </div>
       </div>
@@ -187,7 +194,7 @@ export default function WorldEventsTab({ world, editMode, updateWorld }: any) {
             사건이 없습니다.
           </div>
         ) : (
-          filtered.map((e) => (
+          filtered.map(e => (
             <div
               key={e.id}
               className="rounded-2xl border border-white/10 bg-black/20 p-4"
@@ -195,9 +202,15 @@ export default function WorldEventsTab({ world, editMode, updateWorld }: any) {
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <div className="text-lg font-semibold truncate">{e.title}</div>
-                    {e.showOnTimeline && <HUDBadge tone="info">TIMELINE</HUDBadge>}
-                    {e.importance ? <HUDBadge>{`★ ${e.importance}`}</HUDBadge> : null}
+                    <div className="text-lg font-semibold truncate">
+                      {e.title}
+                    </div>
+                    {e.showOnTimeline && (
+                      <HUDBadge tone="info">TIMELINE</HUDBadge>
+                    )}
+                    {e.importance ? (
+                      <HUDBadge>{`★ ${e.importance}`}</HUDBadge>
+                    ) : null}
                   </div>
                   <div className="mt-1 text-xs text-white/55">
                     {formatDateRange(e.date)}
@@ -261,7 +274,7 @@ export default function WorldEventsTab({ world, editMode, updateWorld }: any) {
               <input
                 className={uiInput}
                 value={draft.title}
-                onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+                onChange={e => setDraft({ ...draft, title: e.target.value })}
               />
             </div>
 
@@ -271,7 +284,9 @@ export default function WorldEventsTab({ world, editMode, updateWorld }: any) {
                 <textarea
                   className={uiTextarea}
                   value={draft.summary}
-                  onChange={(e) => setDraft({ ...draft, summary: e.target.value })}
+                  onChange={e =>
+                    setDraft({ ...draft, summary: e.target.value })
+                  }
                   placeholder="한줄~두줄 요약"
                 />
               </div>
@@ -281,7 +296,9 @@ export default function WorldEventsTab({ world, editMode, updateWorld }: any) {
                 <input
                   className={uiInput}
                   value={(draft.tags || []).join(", ")}
-                  onChange={(e) => setDraft({ ...draft, tags: toTags(e.target.value) })}
+                  onChange={e =>
+                    setDraft({ ...draft, tags: toTags(e.target.value) })
+                  }
                 />
 
                 <div className="mt-3 grid grid-cols-2 gap-2">
@@ -289,7 +306,7 @@ export default function WorldEventsTab({ world, editMode, updateWorld }: any) {
                     <input
                       type="checkbox"
                       checked={draft.showOnTimeline}
-                      onChange={(e) =>
+                      onChange={e =>
                         setDraft({ ...draft, showOnTimeline: e.target.checked })
                       }
                     />
@@ -301,11 +318,14 @@ export default function WorldEventsTab({ world, editMode, updateWorld }: any) {
                     <select
                       className={uiInput}
                       value={draft.importance ?? 3}
-                      onChange={(e) =>
-                        setDraft({ ...draft, importance: Number(e.target.value) as any })
+                      onChange={e =>
+                        setDraft({
+                          ...draft,
+                          importance: Number(e.target.value) as any,
+                        })
                       }
                     >
-                      {[1, 2, 3, 4, 5].map((n) => (
+                      {[1, 2, 3, 4, 5].map(n => (
                         <option key={n} value={n}>
                           {n}
                         </option>
@@ -323,24 +343,33 @@ export default function WorldEventsTab({ world, editMode, updateWorld }: any) {
 
                 <div className="flex gap-2">
                   <GButton
-                    variant={draft.date?.kind === "point" ? "primary" : "neutral"}
+                    variant={
+                      draft.date?.kind === "point" ? "primary" : "neutral"
+                    }
                     text="POINT"
                     onClick={() =>
                       setDraft({
                         ...draft,
-                        date: { kind: "point", at: draft.date?.from || draft.date?.at || { eraId: "ERA", year: 0 } },
+                        date: {
+                          kind: "point",
+                          at: draft.date?.from ||
+                            draft.date?.at || { eraId: "ERA", year: 0 },
+                        },
                       })
                     }
                   />
                   <GButton
-                    variant={draft.date?.kind === "range" ? "primary" : "neutral"}
+                    variant={
+                      draft.date?.kind === "range" ? "primary" : "neutral"
+                    }
                     text="RANGE"
                     onClick={() =>
                       setDraft({
                         ...draft,
                         date: {
                           kind: "range",
-                          from: draft.date?.at || draft.date?.from || { eraId: "ERA", year: 0 },
+                          from: draft.date?.at ||
+                            draft.date?.from || { eraId: "ERA", year: 0 },
                           to: draft.date?.to,
                         },
                       })
@@ -357,7 +386,7 @@ export default function WorldEventsTab({ world, editMode, updateWorld }: any) {
                       <input
                         className={uiInput}
                         value={draft.date.at.eraId ?? ""}
-                        onChange={(e) =>
+                        onChange={e =>
                           setDraft({
                             ...draft,
                             date: {
@@ -375,12 +404,15 @@ export default function WorldEventsTab({ world, editMode, updateWorld }: any) {
                         type="number"
                         className={uiInput}
                         value={draft.date.at.year ?? 0}
-                        onChange={(e) =>
+                        onChange={e =>
                           setDraft({
                             ...draft,
                             date: {
                               kind: "point",
-                              at: { ...draft.date.at, year: Number(e.target.value) },
+                              at: {
+                                ...draft.date.at,
+                                year: Number(e.target.value),
+                              },
                             },
                           })
                         }
@@ -392,7 +424,7 @@ export default function WorldEventsTab({ world, editMode, updateWorld }: any) {
                       <input
                         className={uiInput}
                         value={draft.date.at.note ?? ""}
-                        onChange={(e) =>
+                        onChange={e =>
                           setDraft({
                             ...draft,
                             date: {
@@ -407,33 +439,43 @@ export default function WorldEventsTab({ world, editMode, updateWorld }: any) {
                 ) : (
                   <>
                     <div>
-                      <div className="text-xs text-white/60 mb-2">FROM (ERA)</div>
+                      <div className="text-xs text-white/60 mb-2">
+                        FROM (ERA)
+                      </div>
                       <input
                         className={uiInput}
                         value={draft.date.from.eraId ?? ""}
-                        onChange={(e) =>
+                        onChange={e =>
                           setDraft({
                             ...draft,
                             date: {
                               ...draft.date,
-                              from: { ...draft.date.from, eraId: e.target.value },
+                              from: {
+                                ...draft.date.from,
+                                eraId: e.target.value,
+                              },
                             },
                           })
                         }
                       />
                     </div>
                     <div>
-                      <div className="text-xs text-white/60 mb-2">FROM (YEAR)</div>
+                      <div className="text-xs text-white/60 mb-2">
+                        FROM (YEAR)
+                      </div>
                       <input
                         type="number"
                         className={uiInput}
                         value={draft.date.from.year ?? 0}
-                        onChange={(e) =>
+                        onChange={e =>
                           setDraft({
                             ...draft,
                             date: {
                               ...draft.date,
-                              from: { ...draft.date.from, year: Number(e.target.value) },
+                              from: {
+                                ...draft.date.from,
+                                year: Number(e.target.value),
+                              },
                             },
                           })
                         }
@@ -445,29 +487,37 @@ export default function WorldEventsTab({ world, editMode, updateWorld }: any) {
                       <input
                         className={uiInput}
                         value={draft.date.to?.eraId ?? ""}
-                        onChange={(e) =>
+                        onChange={e =>
                           setDraft({
                             ...draft,
                             date: {
                               ...draft.date,
-                              to: { ...(draft.date.to ?? { eraId: "", year: 0 }), eraId: e.target.value },
+                              to: {
+                                ...(draft.date.to ?? { eraId: "", year: 0 }),
+                                eraId: e.target.value,
+                              },
                             },
                           })
                         }
                       />
                     </div>
                     <div>
-                      <div className="text-xs text-white/60 mb-2">TO (YEAR)</div>
+                      <div className="text-xs text-white/60 mb-2">
+                        TO (YEAR)
+                      </div>
                       <input
                         type="number"
                         className={uiInput}
                         value={draft.date.to?.year ?? 0}
-                        onChange={(e) =>
+                        onChange={e =>
                           setDraft({
                             ...draft,
                             date: {
                               ...draft.date,
-                              to: { ...(draft.date.to ?? { eraId: "", year: 0 }), year: Number(e.target.value) },
+                              to: {
+                                ...(draft.date.to ?? { eraId: "", year: 0 }),
+                                year: Number(e.target.value),
+                              },
                             },
                           })
                         }
@@ -483,7 +533,9 @@ export default function WorldEventsTab({ world, editMode, updateWorld }: any) {
               <textarea
                 className={uiTextarea}
                 value={draft.description}
-                onChange={(e) => setDraft({ ...draft, description: e.target.value })}
+                onChange={e =>
+                  setDraft({ ...draft, description: e.target.value })
+                }
                 placeholder="상세 설명(플레이버/서술)"
               />
             </div>

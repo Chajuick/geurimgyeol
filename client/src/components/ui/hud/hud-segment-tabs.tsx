@@ -27,7 +27,7 @@ export default function HUDSegmentTabs<T extends string>(props: {
       role="tablist"
       aria-label="HUD tabs"
     >
-      {items.map((it) => {
+      {items.map(it => {
         const active = it.key === value;
 
         return (
@@ -49,7 +49,9 @@ export default function HUDSegmentTabs<T extends string>(props: {
               "focus-visible:ring-2 focus-visible:ring-amber-300/25 focus-visible:ring-offset-0",
 
               // ✅ 눌림(클릭 순간) 번쩍 통제
-              !active && !it.disabled ? "active:scale-[0.99] active:bg-white/7" : "",
+              !active && !it.disabled
+                ? "active:scale-[0.99] active:bg-white/7"
+                : "",
 
               it.disabled ? "opacity-40 cursor-not-allowed" : "",
               active ? "pointer-events-none" : "",
@@ -66,7 +68,12 @@ export default function HUDSegmentTabs<T extends string>(props: {
             aria-current={active ? "page" : undefined}
           >
             {it.icon ? (
-              <span className={cn("opacity-90", active ? "opacity-100" : "opacity-70")}>
+              <span
+                className={cn(
+                  "opacity-90",
+                  active ? "opacity-100" : "opacity-70"
+                )}
+              >
                 {it.icon}
               </span>
             ) : null}

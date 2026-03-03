@@ -63,7 +63,7 @@ export default function Sheet({
         )}
         role="dialog"
         aria-modal="true"
-        onClick={(e) => e.stopPropagation()}
+        onClick={e => e.stopPropagation()}
       >
         {/* header */}
         <div className="shrink-0 h-14 px-5 flex items-center justify-between border-b border-white/10">

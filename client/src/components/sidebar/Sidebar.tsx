@@ -13,6 +13,7 @@ import {
   UserRound,
   Sparkles,
   IdCard,
+  Swords,
 } from "lucide-react";
 import { useLocation } from "wouter";
 import { usePortfolioContext } from "@/contexts/PortfolioContext";
@@ -156,6 +157,7 @@ export default function Sidebar() {
       { label: "세계관", path: "/worlds", icon: Globe2 },
       { label: "캐릭터", path: "/characters", icon: UserRound },
       { label: "크리쳐", path: "/creatures", icon: Sparkles },
+      { label: "배틀", path: "/battle", icon: Swords },
       { label: "프로필", path: "/profile", icon: IdCard },
     ],
     []
@@ -245,8 +247,9 @@ export default function Sidebar() {
         open={resetOpen}
         title="초기화"
         description={
-          editMode ? 
-          "정말 초기화할까요?\n현재 데이터와 이미지가 삭제되고, seed.zip의 상태로 돌아갑니다." : "세계관을 동기화할까요?"
+          editMode
+            ? "정말 초기화할까요?\n현재 데이터와 이미지가 삭제되고, seed.zip의 상태로 돌아갑니다."
+            : "세계관을 동기화할까요?"
         }
         confirmText="초기화"
         cancelText="취소"

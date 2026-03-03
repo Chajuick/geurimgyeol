@@ -4,9 +4,7 @@
   "status": {
     "version": "2.0",
     "lastUpdated": "2026-02-24T02:58:29.854Z",
-    "activeFeatures": [
-      "client"
-    ],
+    "activeFeatures": ["client"],
     "primaryFeature": "client",
     "features": {
       "client": {
