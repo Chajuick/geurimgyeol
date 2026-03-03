@@ -11,11 +11,7 @@ type Props = {
   className?: string;
 };
 
-export default function WorldThumbCard({
-  name,
-  image,
-  className = "",
-}: Props) {
+export default function WorldThumbCard({ name, image, className = "" }: Props) {
   const resolved = useResolvedImage(image || "");
 
   return (
@@ -28,7 +24,11 @@ export default function WorldThumbCard({
         title={name || ""}
       >
         {resolved ? (
-          <img src={resolved} alt={name || ""} className="w-full h-full object-cover" />
+          <img
+            src={resolved}
+            alt={name || ""}
+            className="w-full h-full object-cover"
+          />
         ) : (
           <div className="w-full h-full grid place-items-center text-[10px] text-white/40">
             NO

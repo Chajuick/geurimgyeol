@@ -10,7 +10,11 @@ function makeId() {
   return Date.now().toString();
 }
 
-export default function WorldChronologyTab({ world, editMode, updateWorld }: any) {
+export default function WorldChronologyTab({
+  world,
+  editMode,
+  updateWorld,
+}: any) {
   const chronology = world.chronology ?? {
     eras: [],
     yearSuffixes: [],
@@ -53,7 +57,9 @@ export default function WorldChronologyTab({ world, editMode, updateWorld }: any
     updateWorld({
       chronology: {
         ...chronology,
-        eras: [...eras, next].sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0)),
+        eras: [...eras, next].sort(
+          (a: any, b: any) => (a.order ?? 0) - (b.order ?? 0)
+        ),
       },
     });
     setOpenEra(false);
@@ -65,7 +71,8 @@ export default function WorldChronologyTab({ world, editMode, updateWorld }: any
       chronology: {
         ...chronology,
         eras: eras.filter((e: any) => e.id !== id),
-        defaultEraId: chronology.defaultEraId === id ? undefined : chronology.defaultEraId,
+        defaultEraId:
+          chronology.defaultEraId === id ? undefined : chronology.defaultEraId,
       },
     });
   };
@@ -81,7 +88,9 @@ export default function WorldChronologyTab({ world, editMode, updateWorld }: any
     updateWorld({
       chronology: {
         ...chronology,
-        yearSuffixes: [...suffixes, next].sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0)),
+        yearSuffixes: [...suffixes, next].sort(
+          (a: any, b: any) => (a.order ?? 0) - (b.order ?? 0)
+        ),
       },
     });
     setOpenSuffix(false);
@@ -93,7 +102,10 @@ export default function WorldChronologyTab({ world, editMode, updateWorld }: any
       chronology: {
         ...chronology,
         yearSuffixes: suffixes.filter((s: any) => s.id !== id),
-        defaultSuffixId: chronology.defaultSuffixId === id ? undefined : chronology.defaultSuffixId,
+        defaultSuffixId:
+          chronology.defaultSuffixId === id
+            ? undefined
+            : chronology.defaultSuffixId,
       },
     });
   };
@@ -137,7 +149,9 @@ export default function WorldChronologyTab({ world, editMode, updateWorld }: any
           <select
             className={uiInput}
             value={chronology.defaultEraId ?? ""}
-            onChange={(e) => setDefaults({ defaultEraId: e.target.value || undefined })}
+            onChange={e =>
+              setDefaults({ defaultEraId: e.target.value || undefined })
+            }
             disabled={!editMode}
           >
             <option value="">(없음)</option>
@@ -154,7 +168,9 @@ export default function WorldChronologyTab({ world, editMode, updateWorld }: any
           <select
             className={uiInput}
             value={chronology.defaultSuffixId ?? ""}
-            onChange={(e) => setDefaults({ defaultSuffixId: e.target.value || undefined })}
+            onChange={e =>
+              setDefaults({ defaultSuffixId: e.target.value || undefined })
+            }
             disabled={!editMode}
           >
             <option value="">(없음)</option>
@@ -171,7 +187,7 @@ export default function WorldChronologyTab({ world, editMode, updateWorld }: any
           <select
             className={uiInput}
             value={chronology.displayFormat ?? "prefix-first"}
-            onChange={(e) => setDefaults({ displayFormat: e.target.value })}
+            onChange={e => setDefaults({ displayFormat: e.target.value })}
             disabled={!editMode}
           >
             <option value="prefix-first">prefix-first</option>
@@ -193,10 +209,14 @@ export default function WorldChronologyTab({ world, editMode, updateWorld }: any
               <div className="text-sm text-white/55">ERA가 없습니다.</div>
             ) : (
               eras.map((e: any) => (
-                <div key={e.id} className="rounded-xl border border-white/10 bg-black/10 p-3 flex items-center justify-between gap-3">
+                <div
+                  key={e.id}
+                  className="rounded-xl border border-white/10 bg-black/10 p-3 flex items-center justify-between gap-3"
+                >
                   <div className="min-w-0">
                     <div className="text-sm text-white/80 truncate">
-                      {e.name} <span className="text-white/45 text-xs">({e.id})</span>
+                      {e.name}{" "}
+                      <span className="text-white/45 text-xs">({e.id})</span>
                     </div>
                     <div className="text-xs text-white/45">
                       mode: {e.mode} / order: {e.order ?? 0}
@@ -220,7 +240,9 @@ export default function WorldChronologyTab({ world, editMode, updateWorld }: any
 
         <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
           <div className="flex items-center justify-between">
-            <div className="text-xs tracking-[0.26em] text-white/55">YEAR SUFFIX</div>
+            <div className="text-xs tracking-[0.26em] text-white/55">
+              YEAR SUFFIX
+            </div>
             <HUDBadge>{`TOTAL ${suffixes.length}`}</HUDBadge>
           </div>
 
@@ -229,10 +251,14 @@ export default function WorldChronologyTab({ world, editMode, updateWorld }: any
               <div className="text-sm text-white/55">Suffix가 없습니다.</div>
             ) : (
               suffixes.map((s: any) => (
-                <div key={s.id} className="rounded-xl border border-white/10 bg-black/10 p-3 flex items-center justify-between gap-3">
+                <div
+                  key={s.id}
+                  className="rounded-xl border border-white/10 bg-black/10 p-3 flex items-center justify-between gap-3"
+                >
                   <div className="min-w-0">
                     <div className="text-sm text-white/80 truncate">
-                      {s.label} <span className="text-white/45 text-xs">({s.id})</span>
+                      {s.label}{" "}
+                      <span className="text-white/45 text-xs">({s.id})</span>
                     </div>
                     <div className="text-xs text-white/45">
                       order: {s.order ?? 0}
@@ -263,7 +289,11 @@ export default function WorldChronologyTab({ world, editMode, updateWorld }: any
         maxWidthClassName="max-w-xl"
         footer={
           <div className="flex justify-end gap-2">
-            <GButton variant="neutral" text="취소" onClick={() => setOpenEra(false)} />
+            <GButton
+              variant="neutral"
+              text="취소"
+              onClick={() => setOpenEra(false)}
+            />
             <GButton variant="primary" text="추가" onClick={addEra} />
           </div>
         }
@@ -271,25 +301,50 @@ export default function WorldChronologyTab({ world, editMode, updateWorld }: any
         <div className="space-y-3">
           <div>
             <div className="text-xs text-white/60 mb-2">id (비우면 자동)</div>
-            <input className={uiInput} value={eraDraft.id} onChange={(e) => setEraDraft({ ...eraDraft, id: e.target.value })} />
+            <input
+              className={uiInput}
+              value={eraDraft.id}
+              onChange={e => setEraDraft({ ...eraDraft, id: e.target.value })}
+            />
           </div>
           <div>
             <div className="text-xs text-white/60 mb-2">name</div>
-            <input className={uiInput} value={eraDraft.name} onChange={(e) => setEraDraft({ ...eraDraft, name: e.target.value })} />
+            <input
+              className={uiInput}
+              value={eraDraft.name}
+              onChange={e => setEraDraft({ ...eraDraft, name: e.target.value })}
+            />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <div className="text-xs text-white/60 mb-2">short</div>
-              <input className={uiInput} value={eraDraft.short} onChange={(e) => setEraDraft({ ...eraDraft, short: e.target.value })} />
+              <input
+                className={uiInput}
+                value={eraDraft.short}
+                onChange={e =>
+                  setEraDraft({ ...eraDraft, short: e.target.value })
+                }
+              />
             </div>
             <div>
               <div className="text-xs text-white/60 mb-2">order</div>
-              <input type="number" className={uiInput} value={eraDraft.order} onChange={(e) => setEraDraft({ ...eraDraft, order: Number(e.target.value) })} />
+              <input
+                type="number"
+                className={uiInput}
+                value={eraDraft.order}
+                onChange={e =>
+                  setEraDraft({ ...eraDraft, order: Number(e.target.value) })
+                }
+              />
             </div>
           </div>
           <div>
             <div className="text-xs text-white/60 mb-2">mode</div>
-            <select className={uiInput} value={eraDraft.mode} onChange={(e) => setEraDraft({ ...eraDraft, mode: e.target.value })}>
+            <select
+              className={uiInput}
+              value={eraDraft.mode}
+              onChange={e => setEraDraft({ ...eraDraft, mode: e.target.value })}
+            >
               <option value="signed-year">signed-year</option>
               <option value="named-era">named-era</option>
             </select>
@@ -305,7 +360,11 @@ export default function WorldChronologyTab({ world, editMode, updateWorld }: any
         maxWidthClassName="max-w-xl"
         footer={
           <div className="flex justify-end gap-2">
-            <GButton variant="neutral" text="취소" onClick={() => setOpenSuffix(false)} />
+            <GButton
+              variant="neutral"
+              text="취소"
+              onClick={() => setOpenSuffix(false)}
+            />
             <GButton variant="primary" text="추가" onClick={addSuffix} />
           </div>
         }
@@ -313,15 +372,32 @@ export default function WorldChronologyTab({ world, editMode, updateWorld }: any
         <div className="space-y-3">
           <div>
             <div className="text-xs text-white/60 mb-2">id (비우면 자동)</div>
-            <input className={uiInput} value={sufDraft.id} onChange={(e) => setSufDraft({ ...sufDraft, id: e.target.value })} />
+            <input
+              className={uiInput}
+              value={sufDraft.id}
+              onChange={e => setSufDraft({ ...sufDraft, id: e.target.value })}
+            />
           </div>
           <div>
             <div className="text-xs text-white/60 mb-2">label</div>
-            <input className={uiInput} value={sufDraft.label} onChange={(e) => setSufDraft({ ...sufDraft, label: e.target.value })} />
+            <input
+              className={uiInput}
+              value={sufDraft.label}
+              onChange={e =>
+                setSufDraft({ ...sufDraft, label: e.target.value })
+              }
+            />
           </div>
           <div>
             <div className="text-xs text-white/60 mb-2">order</div>
-            <input type="number" className={uiInput} value={sufDraft.order} onChange={(e) => setSufDraft({ ...sufDraft, order: Number(e.target.value) })} />
+            <input
+              type="number"
+              className={uiInput}
+              value={sufDraft.order}
+              onChange={e =>
+                setSufDraft({ ...sufDraft, order: Number(e.target.value) })
+              }
+            />
           </div>
         </div>
       </Modal>

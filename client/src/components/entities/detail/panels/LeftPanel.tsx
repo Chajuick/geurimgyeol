@@ -31,7 +31,7 @@ export default function LeftPanel<T extends EntityBase>(props: {
     shadowOn,
     onOpenBasic,
     profileUrl,
-    onClickProfile
+    onClickProfile,
   } = props;
 
   return (
@@ -45,14 +45,17 @@ export default function LeftPanel<T extends EntityBase>(props: {
             style={
               primaryHex
                 ? ({
-                  ["--glow" as any]: `${primaryHex}55`,
-                } as React.CSSProperties)
+                    ["--glow" as any]: `${primaryHex}55`,
+                  } as React.CSSProperties)
                 : undefined
             }
           >
             <div className="entityInner pt-4 md:p-0">
               <div
-                className={["entityGlow", shadowOn ? "entityGlow--on" : ""].join(" ")}
+                className={[
+                  "entityGlow",
+                  shadowOn ? "entityGlow--on" : "",
+                ].join(" ")}
                 style={{
                   WebkitMaskImage: `url("${displayed}")`,
                   maskImage: `url("${displayed}")`,
@@ -109,13 +112,19 @@ export default function LeftPanel<T extends EntityBase>(props: {
         >
           <div className="flex flex-row items-end">
             <div className="mr-4 flex-shrink-0">
-              <MiddlePanel entity={entity} profileUrl={profileUrl} onClickProfile={onClickProfile} />
+              <MiddlePanel
+                entity={entity}
+                profileUrl={profileUrl}
+                onClickProfile={onClickProfile}
+              />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2 min-w-0">
                 <div className="min-w-0 flex-1">
                   <OverflowMarquee active={true} className="w-full">
-                    <span className="marquee-text name text-3xl font-extrabold">{entity.name}</span>
+                    <span className="marquee-text name text-3xl font-extrabold">
+                      {entity.name}
+                    </span>
                   </OverflowMarquee>
                 </div>
 
@@ -134,7 +143,9 @@ export default function LeftPanel<T extends EntityBase>(props: {
               <div className="my-2 min-w-0">
                 <OverflowMarquee active={true} className="w-full">
                   <span className="marquee-text tags text-sm">
-                    {subCategories?.length ? subCategories.join(" · ") : "태그 없음"}
+                    {subCategories?.length
+                      ? subCategories.join(" · ")
+                      : "태그 없음"}
                   </span>
                 </OverflowMarquee>
               </div>

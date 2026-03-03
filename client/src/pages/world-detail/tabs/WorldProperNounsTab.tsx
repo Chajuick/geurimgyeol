@@ -9,11 +9,14 @@ import { DEFAULT_WORLD_PROPER_NOUN_KINDS } from "@/lib/defaultData";
 
 import ProperNounCard from "./proper-nouns/ProperNounCard";
 import ProperNounDetailModal from "./proper-nouns/ProperNounDetailModal";
-import ProperNounKindsModal, { KindDef } from "./proper-nouns/ProperNounKindsModal";
+import ProperNounKindsModal, {
+  KindDef,
+} from "./proper-nouns/ProperNounKindsModal";
 import { cn } from "@/lib/utils";
 
 function makeId() {
-  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto)
+    return crypto.randomUUID();
   return `${Date.now()}_${Math.random().toString(16).slice(2)}`;
 }
 
@@ -51,7 +54,7 @@ function normalizeEntryToDraft(args: {
 
   const defaultKind =
     worldDefaultKindId ??
-    kinds.find((k) => k.id === "concept")?.id ??
+    kinds.find(k => k.id === "concept")?.id ??
     kinds[0]?.id ??
     "other";
 
@@ -74,7 +77,9 @@ function normalizeEntryToDraft(args: {
   };
 
   const kid = getEntryKindId(base);
-  const safeKid = kinds.some((k) => String(k.id) === String(kid)) ? kid : defaultKind;
+  const safeKid = kinds.some(k => String(k.id) === String(kid))
+    ? kid
+    : defaultKind;
 
   return {
     ...base,
@@ -97,7 +102,12 @@ function normalizeEntryToDraft(args: {
   };
 }
 
-export default function WorldProperNounsTab({ world, editMode, updateWorld, data }: any) {
+export default function WorldProperNounsTab({
+  world,
+  editMode,
+  updateWorld,
+  data,
+}: any) {
   const [createDraft, setCreateDraft] = useState<any | null>(null);
 
   const [q, setQ] = useState("");
@@ -120,25 +130,30 @@ export default function WorldProperNounsTab({ world, editMode, updateWorld, data
 
   const nounById = useMemo(() => {
     const m = new Map<string, any>();
-    nouns.forEach((n) => m.set(String(n.id), n));
+    nouns.forEach(n => m.set(String(n.id), n));
     return m;
   }, [nouns]);
 
   // kinds: world > fallback
   const kinds = useMemo<KindDef[]>(() => {
     const list =
-      (world.properNounKinds?.length ? world.properNounKinds : DEFAULT_WORLD_PROPER_NOUN_KINDS) ??
-      [];
+      (world.properNounKinds?.length
+        ? world.properNounKinds
+        : DEFAULT_WORLD_PROPER_NOUN_KINDS) ?? [];
 
     const hasOther = list.some((k: any) => String(k.id) === "other");
-    const withOther = hasOther ? list : [...list, { id: "other", label: "기타", meta: { order: 999 } }];
+    const withOther = hasOther
+      ? list
+      : [...list, { id: "other", label: "기타", meta: { order: 999 } }];
 
-    return [...withOther].sort((a: any, b: any) => (a.meta?.order ?? 0) - (b.meta?.order ?? 0));
+    return [...withOther].sort(
+      (a: any, b: any) => (a.meta?.order ?? 0) - (b.meta?.order ?? 0)
+    );
   }, [world.properNounKinds]);
 
   const kindLabelMap = useMemo(() => {
     const m = new Map<string, string>();
-    kinds.forEach((k) => m.set(String(k.id), String(k.label ?? k.id)));
+    kinds.forEach(k => m.set(String(k.id), String(k.label ?? k.id)));
     return m;
   }, [kinds]);
 
@@ -152,7 +167,7 @@ export default function WorldProperNounsTab({ world, editMode, updateWorld, data
    * - 매 렌더마다 toLowerCase/join 반복 제거
    */
   const prepared = useMemo(() => {
-    return nouns.map((n) => {
+    return nouns.map(n => {
       const title = String(n.title ?? "");
       const summary = String(n.summary ?? "");
       const desc = String(n.description ?? "");
@@ -172,9 +187,9 @@ export default function WorldProperNounsTab({ world, editMode, updateWorld, data
     const s = (qDebounced || "").trim().toLowerCase();
 
     return prepared
-      .filter((x) => (kind === "all" ? true : x.kid === kind))
-      .filter((x) => (!s ? true : x.hay.includes(s)))
-      .map((x) => x.n);
+      .filter(x => (kind === "all" ? true : x.kid === kind))
+      .filter(x => (!s ? true : x.hay.includes(s)))
+      .map(x => x.n);
   }, [prepared, qDebounced, kind]);
 
   const openCreate = useCallback(() => {
@@ -244,7 +259,10 @@ export default function WorldProperNounsTab({ world, editMode, updateWorld, data
   }, []);
 
   const removeEntry = useCallback(
-    (id: string) => updateWorld({ properNouns: nouns.filter((n) => String(n.id) !== String(id)) }),
+    (id: string) =>
+      updateWorld({
+        properNouns: nouns.filter(n => String(n.id) !== String(id)),
+      }),
     [updateWorld, nouns]
   );
 
@@ -252,7 +270,9 @@ export default function WorldProperNounsTab({ world, editMode, updateWorld, data
     (nextEntry: any, editingId: string | null) => {
       if (editingId) {
         updateWorld({
-          properNouns: nouns.map((n) => (String(n.id) === String(editingId) ? { ...n, ...nextEntry } : n)),
+          properNouns: nouns.map(n =>
+            String(n.id) === String(editingId) ? { ...n, ...nextEntry } : n
+          ),
         });
       } else {
         updateWorld({ properNouns: [...nouns, nextEntry] });
@@ -324,7 +344,7 @@ export default function WorldProperNounsTab({ world, editMode, updateWorld, data
           <Search className="w-4 h-4 text-white/40 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             value={q}
-            onChange={(e) => setQ(e.target.value)}
+            onChange={e => setQ(e.target.value)}
             placeholder="제목/요약/본문/태그 검색"
             className={cn(uiInput, "pl-9")}
           />
@@ -353,7 +373,7 @@ export default function WorldProperNounsTab({ world, editMode, updateWorld, data
             />
           </div>
 
-          {kinds.map((k) => (
+          {kinds.map(k => (
             <div key={k.id} className="snap-start shrink-0">
               <GButton
                 variant={kind === k.id ? "primary" : "neutral"}
@@ -384,7 +404,7 @@ export default function WorldProperNounsTab({ world, editMode, updateWorld, data
               항목이 없습니다.
             </div>
           ) : (
-            filtered.map((n) => {
+            filtered.map(n => {
               const kid = getEntryKindId(n);
               return (
                 <ProperNounCard

@@ -49,7 +49,7 @@ function AddWorldItemModalBase(props: Props) {
   const shownItems = useMemo(() => {
     const q = deferredSearch.trim().toLowerCase();
     if (!q) return items;
-    return items.filter((it) => (it.name ?? "").toLowerCase().includes(q));
+    return items.filter(it => (it.name ?? "").toLowerCase().includes(q));
   }, [items, deferredSearch]);
 
   const footer = useMemo(
@@ -110,7 +110,7 @@ function AddWorldItemModalBase(props: Props) {
           </div>
         ) : (
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
-            {shownItems.map((item) => (
+            {shownItems.map(item => (
               <AddItemCard
                 key={item.id}
                 id={item.id}

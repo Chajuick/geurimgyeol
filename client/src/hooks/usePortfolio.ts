@@ -23,11 +23,11 @@ function collectImageKeys(obj: any, out = new Set<string>()) {
   if (!obj || typeof obj !== "object") return out;
 
   if (Array.isArray(obj)) {
-    obj.forEach((v) => collectImageKeys(v, out));
+    obj.forEach(v => collectImageKeys(v, out));
     return out;
   }
 
-  Object.values(obj).forEach((v) => collectImageKeys(v, out));
+  Object.values(obj).forEach(v => collectImageKeys(v, out));
   return out;
 }
 
@@ -52,7 +52,9 @@ function migratePortfolioData(raw: any): PortfolioData {
     profile: { ...base.profile, ...(raw.profile ?? {}) },
     settings: { ...base.settings, ...(raw.settings ?? {}) },
     worlds: Array.isArray(raw.worlds) ? raw.worlds : base.worlds,
-    characters: Array.isArray(raw.characters) ? raw.characters : base.characters,
+    characters: Array.isArray(raw.characters)
+      ? raw.characters
+      : base.characters,
     creatures: Array.isArray(raw.creatures) ? raw.creatures : base.creatures,
   };
 
@@ -74,8 +76,10 @@ function migratePortfolioData(raw: any): PortfolioData {
   const creDefault =
     creSet.defaultTierId ?? creSet.tiers[0]?.id ?? "threat_default";
 
-  const labelToCharId = new Map((charSet.tiers ?? []).map((t) => [t.label, t.id]));
-  const labelToCreId = new Map((creSet.tiers ?? []).map((t) => [t.label, t.id]));
+  const labelToCharId = new Map(
+    (charSet.tiers ?? []).map(t => [t.label, t.id])
+  );
+  const labelToCreId = new Map((creSet.tiers ?? []).map(t => [t.label, t.id]));
 
   merged.characters = (merged.characters ?? []).map((c: any) => ({
     ...c,
@@ -181,7 +185,7 @@ export function usePortfolio() {
   /** ✅ 내부 set + 저장 (값/함수 업데이터 둘 다 지원) */
   const setData = useCallback(
     (next: PortfolioData | ((prev: PortfolioData) => PortfolioData)) => {
-      _setData((prev) => {
+      _setData(prev => {
         const computed =
           typeof next === "function"
             ? (next as (p: PortfolioData) => PortfolioData)(prev)
@@ -224,7 +228,7 @@ export function usePortfolio() {
         try {
           const seedFile = await fetchSeedZipAsFile();
 
-          await importZipToStorage(seedFile, (next) => {
+          await importZipToStorage(seedFile, next => {
             if (cancelled) return;
             _setData(next);
             persistToStorage(next);
@@ -298,7 +302,7 @@ export function usePortfolio() {
   /** ✅ ZIP 가져오기 (교체 import) */
   const importFromZip = useCallback(
     async (file: File) => {
-      await importZipToStorage(file, (next) => {
+      await importZipToStorage(file, next => {
         setData(next);
       });
     },
@@ -320,7 +324,7 @@ export function usePortfolio() {
 
     try {
       const seedFile = await fetchSeedZipAsFile();
-      await importZipToStorage(seedFile, (next) => {
+      await importZipToStorage(seedFile, next => {
         _setData(next);
         persistToStorage(next);
       });

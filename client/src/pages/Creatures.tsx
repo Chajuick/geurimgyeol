@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Plus, Pencil, SlidersHorizontal } from "lucide-react";
 
 import { usePortfolioContext } from "@/contexts/PortfolioContext";
@@ -13,12 +19,7 @@ import CategoryGroupEditModal, {
   CategoryGroup,
 } from "@/components/entities/category-group-edit-modal";
 
-import type {
-  CreatureData,
-  ID,
-  CategoryItem,
-  FramePresetId,
-} from "@/types";
+import type { CreatureData, ID, CategoryItem, FramePresetId } from "@/types";
 
 import { cn } from "@/lib/utils";
 import { OUTER_PRESETS } from "@/lib/framePresets";
@@ -48,11 +49,11 @@ function makeId(): ID {
 
 /** SettingsData(CategoryItem[]) -> UI(CategoryGroup[]) 어댑터 */
 function toCategoryGroups(items: CategoryItem[] = []): CategoryGroup[] {
-  return items.map((x) => ({ main: x.main, subs: x.subs || [] }));
+  return items.map(x => ({ main: x.main, subs: x.subs || [] }));
 }
 /** UI(CategoryGroup[]) -> SettingsData(CategoryItem[]) 어댑터 */
 function toCategoryItems(groups: CategoryGroup[] = []): CategoryItem[] {
-  return groups.map((g) => ({ main: g.main, subs: g.subs || [] }));
+  return groups.map(g => ({ main: g.main, subs: g.subs || [] }));
 }
 
 /** ✅ 프레임 draft: OUTER 1개 + INNER 1개 */
@@ -145,7 +146,8 @@ export default function Creatures() {
       };
 
       const prevObj = prevCache.get(id);
-      const reused = prevObj && creatureEqual(prevObj, nextObj) ? prevObj : nextObj;
+      const reused =
+        prevObj && creatureEqual(prevObj, nextObj) ? prevObj : nextObj;
 
       nextCache.set(id, reused);
       return reused;
@@ -190,22 +192,24 @@ export default function Creatures() {
     };
   }, [data.settings]);
 
-  const [frameDraft, setFrameDraft] = useState<FrameDraft>(() => currentSelected);
+  const [frameDraft, setFrameDraft] = useState<FrameDraft>(
+    () => currentSelected
+  );
 
   useEffect(() => {
     setFrameDraft(currentSelected);
   }, [currentSelected]);
 
   const setOuter = useCallback((id: FramePresetId) => {
-    setFrameDraft((prev) => ({ ...prev, outer: id }));
+    setFrameDraft(prev => ({ ...prev, outer: id }));
   }, []);
 
   const setInner = useCallback((id: FramePresetId) => {
-    setFrameDraft((prev) => ({ ...prev, inner: id }));
+    setFrameDraft(prev => ({ ...prev, inner: id }));
   }, []);
 
   const saveFrameSettings = useCallback(() => {
-    setData((prev) => {
+    setData(prev => {
       const prevSettings: any = prev.settings ?? {};
       const prevFrameSettings: any = prevSettings.frameSettings ?? {};
       const prevCreaturesFS: any = prevFrameSettings.creatures ?? {};
@@ -239,7 +243,7 @@ export default function Creatures() {
   // categories save handler
   const handleSaveCategories = useCallback(
     (nextGroups: CategoryGroup[]) => {
-      setData((prev) => ({
+      setData(prev => ({
         ...prev,
         settings: {
           ...(prev.settings ?? {}),
@@ -252,7 +256,9 @@ export default function Creatures() {
 
   // category modal state
   const [isEditingCategory, setIsEditingCategory] = useState(false);
-  const [draftCategories, setDraftCategories] = useState<CategoryGroup[]>(() => categories);
+  const [draftCategories, setDraftCategories] = useState<CategoryGroup[]>(
+    () => categories
+  );
 
   useEffect(() => {
     if (isEditingCategory) setDraftCategories(categories);
@@ -273,22 +279,25 @@ export default function Creatures() {
   // 크리쳐별 subCategories Set 캐시
   const charSubSet = useMemo(() => {
     const m = new Map<ID, Set<string>>();
-    for (const c of creaturesNormalized) m.set(c.id, new Set(c.subCategories || []));
+    for (const c of creaturesNormalized)
+      m.set(c.id, new Set(c.subCategories || []));
     return m;
   }, [creaturesNormalized]);
 
   const filtered = useMemo(() => {
     const activeMainSubsArr =
-      activeMain === ALL ? null : Array.from(mainToSubsSet.get(activeMain) || []);
+      activeMain === ALL
+        ? null
+        : Array.from(mainToSubsSet.get(activeMain) || []);
 
-    return creaturesNormalized.filter((c) => {
+    return creaturesNormalized.filter(c => {
       const subs = charSubSet.get(c.id) || new Set<string>();
 
       const mainOk =
         activeMain === ALL
           ? true
           : activeMainSubsArr
-            ? activeMainSubsArr.some((s) => subs.has(s))
+            ? activeMainSubsArr.some(s => subs.has(s))
             : true;
 
       const subOk = activeSub === ALL ? true : subs.has(activeSub);
@@ -302,13 +311,13 @@ export default function Creatures() {
       setSelectedId(null);
       return;
     }
-    const stillExists = filtered.some((c) => c.id === selectedId);
+    const stillExists = filtered.some(c => c.id === selectedId);
     if (!stillExists) setSelectedId(filtered[0]?.id || null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filtered, selectedId]);
 
   const viewModalChar = useMemo(
-    () => creaturesNormalized.find((c) => c.id === viewModalId) || null,
+    () => creaturesNormalized.find(c => c.id === viewModalId) || null,
     [creaturesNormalized, viewModalId]
   );
 
@@ -326,11 +335,13 @@ export default function Creatures() {
   /** ✅ 저장 시에도 신 스키마로 고정(sanitize) */
   const updateCreatures = useCallback(
     (next: CreatureData[]) => {
-      setData((prev) => ({
+      setData(prev => ({
         ...prev,
-        creatures: next.map((c) => ({
+        creatures: next.map(c => ({
           ...c,
-          rankId: (c.rankId || defaultRankIdResolved || ("rank_default" as ID)) as ID,
+          rankId: (c.rankId ||
+            defaultRankIdResolved ||
+            ("rank_default" as ID)) as ID,
           subCategories: c.subCategories || [],
 
           subImages: sanitizeSubImages(c.subImages) as any,
@@ -375,11 +386,11 @@ export default function Creatures() {
 
   const deleteCreature = useCallback(
     (id: ID) => {
-      const next = creaturesNormalized.filter((c) => c.id !== id);
+      const next = creaturesNormalized.filter(c => c.id !== id);
       updateCreatures(next);
 
       setSelectedId((next[0]?.id as ID) || null);
-      setViewModalId((cur) => (cur === id ? null : cur));
+      setViewModalId(cur => (cur === id ? null : cur));
       setViewSubIndex(0);
     },
     [creaturesNormalized, updateCreatures]
@@ -387,7 +398,7 @@ export default function Creatures() {
 
   const patchCreature = useCallback(
     (id: ID, patch: Partial<CreatureData>) => {
-      const next = creaturesNormalized.map((c) =>
+      const next = creaturesNormalized.map(c =>
         c.id === id ? ({ ...c, ...patch } as CreatureData) : c
       );
       updateCreatures(next);
@@ -427,8 +438,8 @@ export default function Creatures() {
         )}
       >
         {/* TOP BAR (✅ 모바일: 줄바꿈/스크롤 자연스럽게) */}
-        <div className="shrink-0">
-          <div className="flex flex-row items-center md:justify-between gap-3">
+        <div className="flex items-center shrink-0 h-10 w-full">
+          <div className="flex flex-row items-center md:justify-between gap-3 w-full">
             {/* badges */}
             <div
               className={cn(
@@ -437,7 +448,11 @@ export default function Creatures() {
                 "max-w-full"
               )}
             >
-              {editMode ? <HUDBadge tone="warn">EDIT</HUDBadge> : <HUDBadge>VIEW</HUDBadge>}
+              {editMode ? (
+                <HUDBadge tone="warn">EDIT</HUDBadge>
+              ) : (
+                <HUDBadge>VIEW</HUDBadge>
+              )}
             </div>
 
             {/* actions */}
@@ -465,10 +480,14 @@ export default function Creatures() {
           <div className="flex flex-col gap-3 min-w-0">
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 min-w-0">
               <div className="min-w-0">
-                <div className="text-[11px] tracking-[0.26em] text-white/55">CREATURES</div>
-                <div className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight">크리쳐 소개</div>
+                <div className="text-[11px] tracking-[0.26em] text-white/55">
+                  CREATURES
+                </div>
+                <div className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight">
+                  크리쳐 소개
+                </div>
                 <div className="mt-2 text-sm text-white/60">
-                  세계관의 크리쳐들을 살펴보세요.
+                  세계 각지에서 확인된 생명체 기록입니다.
                 </div>
               </div>
 
@@ -503,8 +522,12 @@ export default function Creatures() {
               <HUDPanel className="p-6">
                 <div className="flex items-center justify-between gap-3 flex-wrap">
                   <div>
-                    <div className="text-[11px] tracking-[0.26em] text-white/55">GRID</div>
-                    <div className="mt-1 text-sm text-white/60">선택 / 상세 열기</div>
+                    <div className="text-[11px] tracking-[0.26em] text-white/55">
+                      GRID
+                    </div>
+                    <div className="mt-1 text-sm text-white/60">
+                      선택 / 상세 열기
+                    </div>
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -516,7 +539,9 @@ export default function Creatures() {
                 <div className="mt-5 sm:mt-6">
                   {filtered.length === 0 ? (
                     <div className="rounded-2xl border border-white/10 bg-black/20 p-6 sm:p-8 text-center">
-                      <div className="text-sm text-white/55">해당 카테고리에 크리쳐가 없습니다.</div>
+                      <div className="text-sm text-white/55">
+                        해당 카테고리에 크리쳐가 없습니다.
+                      </div>
                       {editMode && (
                         <div className="mt-4 flex justify-center">
                           <GButton
@@ -540,7 +565,7 @@ export default function Creatures() {
                         "xl:grid-cols-7"
                       )}
                     >
-                      {filtered.map((c) => (
+                      {filtered.map(c => (
                         <EntityGridCard
                           key={c.id}
                           id={c.id}
@@ -608,7 +633,7 @@ export default function Creatures() {
           }}
           editable={editMode}
           onDelete={() => setConfirmDeleteId(viewModalChar.id)}
-          onPatch={(p) => patchCreature(viewModalChar.id, p as any)}
+          onPatch={p => patchCreature(viewModalChar.id, p as any)}
           tagOptions={subTagOptions}
         />
       )}

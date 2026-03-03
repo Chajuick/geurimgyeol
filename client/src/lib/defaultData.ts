@@ -87,14 +87,13 @@ export const DEFAULT_PORTFOLIO_DATA: PortfolioData = {
   },
 };
 
-
 export const DEFAULT_WORLD_PROPER_NOUN_KINDS: WorldProperNounKindDef[] = [
-  { id: "place",        label: "장소", meta: { order: 10 } },
+  { id: "place", label: "장소", meta: { order: 10 } },
   { id: "organization", label: "조직", meta: { order: 20 } },
-  { id: "equipment",    label: "장비", meta: { order: 30 } },
-  { id: "technology",   label: "기술", meta: { order: 40 } },
-  { id: "concept",      label: "개념", meta: { order: 50 } },
-  { id: "event",        label: "사건", meta: { order: 60 } },
-  { id: "species",      label: "종족", meta: { order: 70 } },
-  { id: "other",        label: "기타", meta: { order: 99 } },
+  { id: "equipment", label: "장비", meta: { order: 30 } },
+  { id: "technology", label: "기술", meta: { order: 40 } },
+  { id: "concept", label: "개념", meta: { order: 50 } },
+  { id: "event", label: "사건", meta: { order: 60 } },
+  { id: "species", label: "종족", meta: { order: 70 } },
+  { id: "other", label: "기타", meta: { order: 99 } },
 ];

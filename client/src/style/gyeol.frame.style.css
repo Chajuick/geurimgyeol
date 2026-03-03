@@ -312,14 +312,13 @@
 
 .frame-preset-steel-surface {
   /* 금속 톤 + 약한 틴트 */
-  background:
-    linear-gradient(
-      to bottom,
-      color-mix(in oklab, transparent, white 10%) 0%,
-      transparent 28%,
-      color-mix(in oklab, transparent, black 22%) 68%,
-      color-mix(in oklab, transparent, var(--p1) 6%) 100%
-    );
+  background: linear-gradient(
+    to bottom,
+    color-mix(in oklab, transparent, white 10%) 0%,
+    transparent 28%,
+    color-mix(in oklab, transparent, black 22%) 68%,
+    color-mix(in oklab, transparent, var(--p1) 6%) 100%
+  );
 
   opacity: 0.95;
 }

@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 type Theme = "light" | "dark";
 const THEME_KEY = "theme";
@@ -46,7 +52,7 @@ export function ThemeProvider({
 
   const toggleTheme = useMemo(() => {
     if (!switchable) return () => {}; // ✅ noop
-    return () => setTheme((prev) => (prev === "light" ? "dark" : "light"));
+    return () => setTheme(prev => (prev === "light" ? "dark" : "light"));
   }, [switchable]);
 
   return (

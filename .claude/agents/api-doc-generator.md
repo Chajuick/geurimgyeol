@@ -20,11 +20,13 @@ description: Express API 엔드포인트 및 공유 타입 문서 자동 생성.
 ```markdown
 ## API 엔드포인트
 
-### GET /*
+### GET /\*
+
 - 설명: 클라이언트 SPA 서빙
 - 응답: index.html
 
 ## 공유 상수 (shared/const.ts)
+
 - COOKIE_NAME: "app_session_id"
 - ONE_YEAR_MS: 연간 밀리초
 ```

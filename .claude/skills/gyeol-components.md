@@ -62,7 +62,7 @@ import { motion } from "framer-motion";
   transition={{ duration: 0.2 }}
 >
   {children}
-</motion.div>
+</motion.div>;
 ```
 
 ## 이미지 처리

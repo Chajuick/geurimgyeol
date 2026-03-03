@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Image as ImageIcon, Plus, Unlink } from "lucide-react";
 
 import { HUDPanel, HUDSectionTitle, HUDBadge } from "@/components/ui/hud";
@@ -8,13 +14,18 @@ import Modal from "@/components/ui/modal";
 import WorldThumbCard from "@/components/worlds/WorldThumbCard";
 import AddItemCard from "@/components/worlds/AddItemCard";
 import { useResolvedImage } from "@/hooks/useResolvedImage";
-import { uiTextarea, uiInput, uiScrollDark } from "@/components/ui/form/presets";
+import {
+  uiTextarea,
+  uiInput,
+  uiScrollDark,
+} from "@/components/ui/form/presets";
 import { cn } from "@/lib/utils";
 
 type AddTab = "character" | "creature";
 
 function makeId(): string {
-  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto)
+    return crypto.randomUUID();
   return `${Date.now()}_${Math.random().toString(16).slice(2)}`;
 }
 
@@ -77,9 +88,18 @@ export default function WorldOverviewTab({
   }, [world?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ✅ debounce commit
-  const commitDesc = useCallback((v: string) => updateWorld({ description: v }), [updateWorld]);
-  const commitIcon = useCallback((v: string) => updateWorld({ iconImage: v }), [updateWorld]);
-  const commitBg = useCallback((v: string) => updateWorld({ backgroundImage: v }), [updateWorld]);
+  const commitDesc = useCallback(
+    (v: string) => updateWorld({ description: v }),
+    [updateWorld]
+  );
+  const commitIcon = useCallback(
+    (v: string) => updateWorld({ iconImage: v }),
+    [updateWorld]
+  );
+  const commitBg = useCallback(
+    (v: string) => updateWorld({ backgroundImage: v }),
+    [updateWorld]
+  );
 
   useDebouncedPatch(!!editMode, descDraft, 250, commitDesc);
   useDebouncedPatch(!!editMode, iconDraft, 250, commitIcon);
@@ -142,10 +162,14 @@ export default function WorldOverviewTab({
   const handleDeleteItemByRefId = useCallback(
     (refId: string, type: AddTab) => {
       if (type === "character") {
-        const next = (world.worldCharacters || []).filter((r: any) => r.id !== refId);
+        const next = (world.worldCharacters || []).filter(
+          (r: any) => r.id !== refId
+        );
         updateWorld({ worldCharacters: next });
       } else {
-        const next = (world.worldCreatures || []).filter((r: any) => r.id !== refId);
+        const next = (world.worldCreatures || []).filter(
+          (r: any) => r.id !== refId
+        );
         updateWorld({ worldCreatures: next });
       }
     },
@@ -156,18 +180,20 @@ export default function WorldOverviewTab({
     (characterId?: string, creatureId?: string) => {
       if (characterId) {
         const newRef = { id: makeId(), characterId };
-        updateWorld({ worldCharacters: [...(world.worldCharacters || []), newRef] });
+        updateWorld({
+          worldCharacters: [...(world.worldCharacters || []), newRef],
+        });
       } else if (creatureId) {
         const newRef = { id: makeId(), creatureId };
-        updateWorld({ worldCreatures: [...(world.worldCreatures || []), newRef] });
+        updateWorld({
+          worldCreatures: [...(world.worldCreatures || []), newRef],
+        });
       }
       setIsAddingItem(false);
       setSearch("");
     },
     [updateWorld, world.worldCharacters, world.worldCreatures]
   );
-
-
 
   // ✅ add list: 이미 링크된 엔티티 제외 + memo
   const q = search.trim().toLowerCase();
@@ -183,10 +209,13 @@ export default function WorldOverviewTab({
   }, [addTab, world.worldCharacters, world.worldCreatures]);
 
   const filteredAddList = useMemo(() => {
-    const source = addTab === "character" ? data.characters ?? [] : data.creatures ?? [];
+    const source =
+      addTab === "character" ? (data.characters ?? []) : (data.creatures ?? []);
     return source
       .filter((item: any) => !addedIds.has(item.id))
-      .filter((item: any) => (!q ? true : (item.name || "").toLowerCase().includes(q)));
+      .filter((item: any) =>
+        !q ? true : (item.name || "").toLowerCase().includes(q)
+      );
   }, [addTab, data.characters, data.creatures, addedIds, q]);
 
   const label = addTab === "character" ? "캐릭터" : "크리쳐";
@@ -252,9 +281,15 @@ export default function WorldOverviewTab({
                   <div className="flex items-center gap-3">
                     <div className="w-14 h-14 rounded-2xl overflow-hidden border border-white/10 bg-black/25 grid place-items-center">
                       {icon ? (
-                        <img src={icon} alt="world icon" className="w-full h-full object-cover" />
+                        <img
+                          src={icon}
+                          alt="world icon"
+                          className="w-full h-full object-cover"
+                        />
                       ) : (
-                        <span className="text-[10px] text-white/45">NO ICON</span>
+                        <span className="text-[10px] text-white/45">
+                          NO ICON
+                        </span>
                       )}
                     </div>
 
@@ -262,7 +297,9 @@ export default function WorldOverviewTab({
                       <div className="text-[11px] tracking-[0.26em] text-white/55">
                         WORLD NAME
                       </div>
-                      <div className="text-xl font-bold truncate">{world.name}</div>
+                      <div className="text-xl font-bold truncate">
+                        {world.name}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -270,13 +307,15 @@ export default function WorldOverviewTab({
 
               {/* editor / read */}
               <div className="rounded-3xl border border-white/10 bg-black/20 p-4 h-full min-h-0 overflow-auto scroll-dark">
-                <div className="text-[11px] tracking-[0.26em] text-white/55">DESCRIPTION</div>
+                <div className="text-[11px] tracking-[0.26em] text-white/55">
+                  DESCRIPTION
+                </div>
 
                 <div className="mt-3">
                   {editMode ? (
                     <textarea
                       value={descDraft}
-                      onChange={(e) => setDescDraft(e.target.value)}
+                      onChange={e => setDescDraft(e.target.value)}
                       className={uiTextarea}
                       placeholder="세계관 설정을 입력하세요"
                     />
@@ -295,7 +334,7 @@ export default function WorldOverviewTab({
                       <div className="text-xs text-white/55 mb-2">아이콘</div>
                       <ImageUpload
                         value={iconDraft}
-                        onChange={(v) => setIconDraft(v)}
+                        onChange={v => setIconDraft(v)}
                         aspect="square"
                         kind="profile"
                         allowUrl
@@ -306,7 +345,7 @@ export default function WorldOverviewTab({
                       <div className="text-xs text-white/55 mb-2">배경</div>
                       <ImageUpload
                         value={bgDraft}
-                        onChange={(v) => setBgDraft(v)}
+                        onChange={v => setBgDraft(v)}
                         aspect="video"
                         kind="background"
                         allowUrl
@@ -343,7 +382,9 @@ export default function WorldOverviewTab({
 
             <div className="my-4">
               {displayItems.length === 0 ? (
-                <div className="text-sm text-white/55">등록된 항목이 없습니다.</div>
+                <div className="text-sm text-white/55">
+                  등록된 항목이 없습니다.
+                </div>
               ) : (
                 <div className="grid gap-3 grid-cols-3 sm:grid-cols-4 md:grid-cols-6 xl:grid-cols-7">
                   {displayItems.map((it: any) => {
@@ -353,8 +394,13 @@ export default function WorldOverviewTab({
                       <div key={it.refId} className="relative group">
                         <button
                           type="button"
-                          className={cn("w-full text-left", clickable ? "cursor-pointer" : "cursor-default")}
-                          onClick={() => clickable && handleOpenLinked(it.type, it.entityId)}
+                          className={cn(
+                            "w-full text-left",
+                            clickable ? "cursor-pointer" : "cursor-default"
+                          )}
+                          onClick={() =>
+                            clickable && handleOpenLinked(it.type, it.entityId)
+                          }
                         >
                           <WorldThumbCard
                             name={it.data?.name}
@@ -370,7 +416,7 @@ export default function WorldOverviewTab({
                             size="icon"
                             icon={<Unlink className="w-4 h-4" />}
                             title="연결 해제"
-                            onClick={(e) => {
+                            onClick={e => {
                               e.preventDefault();
                               e.stopPropagation();
                               handleDeleteItemByRefId(it.refId, it.type);
@@ -431,7 +477,7 @@ export default function WorldOverviewTab({
             <div className="mb-4">
               <input
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={e => setSearch(e.target.value)}
                 placeholder={`${label} 이름 검색`}
                 className={uiInput}
               />
@@ -441,7 +487,9 @@ export default function WorldOverviewTab({
             {filteredAddList.length === 0 ? (
               <div className="rounded-2xl border border-white/10 bg-black/20 p-6 text-center">
                 <p className="text-sm text-white/80">
-                  {isSearching ? "검색 결과가 없습니다." : `${label}가 없습니다.`}
+                  {isSearching
+                    ? "검색 결과가 없습니다."
+                    : `${label}가 없습니다.`}
                 </p>
               </div>
             ) : (

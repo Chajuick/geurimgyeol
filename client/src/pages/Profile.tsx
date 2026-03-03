@@ -167,7 +167,7 @@ export default function Profile() {
 
       <div className="relative z-10 px-4 sm:px-6 md:px-10 lg:px-12 py-6 md:py-10">
         {/* ===== TOP HUD BAR ===== */}
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center justify-between gap-3 h-10">
           <div className="flex items-center gap-2">
             {editMode ? (
               <HUDBadge tone="warn">EDIT MODE</HUDBadge>
@@ -296,7 +296,11 @@ export default function Profile() {
           footer={
             <div className="flex justify-end gap-2">
               <GButton variant="neutral" text="취소" onClick={closeEdit} />
-              <GButton variant="primary" text="저장" onClick={handleSaveProfile} />
+              <GButton
+                variant="primary"
+                text="저장"
+                onClick={handleSaveProfile}
+              />
             </div>
           }
         >

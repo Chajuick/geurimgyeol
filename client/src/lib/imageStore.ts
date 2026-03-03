@@ -34,7 +34,7 @@ async function addToIndex(key: string) {
 }
 async function removeFromIndex(key: string) {
   const cur = await readIndex();
-  const next = cur.filter((k) => k !== key);
+  const next = cur.filter(k => k !== key);
   await writeIndex(next);
 }
 
@@ -64,7 +64,7 @@ export async function removeImage(key: string) {
 /** 전체 삭제 (img: 만) */
 export async function clearAllImages() {
   const all = await readIndex();
-  await Promise.all(all.map((k) => del(k)));
+  await Promise.all(all.map(k => del(k)));
   await writeIndex([]);
 }
 
@@ -80,7 +80,8 @@ export function dataUrlToBlob(dataUrl: string) {
     throw new Error("Invalid data URL");
   }
 
-  const mime = head.match(/data:(.*?)(;base64)?$/)?.[1] || "application/octet-stream";
+  const mime =
+    head.match(/data:(.*?)(;base64)?$/)?.[1] || "application/octet-stream";
   const isBase64 = head.includes(";base64");
 
   if (isBase64) {

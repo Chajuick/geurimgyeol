@@ -1,4 +1,4 @@
-import { useLocation } from 'wouter';
+import { useLocation } from "wouter";
 
 export default function NotFound() {
   const [, setLocation] = useLocation();
@@ -11,7 +11,7 @@ export default function NotFound() {
           페이지를 찾을 수 없습니다
         </p>
         <button
-          onClick={() => setLocation('/')}
+          onClick={() => setLocation("/")}
           className="px-8 py-3 bg-foreground text-background rounded-lg font-semibold hover:opacity-90 transition-opacity"
         >
           홈으로 돌아가기

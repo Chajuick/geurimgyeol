@@ -62,7 +62,9 @@ export default function WorldDetail() {
   }, [worldId, worldById]);
 
   // ✅ tab: URL query 동기화
-  const [tab, _setTab] = useState<TabKey>(() => getQueryTab(location) ?? "overview");
+  const [tab, _setTab] = useState<TabKey>(
+    () => getQueryTab(location) ?? "overview"
+  );
 
   useEffect(() => {
     const fromUrl = getQueryTab(location);
@@ -79,7 +81,9 @@ export default function WorldDetail() {
   );
 
   // ✅ 탭 언마운트 방지
-  const [visitedTabs, setVisitedTabs] = useState<Set<TabKey>>(() => new Set([tab]));
+  const [visitedTabs, setVisitedTabs] = useState<Set<TabKey>>(
+    () => new Set([tab])
+  );
   useEffect(() => {
     setVisitedTabs(prev => {
       if (prev.has(tab)) return prev;
@@ -90,7 +94,10 @@ export default function WorldDetail() {
   }, [tab]);
 
   // ✅ 상세 모달 state
-  const [detailOpen, setDetailOpen] = useState<{ type: EntityKind; id: ID } | null>(null);
+  const [detailOpen, setDetailOpen] = useState<{
+    type: EntityKind;
+    id: ID;
+  } | null>(null);
   const [detailSubIndex, setDetailSubIndex] = useState(0);
 
   const openEntityDetail = useCallback((type: EntityKind, id: ID) => {
@@ -100,7 +107,8 @@ export default function WorldDetail() {
 
   const detailEntity = useMemo(() => {
     if (!detailOpen) return null;
-    if (detailOpen.type === "character") return characterById.get(detailOpen.id) ?? null;
+    if (detailOpen.type === "character")
+      return characterById.get(detailOpen.id) ?? null;
     return creatureById.get(detailOpen.id) ?? null;
   }, [detailOpen, characterById, creatureById]);
 
@@ -124,7 +132,9 @@ export default function WorldDetail() {
   );
 
   const stats = useMemo(() => {
-    const linked = (world?.worldCharacters?.length ?? 0) + (world?.worldCreatures?.length ?? 0);
+    const linked =
+      (world?.worldCharacters?.length ?? 0) +
+      (world?.worldCreatures?.length ?? 0);
     const events = (world?.events ?? []).length;
     const nouns = (world?.properNouns ?? []).length;
     return { linked, events, nouns };
@@ -159,11 +169,17 @@ export default function WorldDetail() {
     return (
       <div className="min-h-[100svh] gyeol-bg text-white p-6 md:p-10 h-full flex items-center justify-center">
         <div className="max-w-xl mx-auto space-y-4 flex flex-col items-center text-center">
-          <div className="text-xl md:text-2xl font-bold">월드를 찾을 수 없습니다</div>
+          <div className="text-xl md:text-2xl font-bold">
+            월드를 찾을 수 없습니다
+          </div>
           <div className="text-white/60 text-sm">
             삭제되었거나 잘못된 주소일 수 있어요.
           </div>
-          <GButton variant="primary" text="세계관 목록으로" onClick={() => setLocation("/worlds")} />
+          <GButton
+            variant="primary"
+            text="세계관 목록으로"
+            onClick={() => setLocation("/worlds")}
+          />
         </div>
       </div>
     );
@@ -207,7 +223,9 @@ export default function WorldDetail() {
             <HUDPanel className="p-6 mt-4 sm:mt-6 shrink-0">
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
                 <div className="min-w-0">
-                  <div className="text-[11px] tracking-[0.26em] text-white/55">DOSSIER</div>
+                  <div className="text-[11px] tracking-[0.26em] text-white/55">
+                    DOSSIER
+                  </div>
                   <div className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight truncate">
                     {world.name}
                   </div>
@@ -221,15 +239,25 @@ export default function WorldDetail() {
               </div>
 
               <div className="mt-5 sm:mt-6">
-                <div className="text-[12px] tracking-[0.26em] text-white/55">NAVIGATION</div>
+                <div className="text-[12px] tracking-[0.26em] text-white/55">
+                  NAVIGATION
+                </div>
 
                 <div className="mt-3">
                   <HUDSegmentTabs<TabKey>
                     value={tab}
                     onChange={setTab}
                     items={[
-                      { key: "overview", label: "소개", icon: <BookOpen className="w-4 h-4" /> },
-                      { key: "properNouns", label: "세계관 요소", icon: <Sparkles className="w-4 h-4" /> },
+                      {
+                        key: "overview",
+                        label: "소개",
+                        icon: <BookOpen className="w-4 h-4" />,
+                      },
+                      {
+                        key: "properNouns",
+                        label: "세계관 요소",
+                        icon: <Sparkles className="w-4 h-4" />,
+                      },
                       // 필요하면 아래도 다시 열기
                       // { key: "events", label: "이벤트", icon: <CalendarClock className="w-4 h-4" /> },
                       // { key: "chronology", label: "연표", icon: <ScrollText className="w-4 h-4" /> },
@@ -243,7 +271,12 @@ export default function WorldDetail() {
             <div className="mt-3 sm:mt-4 flex-1 min-h-0 overflow-hidden">
               <div className="h-full min-h-0 overflow-hidden">
                 {visitedTabs.has("overview") && (
-                  <div className={cn("h-full min-h-0", tab === "overview" ? "block" : "hidden")}>
+                  <div
+                    className={cn(
+                      "h-full min-h-0",
+                      tab === "overview" ? "block" : "hidden"
+                    )}
+                  >
                     <WorldOverviewTab
                       world={world}
                       editMode={editMode}
@@ -255,13 +288,27 @@ export default function WorldDetail() {
                 )}
 
                 {visitedTabs.has("events") && (
-                  <div className={cn("h-full min-h-0", tab === "events" ? "block" : "hidden")}>
-                    <WorldEventsTab world={world} editMode={editMode} updateWorld={updateWorld} />
+                  <div
+                    className={cn(
+                      "h-full min-h-0",
+                      tab === "events" ? "block" : "hidden"
+                    )}
+                  >
+                    <WorldEventsTab
+                      world={world}
+                      editMode={editMode}
+                      updateWorld={updateWorld}
+                    />
                   </div>
                 )}
 
                 {visitedTabs.has("properNouns") && (
-                  <div className={cn("h-full min-h-0", tab === "properNouns" ? "block" : "hidden")}>
+                  <div
+                    className={cn(
+                      "h-full min-h-0",
+                      tab === "properNouns" ? "block" : "hidden"
+                    )}
+                  >
                     <WorldProperNounsTab
                       world={world}
                       editMode={editMode}
@@ -272,8 +319,17 @@ export default function WorldDetail() {
                 )}
 
                 {visitedTabs.has("chronology") && (
-                  <div className={cn("h-full min-h-0", tab === "chronology" ? "block" : "hidden")}>
-                    <WorldChronologyTab world={world} editMode={editMode} updateWorld={updateWorld} />
+                  <div
+                    className={cn(
+                      "h-full min-h-0",
+                      tab === "chronology" ? "block" : "hidden"
+                    )}
+                  >
+                    <WorldChronologyTab
+                      world={world}
+                      editMode={editMode}
+                      updateWorld={updateWorld}
+                    />
                   </div>
                 )}
               </div>
@@ -299,7 +355,11 @@ export default function WorldDetail() {
         </>
       )}
 
-      <LoadingOverlay show={isLocating} title="LOCATING WORLD" text="길을 찾는 중입니다." />
+      <LoadingOverlay
+        show={isLocating}
+        title="LOCATING WORLD"
+        text="길을 찾는 중입니다."
+      />
     </div>
   );
 }

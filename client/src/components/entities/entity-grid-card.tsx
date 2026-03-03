@@ -21,7 +21,7 @@ type Props = {
 
   /** ✅ 부모에서 내려주는 최소 데이터 */
   frameSettings: any; // data.settings?.frameSettings?.characters
-  defaultRankId: ID;  // rank default (resolved)
+  defaultRankId: ID; // rank default (resolved)
 
   rankId?: ID;
 
@@ -67,7 +67,9 @@ const EntityGridCard = memo(function EntityGridCard({
     return { c1: a, c2: b || a };
   }, [symbolColors]);
 
-  const effectiveRankId = (rankId || defaultRankId || ("rank_default" as ID)) as ID;
+  const effectiveRankId = (rankId ||
+    defaultRankId ||
+    ("rank_default" as ID)) as ID;
 
   const stack = useMemo(() => {
     // ✅ selected=false면 내부에서 프레임 거의 비게 나올 테지만
@@ -77,7 +79,11 @@ const EntityGridCard = memo(function EntityGridCard({
 
   // ✅ 선택된 카드에서만 프리셋 렌더
   const { outerPresets, innerPresets } = useMemo(() => {
-    if (!selected) return { outerPresets: [] as FramePresetId[], innerPresets: [] as FramePresetId[] };
+    if (!selected)
+      return {
+        outerPresets: [] as FramePresetId[],
+        innerPresets: [] as FramePresetId[],
+      };
 
     const ps = (stack.presets || []).filter(Boolean) as FramePresetId[];
     const outer: FramePresetId[] = [];
@@ -136,7 +142,11 @@ const EntityGridCard = memo(function EntityGridCard({
           {outerPresets.map((p, i) => (
             <div
               key={p + i}
-              className={["frame-layer", "frame-outer", `frame-preset-${p}`].join(" ")}
+              className={[
+                "frame-layer",
+                "frame-outer",
+                `frame-preset-${p}`,
+              ].join(" ")}
             />
           ))}
         </div>
@@ -155,7 +165,11 @@ const EntityGridCard = memo(function EntityGridCard({
             {innerPresets.map((p, i) => (
               <div
                 key={p + "_in_" + i}
-                className={["frame-layer", "frame-inner", `frame-preset-${p}`].join(" ")}
+                className={[
+                  "frame-layer",
+                  "frame-inner",
+                  `frame-preset-${p}`,
+                ].join(" ")}
               />
             ))}
           </div>
@@ -201,7 +215,9 @@ const EntityGridCard = memo(function EntityGridCard({
           <div className="relative z-10">
             {/* ===== 이름 ===== */}
             <OverflowMarquee active={selected}>
-              <span className="marquee-text name text-sm font-bold">{name}</span>
+              <span className="marquee-text name text-sm font-bold">
+                {name}
+              </span>
             </OverflowMarquee>
 
             {/* ===== 태그 ===== */}

@@ -15,20 +15,21 @@ import EntityDetailFullscreen from "@/components/entities/detail/EntityDetailFul
 function toTags(text: string) {
   return text
     .split(",")
-    .map((t) => t.trim())
+    .map(t => t.trim())
     .filter(Boolean);
 }
 function toIds(text: string) {
   return text
     .split(",")
-    .map((t) => t.trim())
+    .map(t => t.trim())
     .filter(Boolean);
 }
 function fromIds(ids?: string[]) {
   return Array.isArray(ids) ? ids.join(", ") : "";
 }
 function makeId() {
-  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto)
+    return crypto.randomUUID();
   return `${Date.now()}_${Math.random().toString(16).slice(2)}`;
 }
 function getEntryKindId(n: any): string {
@@ -56,7 +57,11 @@ const labelCls = "text-[11px] tracking-wider uppercase text-white/55";
 
 const readBox = cn("rounded-xl border-none", "text-white/60");
 
-function LinkedThumbCard(props: { name?: string; profileImage?: string; type: AddTab }) {
+function LinkedThumbCard(props: {
+  name?: string;
+  profileImage?: string;
+  type: AddTab;
+}) {
   const { name, profileImage, type } = props;
   const src = useResolvedImage(profileImage || "");
 
@@ -64,7 +69,11 @@ function LinkedThumbCard(props: { name?: string; profileImage?: string; type: Ad
     <div className="rounded-2xl border border-white/10 bg-black/25 overflow-hidden">
       <div className="aspect-square overflow-hidden">
         {src ? (
-          <img src={src} alt={name || ""} className="w-full h-full object-cover" />
+          <img
+            src={src}
+            alt={name || ""}
+            className="w-full h-full object-cover"
+          />
         ) : (
           <div className="w-full h-full grid place-items-center text-[11px] text-white/45 bg-black/40">
             NO IMAGE
@@ -72,8 +81,12 @@ function LinkedThumbCard(props: { name?: string; profileImage?: string; type: Ad
         )}
       </div>
       <div className="p-2">
-        <div className="text-xs font-semibold text-white/85 truncate">{name || "이름 없음"}</div>
-        <div className="mt-0.5 text-[10px] text-white/45">{type === "character" ? "CHAR" : "CREATURE"}</div>
+        <div className="text-xs font-semibold text-white/85 truncate">
+          {name || "이름 없음"}
+        </div>
+        <div className="mt-0.5 text-[10px] text-white/45">
+          {type === "character" ? "CHAR" : "CREATURE"}
+        </div>
       </div>
     </div>
   );
@@ -133,7 +146,10 @@ export default function ProperNounDetailModal(props: {
   const [addTab, setAddTab] = useState<AddTab>("character");
   const [search, setSearch] = useState("");
 
-  const [detailOpen, setDetailOpen] = useState<{ type: AddTab; id: string } | null>(null);
+  const [detailOpen, setDetailOpen] = useState<{
+    type: AddTab;
+    id: string;
+  } | null>(null);
   const [detailSubIndex, setDetailSubIndex] = useState(0);
 
   const applyDraft = useCallback((base: any, nextEditingId: string | null) => {
@@ -160,13 +176,19 @@ export default function ProperNounDetailModal(props: {
     }
 
     if (initialDraft) {
-      applyDraft(initialDraft, initialEditingId ?? (forceNew ? null : initialDraft.id ?? null));
+      applyDraft(
+        initialDraft,
+        initialEditingId ?? (forceNew ? null : (initialDraft.id ?? null))
+      );
       return;
     }
 
     if (!entry || forceNew) {
       const defaultKind =
-        worldDefaultKindId ?? kinds.find((k) => k.id === "concept")?.id ?? kinds[0]?.id ?? "other";
+        worldDefaultKindId ??
+        kinds.find(k => k.id === "concept")?.id ??
+        kinds[0]?.id ??
+        "other";
 
       const base = {
         id: entry?.id ?? makeId(),
@@ -187,12 +209,14 @@ export default function ProperNounDetailModal(props: {
         meta: entry?.meta ?? undefined,
       };
 
-      applyDraft(base, forceNew ? null : entry?.id ?? null);
+      applyDraft(base, forceNew ? null : (entry?.id ?? null));
       return;
     }
 
     const kid = getEntryKindId(entry);
-    const safeKid = kinds.some((k) => String(k.id) === String(kid)) ? kid : worldDefaultKindId ?? "other";
+    const safeKid = kinds.some(k => String(k.id) === String(kid))
+      ? kid
+      : (worldDefaultKindId ?? "other");
 
     const normalized = {
       id: entry.id,
@@ -214,7 +238,16 @@ export default function ProperNounDetailModal(props: {
     };
 
     applyDraft(normalized, entry.id);
-  }, [open, initialDraft, initialEditingId, entry, forceNew, kinds, worldDefaultKindId, applyDraft]);
+  }, [
+    open,
+    initialDraft,
+    initialEditingId,
+    entry,
+    forceNew,
+    kinds,
+    worldDefaultKindId,
+    applyDraft,
+  ]);
 
   const iconSrc = useResolvedImage(draft?.icon || "");
   const imageSrc = useResolvedImage(draft?.image || "");
@@ -263,9 +296,15 @@ export default function ProperNounDetailModal(props: {
         <div className="flex items-start sm:items-center gap-3 min-w-0">
           <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl border border-white/15 bg-black/50 overflow-hidden flex items-center justify-center shrink-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
             {iconSrc ? (
-              <img src={iconSrc} className="w-full h-full object-contain" alt="" />
+              <img
+                src={iconSrc}
+                className="w-full h-full object-contain"
+                alt=""
+              />
             ) : (
-              <div className="text-[11px] text-white/45 text-center">NO ICON</div>
+              <div className="text-[11px] text-white/45 text-center">
+                NO ICON
+              </div>
             )}
           </div>
 
@@ -287,13 +326,17 @@ export default function ProperNounDetailModal(props: {
             {/* ✅ 모바일에서도 뱃지 보여주기 (줄바꿈 허용) */}
             <div className="mt-2 flex flex-wrap gap-2 sm:hidden">
               <HUDBadge>{viewKindLabel}</HUDBadge>
-              <HUDBadge tone={isEditing ? "warn" : "neutral"}>{isEditing ? "EDIT" : "VIEW"}</HUDBadge>
+              <HUDBadge tone={isEditing ? "warn" : "neutral"}>
+                {isEditing ? "EDIT" : "VIEW"}
+              </HUDBadge>
             </div>
           </div>
 
           <div className="shrink-0 hidden sm:flex items-center gap-2">
             <HUDBadge>{viewKindLabel}</HUDBadge>
-            <HUDBadge tone={isEditing ? "warn" : "neutral"}>{isEditing ? "EDIT" : "VIEW"}</HUDBadge>
+            <HUDBadge tone={isEditing ? "warn" : "neutral"}>
+              {isEditing ? "EDIT" : "VIEW"}
+            </HUDBadge>
           </div>
         </div>
       </div>
@@ -350,9 +393,13 @@ export default function ProperNounDetailModal(props: {
 
       const nextLinks = { ...(draft.links ?? {}) };
       if (type === "character") {
-        nextLinks.characterIds = (nextLinks.characterIds ?? []).filter((x: string) => String(x) !== String(id));
+        nextLinks.characterIds = (nextLinks.characterIds ?? []).filter(
+          (x: string) => String(x) !== String(id)
+        );
       } else {
-        nextLinks.creatureIds = (nextLinks.creatureIds ?? []).filter((x: string) => String(x) !== String(id));
+        nextLinks.creatureIds = (nextLinks.creatureIds ?? []).filter(
+          (x: string) => String(x) !== String(id)
+        );
       }
 
       setDraft({ ...draft, links: nextLinks });
@@ -368,11 +415,17 @@ export default function ProperNounDetailModal(props: {
 
       const nextLinks = { ...(draft.links ?? {}) };
       if (type === "character") {
-        const prev = Array.isArray(nextLinks.characterIds) ? nextLinks.characterIds : [];
-        if (!prev.some((x: string) => String(x) === String(id))) nextLinks.characterIds = [...prev, String(id)];
+        const prev = Array.isArray(nextLinks.characterIds)
+          ? nextLinks.characterIds
+          : [];
+        if (!prev.some((x: string) => String(x) === String(id)))
+          nextLinks.characterIds = [...prev, String(id)];
       } else {
-        const prev = Array.isArray(nextLinks.creatureIds) ? nextLinks.creatureIds : [];
-        if (!prev.some((x: string) => String(x) === String(id))) nextLinks.creatureIds = [...prev, String(id)];
+        const prev = Array.isArray(nextLinks.creatureIds)
+          ? nextLinks.creatureIds
+          : [];
+        if (!prev.some((x: string) => String(x) === String(id)))
+          nextLinks.creatureIds = [...prev, String(id)];
       }
 
       setDraft({ ...draft, links: nextLinks });
@@ -384,23 +437,39 @@ export default function ProperNounDetailModal(props: {
 
   const detailEntity = useMemo(() => {
     if (!detailOpen) return null;
-    if (detailOpen.type === "character") return characterById.get(detailOpen.id) ?? null;
+    if (detailOpen.type === "character")
+      return characterById.get(detailOpen.id) ?? null;
     return creatureById.get(detailOpen.id) ?? null;
   }, [detailOpen, characterById, creatureById]);
 
   const q = search.trim().toLowerCase();
   const addedSet = useMemo(() => {
     const s = new Set<string>();
-    if (addTab === "character") (draft?.links?.characterIds ?? []).forEach((x: string) => s.add(String(x)));
-    else (draft?.links?.creatureIds ?? []).forEach((x: string) => s.add(String(x)));
+    if (addTab === "character")
+      (draft?.links?.characterIds ?? []).forEach((x: string) =>
+        s.add(String(x))
+      );
+    else
+      (draft?.links?.creatureIds ?? []).forEach((x: string) =>
+        s.add(String(x))
+      );
     return s;
   }, [addTab, draft?.links?.characterIds, draft?.links?.creatureIds]);
 
   const filteredAddList = useMemo(() => {
-    const source = addTab === "character" ? data?.characters ?? [] : data?.creatures ?? [];
+    const source =
+      addTab === "character"
+        ? (data?.characters ?? [])
+        : (data?.creatures ?? []);
     return source
       .filter((x: any) => !addedSet.has(String(x.id)))
-      .filter((x: any) => (!q ? true : String(x.name ?? "").toLowerCase().includes(q)));
+      .filter((x: any) =>
+        !q
+          ? true
+          : String(x.name ?? "")
+              .toLowerCase()
+              .includes(q)
+      );
   }, [addTab, data?.characters, data?.creatures, addedSet, q]);
 
   const skeleton = (
@@ -436,7 +505,12 @@ export default function ProperNounDetailModal(props: {
             </div>
 
             <div className="flex items-center gap-2">
-              <GButton variant="neutral" icon={<X className="w-4 h-4" />} text="닫기" onClick={close} />
+              <GButton
+                variant="neutral"
+                icon={<X className="w-4 h-4" />}
+                text="닫기"
+                onClick={close}
+              />
               {isEditing && (
                 <GButton
                   variant="primary"
@@ -468,7 +542,9 @@ export default function ProperNounDetailModal(props: {
                 <div className="space-y-5 sm:space-y-6">
                   {/* ABOUT */}
                   <div>
-                    <div className="text-[11px] tracking-[0.26em] text-white/55">ABOUT</div>
+                    <div className="text-[11px] tracking-[0.26em] text-white/55">
+                      ABOUT
+                    </div>
                     <div className="mt-1 text-sm text-white/70">개요</div>
                   </div>
 
@@ -476,23 +552,38 @@ export default function ProperNounDetailModal(props: {
                   <div className="grid grid-cols-1 lg:grid-cols-[380px_minmax(0,1fr)] gap-4 items-stretch">
                     {/* LEFT */}
                     <div className="flex flex-col gap-4 min-h-0">
-                      <div className={cn(hudPanel, "flex flex-col min-h-[220px] sm:min-h-[320px]")}>
-                        {isEditing && <div className={labelCls + " mb-2"}>대표 이미지</div>}
+                      <div
+                        className={cn(
+                          hudPanel,
+                          "flex flex-col min-h-[220px] sm:min-h-[320px] py-4"
+                        )}
+                      >
+                        {isEditing && (
+                          <div className={labelCls + " mb-2"}>대표 이미지</div>
+                        )}
 
                         <div className="flex-1 min-h-0">
                           {isEditing ? (
                             <ImageUpload
                               value={draft.image || ""}
-                              onChange={(v: string) => setDraft({ ...draft, image: v })}
+                              onChange={(v: string) =>
+                                setDraft({ ...draft, image: v })
+                              }
                               aspect="video"
                               className="w-full h-full"
                             />
                           ) : (
                             <div className="rounded-2xl border border-none overflow-hidden h-full">
                               {imageSrc ? (
-                                <img src={imageSrc} className="w-full h-full object-cover" alt="" />
+                                <img
+                                  src={imageSrc}
+                                  className="w-full h-full object-cover"
+                                  alt=""
+                                />
                               ) : (
-                                <div className="h-full grid place-items-center text-sm text-white/50">이미지 없음</div>
+                                <div className="h-full grid place-items-center text-sm text-white/50">
+                                  이미지 없음
+                                </div>
                               )}
                             </div>
                           )}
@@ -504,7 +595,9 @@ export default function ProperNounDetailModal(props: {
                           <div className={labelCls + " mb-2"}>아이콘</div>
                           <ImageUpload
                             value={draft.icon || ""}
-                            onChange={(v: string) => setDraft({ ...draft, icon: v })}
+                            onChange={(v: string) =>
+                              setDraft({ ...draft, icon: v })
+                            }
                             aspect="square"
                             className="w-full"
                           />
@@ -514,7 +607,13 @@ export default function ProperNounDetailModal(props: {
 
                     {/* RIGHT */}
                     <div className="min-h-0 min-w-0 overflow-hidden">
-                      <div className={cn(hudPanel, "p-4 space-y-4 min-h-[220px] sm:min-h-[320px]", "min-w-0 overflow-hidden")}>
+                      <div
+                        className={cn(
+                          hudPanel,
+                          "p-4 space-y-4 min-h-[220px] sm:min-h-[320px]",
+                          "min-w-0 overflow-hidden"
+                        )}
+                      >
                         {isEditing && (
                           <div>
                             <div className={labelCls + " mb-2"}>분류</div>
@@ -528,13 +627,15 @@ export default function ProperNounDetailModal(props: {
                                 "scrollbar-none"
                               )}
                             >
-                              {kinds.map((k) => {
+                              {kinds.map(k => {
                                 const active = String(draft.kindId) === k.id;
                                 return (
                                   <button
                                     key={k.id}
                                     type="button"
-                                    onClick={() => setDraft({ ...draft, kindId: k.id })}
+                                    onClick={() =>
+                                      setDraft({ ...draft, kindId: k.id })
+                                    }
                                     className={cn(
                                       "px-3 py-2 rounded-xl text-sm font-medium transition shrink-0",
                                       active
@@ -560,36 +661,63 @@ export default function ProperNounDetailModal(props: {
                                 "w-full min-w-0 max-w-full"
                               )}
                               value={draft.title}
-                              onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+                              onChange={e =>
+                                setDraft({ ...draft, title: e.target.value })
+                              }
                             />
                           </div>
                         )}
 
                         <div>
-                          {isEditing && <div className={labelCls + " mb-2"}>요약</div>}
+                          {isEditing && (
+                            <div className={labelCls + " mb-2"}>요약</div>
+                          )}
                           {isEditing ? (
                             <textarea
-                              className={cn(uiTextarea, "bg-black/55 border-white/12")}
+                              className={cn(
+                                uiTextarea,
+                                "bg-black/55 border-white/12"
+                              )}
                               value={draft.summary}
-                              onChange={(e) => setDraft({ ...draft, summary: e.target.value })}
+                              onChange={e =>
+                                setDraft({ ...draft, summary: e.target.value })
+                              }
                             />
                           ) : (
-                            <div className={cn(readBox, "whitespace-pre-wrap text-base sm:text-xl text-white/80")}>
+                            <div
+                              className={cn(
+                                readBox,
+                                "whitespace-pre-wrap text-base sm:text-xl text-white/80"
+                              )}
+                            >
                               {draft.summary || "요약 없음"}
                             </div>
                           )}
                         </div>
 
                         <div>
-                          {isEditing && <div className={labelCls + " mb-2"}>본문</div>}
+                          {isEditing && (
+                            <div className={labelCls + " mb-2"}>본문</div>
+                          )}
                           {isEditing ? (
                             <textarea
-                              className={cn(uiTextarea, "min-h-[160px] sm:min-h-[220px]", "bg-black/55 border-white/12")}
+                              className={cn(
+                                uiTextarea,
+                                "min-h-[160px] sm:min-h-[220px]",
+                                "bg-black/55 border-white/12"
+                              )}
                               value={draft.description}
-                              onChange={(e) => setDraft({ ...draft, description: e.target.value })}
+                              onChange={e =>
+                                setDraft({
+                                  ...draft,
+                                  description: e.target.value,
+                                })
+                              }
                             />
                           ) : (
-                            <div className={cn(readBox, "whitespace-pre-wrap")}>{draft.description || "본문 없음"}</div>
+                            <div className={cn(readBox, "whitespace-pre-wrap")}>
+                              {draft.description || "본문 없음"}
+                            </div>
                           )}
                         </div>
                       </div>
@@ -600,8 +728,12 @@ export default function ProperNounDetailModal(props: {
                   <div>
                     <div className="flex items-center justify-between gap-3 pt-1">
                       <div>
-                        <div className="text-[11px] tracking-[0.26em] text-white/55">LINKED</div>
-                        <div className="mt-1 text-sm text-white/70">연관 캐릭터 / 크리쳐</div>
+                        <div className="text-[11px] tracking-[0.26em] text-white/55">
+                          LINKED
+                        </div>
+                        <div className="mt-1 text-sm text-white/70">
+                          연관 캐릭터 / 크리쳐
+                        </div>
                       </div>
 
                       {isEditing && (
@@ -620,21 +752,30 @@ export default function ProperNounDetailModal(props: {
 
                     <div className="mt-4 mb-2">
                       {linkedItems.length === 0 ? (
-                        <div className={cn(hudPanel, "relative overflow-hidden p-6 bg-black/30 border border-white/10")}>
+                        <div
+                          className={cn(
+                            hudPanel,
+                            "relative overflow-hidden p-6 bg-black/30 border border-white/10"
+                          )}
+                        >
                           <div className="pointer-events-none absolute inset-0 opacity-[0.12] bg-[linear-gradient(rgba(255,255,255,0.18)_1px,transparent_1px)] bg-[length:100%_3px]" />
                           <div className="pointer-events-none absolute -top-16 -right-16 w-56 h-56 rounded-full bg-white/10 blur-3xl" />
                           <div className="pointer-events-none absolute -bottom-20 -left-20 w-64 h-64 rounded-full bg-white/5 blur-3xl" />
 
                           <div className="relative">
-                            <div className="text-sm font-semibold text-white/85">연관된 캐릭터/크리쳐가 없습니다.</div>
+                            <div className="text-sm font-semibold text-white/85">
+                              연관된 캐릭터/크리쳐가 없습니다.
+                            </div>
                             <div className="mt-1 text-[12px] text-white/55">
-                              {isEditing ? "추가 버튼으로 연결을 만들어 보세요." : "연결된 항목이 아직 존재하지 않습니다."}
+                              {isEditing
+                                ? "추가 버튼으로 연결을 만들어 보세요."
+                                : "연결된 항목이 아직 존재하지 않습니다."}
                             </div>
                           </div>
                         </div>
                       ) : (
                         <div className="grid gap-3 grid-cols-3 sm:grid-cols-4 md:grid-cols-6 xl:grid-cols-7">
-                          {linkedItems.map((it) => (
+                          {linkedItems.map(it => (
                             <div
                               key={`${it.type}:${it.id}`}
                               className="text-left"
@@ -644,13 +785,17 @@ export default function ProperNounDetailModal(props: {
                               }}
                             >
                               <div className="relative">
-                                <LinkedThumbCard type={it.type} name={it.data?.name} profileImage={it.data?.profileImage} />
+                                <LinkedThumbCard
+                                  type={it.type}
+                                  name={it.data?.name}
+                                  profileImage={it.data?.profileImage}
+                                />
 
                                 {isEditing && (
                                   <button
                                     type="button"
                                     className="absolute -top-2 -right-2 w-8 h-8 rounded-full border border-white/15 bg-black/70 text-white/80 hover:bg-black/90"
-                                    onClick={(e) => {
+                                    onClick={e => {
                                       e.stopPropagation();
                                       removeLinked(it.type, it.id);
                                     }}
@@ -715,7 +860,7 @@ export default function ProperNounDetailModal(props: {
         <div className="mb-4 px-2">
           <input
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={e => setSearch(e.target.value)}
             placeholder={`${addTab === "character" ? "캐릭터" : "크리쳐"} 이름 검색`}
             className={uiInput}
           />
