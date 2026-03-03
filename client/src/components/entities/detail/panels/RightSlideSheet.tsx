@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import type { EntityBase } from "@/types";
-import { Check, Plus, Search, Tags, Trash2, X } from "lucide-react";
+import { Check, Crop, Plus, Search, Tags, Trash2, X } from "lucide-react";
 import ImageUpload from "@/components/ImageUpload";
+import ImageCropPicker from "@/components/ImageCropPicker";
 
 import TagMultiSelect from "../parts/TagMultiSelect";
 import SubThumbInner from "../parts/SubThumbInner";
@@ -93,9 +94,12 @@ export default function RightSlideSheet<T extends EntityBase>(props: {
     removeSubImage,
   } = props;
 
+  const [cropPickerOpen, setCropPickerOpen] = useState(false);
+
   if (!open || !editPanel) return null;
 
   return (
+    <>
     <div className="fixed inset-0 z-[10000]">
       <div
         className={[
@@ -190,7 +194,20 @@ export default function RightSlideSheet<T extends EntityBase>(props: {
               />
 
               <div className="space-y-3">
-                <p className="text-xs text-white/60">프로필 이미지</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-white/60">프로필 이미지</p>
+                  {mainImageDraft && (
+                    <button
+                      type="button"
+                      onClick={() => setCropPickerOpen(true)}
+                      className="h-7 px-3 rounded-lg bg-white/10 border border-white/10 hover:bg-white/15 transition inline-flex items-center gap-1.5 text-xs text-white/70 hover:text-white"
+                      title="메인 이미지에서 영역을 잘라 프로필로 사용"
+                    >
+                      <Crop className="w-3 h-3" />
+                      메인에서 잘라서 사용
+                    </button>
+                  )}
+                </div>
                 <ImageUpload
                   value={(entity as any).profileImage || ""}
                   onChange={v => patch({ profileImage: v } as any)}
@@ -427,5 +444,17 @@ export default function RightSlideSheet<T extends EntityBase>(props: {
         </div>
       </div>
     </div>
+
+    {cropPickerOpen && mainImageDraft && (
+      <ImageCropPicker
+        mainImageKey={mainImageDraft}
+        onConfirm={key => {
+          patch({ profileImage: key } as any);
+          setCropPickerOpen(false);
+        }}
+        onCancel={() => setCropPickerOpen(false)}
+      />
+    )}
+    </>
   );
 }
