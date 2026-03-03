@@ -59,6 +59,10 @@ function buildPrompt(
 ): string {
   return `당신은 판타지 세계의 전투 판정자입니다. 반드시 JSON 형식으로만 응답하세요. 다른 텍스트는 출력하지 마세요.
 
+[규칙]
+- 모든 텍스트는 반드시 한국어로만 작성하세요. 한자, 영어, 일본어 등 다른 언어는 절대 사용하지 마세요.
+- 고유명사(이름)는 원문 그대로 유지하되, 설명 텍스트는 전부 한국어로 작성하세요.
+
 [파이터 1: ${f1.name}]
 카테고리: ${f1.subCategories.join(", ") || "없음"}
 태그: ${f1.tags.join(", ") || "없음"}
@@ -74,16 +78,22 @@ function buildPrompt(
 [전투 배경]
 ${context.trim() || "일반 결투장"}
 
-위 두 존재가 1:1 전투를 벌입니다. 각각의 특성을 바탕으로 생생한 전투 서사를 작성하고 승자를 결정하세요.
-이름은 절대 번역하거나 변형하지 마세요.
+위 두 존재가 1:1 전투를 벌입니다. 아래 지침에 따라 서사를 작성하고 승자를 결정하세요.
+
+[서사 작성 지침]
+- 전투는 실제 격돌처럼 공격, 방어, 반격의 흐름으로 구성하세요.
+- 서로의 능력과 특성이 충돌하는 구체적인 장면을 묘사하세요.
+- 전세가 뒤집히거나 결정적 한 방이 터지는 순간을 생동감 있게 써주세요.
+- 문단은 장면이 바뀔 때마다 \\n\\n으로 구분하세요. (최소 3문단 이상)
+- 승패는 등급이 아닌 두 존재의 특성과 궁합에 따라 결정하세요.
 
 아래 JSON 스키마를 정확히 지켜 응답하세요:
 {
-  "narrative": "전투 서사 텍스트",
+  "narrative": "전투 서사 (문단 사이는 \\n\\n으로 구분)",
   "winner": "승자 이름 (원문 그대로)",
   "loser": "패자 이름 (원문 그대로)",
-  "winnerQuote": "승자의 성격에 맞는 짧고 강렬한 승리 한마디 (따옴표 제외)",
-  "loserQuote": "패자의 성격에 맞는 짧은 패배 한마디 (따옴표 제외)"
+  "winnerQuote": "승자의 성격에 맞는 짧고 강렬한 승리 한마디 (따옴표 제외, 한국어)",
+  "loserQuote": "패자의 성격에 맞는 짧은 패배 한마디 (따옴표 제외, 한국어)"
 }`;
 }
 
@@ -360,8 +370,12 @@ function ResultPanel({
       </div>
 
       {/* 전투 서사 */}
-      <div className="text-sm text-white/75 whitespace-pre-wrap leading-relaxed">
-        {result.narrative}
+      <div className="flex flex-col gap-3">
+        {result.narrative.split(/\n\n+/).map((para, i) => (
+          <p key={i} className="text-sm text-white/75 leading-relaxed">
+            {para.trim()}
+          </p>
+        ))}
       </div>
     </div>
   );
