@@ -20,7 +20,13 @@ type ModalProps = {
 
   // z-index 커스터마이즈(기본 10000)
   zIndex?: number;
+
+  // 헤더 바 없이 콘텐츠를 꽉 채우고 닫기 버튼만 띄움 (커버 이미지형 상세 등)
+  headerless?: boolean;
 };
+
+/** 열린 모달 스택: ESC는 가장 위 모달만 닫는다 */
+const modalStack: symbol[] = [];
 
 function useMounted() {
   const [mounted, setMounted] = React.useState(false);
@@ -80,27 +86,39 @@ export default function Modal({
   className,
   closeOnBackdrop = true,
   zIndex = 10000,
+  headerless = false,
 }: ModalProps) {
   const mounted = useMounted();
   const restoreRef = React.useRef<null | (() => void)>(null);
+
+  // onClose가 렌더마다 바뀌어도 스택 순서/스크롤 락이 흔들리지 않도록 ref로 보관
+  const onCloseRef = React.useRef(onClose);
+  onCloseRef.current = onClose;
 
   // ESC + scroll lock
   React.useEffect(() => {
     if (!open) return;
 
+    const token = Symbol("modal");
+    modalStack.push(token);
+
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key !== "Escape") return;
+      if (modalStack[modalStack.length - 1] !== token) return;
+      onCloseRef.current();
     };
     window.addEventListener("keydown", onKeyDown);
 
     restoreRef.current = lockBodyScroll();
 
     return () => {
+      const idx = modalStack.indexOf(token);
+      if (idx >= 0) modalStack.splice(idx, 1);
       window.removeEventListener("keydown", onKeyDown);
       restoreRef.current?.();
       restoreRef.current = null;
     };
-  }, [open, onClose]);
+  }, [open]);
 
   // 포커스: 열린 순간 닫기 버튼에 포커스(선택)
   const closeBtnRef = React.useRef<HTMLButtonElement | null>(null);
@@ -118,7 +136,7 @@ export default function Modal({
     <div className="fixed inset-0" style={{ zIndex }} data-modal-root>
       {/* backdrop */}
       <div
-        className="absolute inset-0 bg-black/55 backdrop-blur-[2px]"
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200"
         onMouseDown={e => {
           // 드래그 시작이 backdrop이면 닫기(클릭/터치 안정)
           if (!closeOnBackdrop) return;
@@ -129,51 +147,49 @@ export default function Modal({
           if (e.target === e.currentTarget) onClose();
         }}
       />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0
-                   bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.10),rgba(0,0,0,0.55))]"
-      />
 
       {/* dialog */}
-      <div className="absolute inset-0 grid place-items-center p-4 sm:p-6">
-        <div className={cn("relative w-full", maxWidthClassName, "min-w-0")}>
-          {/* 외곽 글로우 */}
+      <div className="pointer-events-none absolute inset-0 grid place-items-center p-4 sm:p-6">
+        <div
+          className={cn(
+            "pointer-events-auto relative w-full min-w-0",
+            maxWidthClassName,
+            "animate-in fade-in zoom-in-[0.97] slide-in-from-bottom-3 duration-300 ease-out"
+          )}
+        >
+          {/* panel */}
           <div
-            aria-hidden
-            className="absolute -inset-2 rounded-[28px] blur-xl opacity-80
-                       bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.14),rgba(99,102,241,0.12),rgba(0,0,0,0))]"
-          />
-
-          {/* 2겹 보더 (그라데이션) */}
-          <div className="relative rounded-3xl p-[1px] bg-[linear-gradient(135deg,rgba(255,255,255,0.22),rgba(255,255,255,0.06),rgba(99,102,241,0.14))]">
-            {/* panel */}
-            <div
-              className={cn(
-                "relative rounded-3xl overflow-hidden",
-                "bg-zinc-950/92 text-white",
-                "shadow-[0_30px_120px_rgba(0,0,0,.75)]",
-                // ✅ 여기서만 스크롤
-                "max-h-[85vh] flex flex-col",
-                // ✅ 가로 폭 밀림 방지
-                "min-w-0 overflow-x-hidden",
-                className
-              )}
-              role="dialog"
-              aria-modal="true"
-            >
-              {/* 상단 라이트 레이어 */}
-              <div
-                aria-hidden
-                className="pointer-events-none absolute inset-x-0 top-0 h-24
-                           bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.10),rgba(255,255,255,0))]"
-              />
-
-              {/* header (fixed) */}
-              <div className="relative shrink-0 flex items-center justify-between px-4 py-2 border-b border-white/10">
+            className={cn(
+              "relative rounded-3xl overflow-hidden",
+              "bg-[#111114] text-white",
+              "border border-white/[0.08]",
+              "shadow-[0_40px_120px_rgba(0,0,0,0.7),inset_0_1px_0_rgba(255,255,255,0.05)]",
+              // ✅ 여기서만 스크롤
+              "max-h-[88vh] flex flex-col",
+              // ✅ 가로 폭 밀림 방지
+              "min-w-0 overflow-x-hidden",
+              className
+            )}
+            role="dialog"
+            aria-modal="true"
+            aria-label={title}
+          >
+            {headerless ? (
+              <button
+                ref={closeBtnRef}
+                type="button"
+                onClick={onClose}
+                className="absolute right-3 top-3 z-20 h-9 w-9 rounded-full grid place-items-center bg-black/45 border border-white/15 backdrop-blur-md text-white/80 hover:bg-black/70 hover:text-white transition-colors"
+                aria-label="닫기"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            ) : (
+              /* header (fixed) */
+              <div className="relative shrink-0 flex items-center justify-between pl-5 pr-3 h-14 border-b border-white/[0.07]">
                 <div className="min-w-0">
                   {title ? (
-                    <h2 className="text-sm font-semibold text-white/90 truncate">
+                    <h2 className="text-[15px] font-semibold text-white/90 truncate font-sans tracking-[-0.01em]">
                       {title}
                     </h2>
                   ) : (
@@ -185,28 +201,25 @@ export default function Modal({
                   ref={closeBtnRef}
                   type="button"
                   onClick={onClose}
-                  className="h-9 w-9 rounded-xl grid place-items-center text-white/70 hover:bg-white/10 transition"
+                  className="h-9 w-9 rounded-xl grid place-items-center text-white/60 hover:bg-white/[0.07] hover:text-white transition-colors"
                   aria-label="닫기"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
+            )}
 
-              {/* body (scroll only here) */}
-              <div className="relative flex-1 min-h-0 overflow-y-auto overscroll-contain scroll-dark">
-                {children}
-              </div>
-
-              {/* footer (fixed, optional) */}
-              {footer ? (
-                <div className="relative shrink-0 px-5 py-4 border-t border-white/10">
-                  {footer}
-                </div>
-              ) : null}
-
-              {/* 하단 구분선(미세) */}
-              <div aria-hidden className="h-px bg-white/5" />
+            {/* body (scroll only here) */}
+            <div className="relative flex-1 min-h-0 overflow-y-auto overscroll-contain scroll-dark">
+              {children}
             </div>
+
+            {/* footer (fixed, optional) */}
+            {footer ? (
+              <div className="relative shrink-0 px-5 py-4 border-t border-white/[0.07] bg-white/[0.015]">
+                {footer}
+              </div>
+            ) : null}
           </div>
         </div>
       </div>

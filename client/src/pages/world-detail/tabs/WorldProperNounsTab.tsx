@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Plus, Search, Settings2 } from "lucide-react";
 
-import { HUDPanel, HUDSectionTitle, HUDBadge } from "@/components/ui/hud";
 import GButton from "@/components/ui/gyeol-button";
 import { uiInput } from "@/components/ui/form/presets";
 
@@ -309,99 +308,80 @@ export default function WorldProperNounsTab({
   }, [detailId, createDraft, nounById]);
 
   return (
-    <HUDPanel className="p-6 h-full min-h-0 flex flex-col">
-      <HUDSectionTitle
-        right={
-          <div className="flex flex-wrap items-center justify-end gap-2">
-            <HUDBadge className="shrink-0 hidden sm:visible">{`TOTAL ${nouns.length}`}</HUDBadge>
-
-            {editMode && (
-              <div className="flex flex-wrap items-center gap-2">
-                <GButton
-                  variant="neutral"
-                  icon={<Settings2 className="w-4 h-4" />}
-                  text="분류 편집"
-                  onClick={openKindEditor}
-                />
-                <GButton
-                  variant="primary"
-                  icon={<Plus className="w-4 h-4" />}
-                  text="항목 추가"
-                  onClick={openCreate}
-                />
-              </div>
-            )}
+    <div className="flex flex-col">
+      {/* header */}
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h3 className="flex items-center gap-2.5 text-lg font-semibold tracking-[-0.01em] text-white/95">
+            <span aria-hidden className="h-4 w-[3px] rounded-full bg-brand" />
+            세계관 요소
+          </h3>
+          <div className="mt-1.5 pl-[13px] text-xs text-white/40">
+            장소 · 조직 · 개념 등 이 세계를 이루는 고유명사 {nouns.length}개
           </div>
-        }
-      >
-        <div className="hidden sm:visible">TERMS / INDEX</div>
-      </HUDSectionTitle>
+        </div>
 
-      {/* controls (스크롤 안됨) */}
-      <div className="mt-3 sm:mt-4 grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-3 shrink-0">
-        {/* search */}
-        <div className="relative">
+        {editMode && (
+          <div className="flex flex-wrap items-center gap-2">
+            <GButton
+              variant="neutral"
+              size="sm"
+              icon={<Settings2 className="w-4 h-4" />}
+              text="분류 편집"
+              onClick={openKindEditor}
+            />
+            <GButton
+              variant="primary"
+              size="sm"
+              icon={<Plus className="w-4 h-4" />}
+              text="항목 추가"
+              onClick={openCreate}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* controls */}
+      <div className="mt-6 flex flex-col lg:flex-row lg:items-center gap-3">
+        <div className="relative lg:w-80 shrink-0">
           <Search className="w-4 h-4 text-white/40 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             value={q}
             onChange={e => setQ(e.target.value)}
-            placeholder="제목/요약/본문/태그 검색"
+            placeholder="제목 · 요약 · 본문 · 태그 검색"
             className={cn(uiInput, "pl-9")}
           />
         </div>
 
         {/* kind chips: 모바일은 가로 스크롤 */}
-        <div
-          className={cn(
-            "lg:justify-end",
-            "flex items-center gap-2",
-            "overflow-x-auto overflow-y-hidden",
-            "whitespace-nowrap",
-            "py-1",
-            "scrollbar-none",
-            "overscroll-x-contain",
-            "snap-x snap-mandatory"
-          )}
-        >
-          <div className="w-1 shrink-0" />
-
-          <div className="snap-start shrink-0">
-            <GButton
-              variant={kind === "all" ? "primary" : "neutral"}
-              text="ALL"
-              onClick={() => setKind("all")}
-            />
-          </div>
-
-          {kinds.map(k => (
-            <div key={k.id} className="snap-start shrink-0">
-              <GButton
-                variant={kind === k.id ? "primary" : "neutral"}
-                text={k.label}
+        <div className="flex items-center gap-1.5 overflow-x-auto overflow-y-hidden whitespace-nowrap py-1 scrollbar-none overscroll-x-contain">
+          {[{ id: "all", label: "전체" }, ...kinds].map(k => {
+            const active = kind === k.id;
+            return (
+              <button
+                key={k.id}
+                type="button"
                 onClick={() => setKind(k.id)}
-              />
-            </div>
-          ))}
-
-          <div className="w-2 shrink-0" />
+                className={cn(
+                  "shrink-0 h-8 px-3.5 rounded-full text-[13px] font-medium border transition-colors",
+                  active
+                    ? "bg-white/[0.12] text-white border-white/20"
+                    : "bg-white/[0.03] text-white/55 border-white/[0.07] hover:bg-white/[0.07] hover:text-white"
+                )}
+              >
+                {k.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* list wrapper: 여기만 스크롤 */}
-      <div
-        className={cn(
-          "mt-4 sm:mt-5 flex-1 min-h-0",
-          "md:overflow-y-auto md:overscroll-contain",
-          "[scrollbar-gutter:stable]",
-          "scroll-dark",
-          "md:webkit-overflow-scrolling-touch",
-          "pr-1"
-        )}
-      >
-        <div className="grid gap-3">
+      <div className="mt-6">
+        <div className="grid gap-3 lg:grid-cols-2">
           {filtered.length === 0 ? (
-            <div className="rounded-2xl border border-white/10 bg-black/20 p-5 sm:p-6 text-sm text-white/60">
-              항목이 없습니다.
+            <div className="lg:col-span-2 grid place-items-center rounded-2xl border border-dashed border-white/10 py-14 text-sm text-white/50">
+              {q ? "검색 결과가 없어요" : "등록된 항목이 없어요"}
             </div>
           ) : (
             filtered.map(n => {
@@ -455,6 +435,6 @@ export default function WorldProperNounsTab({
         getEntryKindId={getEntryKindId}
         onSave={saveKinds}
       />
-    </HUDPanel>
+    </div>
   );
 }

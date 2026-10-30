@@ -122,7 +122,7 @@ export default function LeftPanel<T extends EntityBase>(props: {
               <div className="flex items-center gap-2 min-w-0">
                 <div className="min-w-0 flex-1">
                   <OverflowMarquee active={true} className="w-full">
-                    <span className="marquee-text name text-3xl font-extrabold">
+                    <span className="marquee-text name font-display text-4xl lg:text-5xl font-semibold tracking-[-0.02em] drop-shadow-[0_4px_20px_rgba(0,0,0,0.6)]">
                       {entity.name}
                     </span>
                   </OverflowMarquee>
@@ -132,7 +132,7 @@ export default function LeftPanel<T extends EntityBase>(props: {
                   <button
                     type="button"
                     onClick={onOpenBasic}
-                    className="h-9 w-9 rounded-xl bg-white/10 border border-white/10 hover:bg-white/15 transition grid place-items-center"
+                    className="h-9 w-9 shrink-0 rounded-full bg-black/40 border border-white/15 backdrop-blur-md hover:bg-white/15 transition-colors grid place-items-center"
                     title="기본 정보 편집"
                   >
                     <Pencil className="w-4 h-4 text-white/80" />
@@ -140,14 +140,19 @@ export default function LeftPanel<T extends EntityBase>(props: {
                 )}
               </div>
 
-              <div className="my-2 min-w-0">
-                <OverflowMarquee active={true} className="w-full">
-                  <span className="marquee-text tags text-sm">
-                    {subCategories?.length
-                      ? subCategories.join(" · ")
-                      : "태그 없음"}
-                  </span>
-                </OverflowMarquee>
+              <div className="mt-3 mb-1 flex flex-wrap gap-1.5">
+                {subCategories?.length ? (
+                  subCategories.map(t => (
+                    <span
+                      key={t}
+                      className="inline-flex items-center h-6 px-2.5 rounded-full bg-white/10 border border-white/10 backdrop-blur text-[11px] text-white/80"
+                    >
+                      {t}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-xs text-white/40">태그 없음</span>
+                )}
               </div>
             </div>
           </div>

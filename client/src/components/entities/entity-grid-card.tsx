@@ -98,11 +98,11 @@ const EntityGridCard = memo(function EntityGridCard({
     return { outerPresets: outer, innerPresets: inner };
   }, [selected, stack.presets]);
 
-  // ✅ 클릭 UX:
-  const handleClick = useCallback(() => {
-    if (selected) onOpen(id);
-    else onSelect(id);
-  }, [selected, onOpen, onSelect, id]);
+  // ✅ 클릭 UX: 호버(포커스) = 선택(프레임 연출), 클릭 = 바로 상세
+  const handleClick = useCallback(() => onOpen(id), [onOpen, id]);
+  const handleHover = useCallback(() => {
+    if (!selected) onSelect(id);
+  }, [selected, onSelect, id]);
 
   const handleEdit = useCallback(
     (e: React.MouseEvent) => {
@@ -122,7 +122,18 @@ const EntityGridCard = memo(function EntityGridCard({
 
   return (
     <div
+      role="button"
+      tabIndex={0}
+      aria-label={`${name} 상세 보기`}
       onClick={handleClick}
+      onMouseEnter={handleHover}
+      onFocus={handleHover}
+      onKeyDown={e => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          handleClick();
+        }
+      }}
       style={{
         ["--frame-thickness" as any]: `${stack.thickness ?? 1}px`,
         ["--frame-intensity" as any]: `${stack.intensity ?? 1}`,
@@ -130,7 +141,8 @@ const EntityGridCard = memo(function EntityGridCard({
         ["--c2" as any]: c2,
       }}
       className={[
-        "group relative aspect-square",
+        "group relative aspect-square cursor-pointer outline-none",
+        "focus-visible:[&>div]:ring-2 focus-visible:[&>div]:ring-brand/60",
         "transition-[transform,box-shadow] duration-300",
         "overflow-visible",
         selected ? "is-selected" : "",
@@ -156,7 +168,9 @@ const EntityGridCard = memo(function EntityGridCard({
       <div
         className={[
           "relative z-20 h-full w-full rounded-2xl overflow-hidden",
-          "bg-zinc-900 shadow-sm group-hover:shadow-xl",
+          "bg-zinc-900 border border-white/[0.07]",
+          "shadow-[0_1px_2px_rgba(0,0,0,0.4)] group-hover:shadow-[0_12px_40px_rgba(0,0,0,0.5)]",
+          "transition-shadow duration-300",
         ].join(" ")}
       >
         {/* ✅ INNER FX */}
@@ -189,8 +203,8 @@ const EntityGridCard = memo(function EntityGridCard({
               className={[
                 "h-full w-full object-cover transition-all duration-500",
                 selected
-                  ? "scale-110 brightness-100 saturate-100 grayscale-0 will-change-transform"
-                  : "grayscale brightness-75 contrast-105 group-hover:grayscale-0 group-hover:brightness-90 group-hover:scale-105",
+                  ? "scale-[1.06] brightness-105 will-change-transform"
+                  : "brightness-[0.88] saturate-[0.9]",
               ].join(" ")}
             />
           ) : (
@@ -215,7 +229,7 @@ const EntityGridCard = memo(function EntityGridCard({
           <div className="relative z-10">
             {/* ===== 이름 ===== */}
             <OverflowMarquee active={selected}>
-              <span className="marquee-text name text-sm font-bold">
+              <span className="marquee-text name text-sm font-semibold">
                 {name}
               </span>
             </OverflowMarquee>
@@ -231,30 +245,30 @@ const EntityGridCard = memo(function EntityGridCard({
 
         {/* selected ring */}
         {selected && (
-          <div className="absolute inset-0 ring-2 ring-white/20 pointer-events-none z-50" />
+          <div className="absolute inset-0 rounded-2xl ring-2 ring-inset ring-brand/60 shadow-[inset_0_0_30px_rgba(129,140,248,0.25)] pointer-events-none z-50" />
         )}
 
         {/* edit overlay buttons */}
         {editMode && (
-          <div className="absolute top-2 right-2 flex gap-1 z-50">
+          <div className="absolute top-2 right-2 flex gap-1 z-50 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
             <button
               type="button"
               onClick={handleEdit}
-              className="h-9 w-9 rounded-xl bg-black/45 border border-white/10 hover:bg-black/55 transition grid place-items-center"
+              className="h-8 w-8 rounded-full bg-black/55 border border-white/15 backdrop-blur hover:bg-black/75 transition-colors grid place-items-center"
               title="편집"
               aria-label="편집"
             >
-              <Pencil className="w-4 h-4 text-white/85" />
+              <Pencil className="w-3.5 h-3.5 text-white/85" />
             </button>
 
             <button
               type="button"
               onClick={handleDelete}
-              className="h-9 w-9 rounded-xl bg-red-500/15 border border-red-500/25 hover:bg-red-500/20 transition grid place-items-center"
+              className="h-8 w-8 rounded-full bg-black/55 border border-white/15 backdrop-blur hover:bg-red-500/80 hover:border-transparent transition-colors grid place-items-center"
               title="삭제"
               aria-label="삭제"
             >
-              <Trash2 className="w-4 h-4 text-white/85" />
+              <Trash2 className="w-3.5 h-3.5 text-white/85" />
             </button>
           </div>
         )}

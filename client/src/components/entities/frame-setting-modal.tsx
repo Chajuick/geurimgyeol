@@ -2,7 +2,6 @@ import React, { useEffect, useState, useCallback } from "react";
 
 import Modal from "@/components/ui/modal";
 import GButton from "@/components/ui/gyeol-button";
-import { HUDPanel } from "@/components/ui/hud";
 
 import type { FramePresetId } from "@/types";
 import { INNER_OPTIONS, OUTER_OPTIONS } from "@/lib/framePresets";
@@ -71,20 +70,15 @@ export default function EntityFrameSettingsModal({
       }
     >
       <div className="p-4 sm:p-6">
-        <div className="text-[11px] tracking-[0.26em] text-white/55">
-          CHARACTER FRAME SETTINGS
-        </div>
-        <div className="mt-2 text-sm text-white/60">
-          캐릭터 선택 프레임(외곽/내부)을 각각 1개씩 고르세요.
-        </div>
+        <p className="text-sm text-white/55">
+          마우스를 올린(선택된) 카드에 표시되는 효과예요. 외곽과 내부 효과를
+          하나씩 고르세요.
+        </p>
 
         <div className="mt-4 sm:mt-6 grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
           {/* OUTER */}
-          <HUDPanel className="p-4">
-            <div className="text-[11px] tracking-[0.26em] text-white/55">
-              OUTER
-            </div>
-            <div className="mt-1 text-sm text-white/70">외곽 효과</div>
+          <section className="rounded-3xl border border-white/[0.07] bg-white/[0.02] p-4 sm:p-5">
+            <h3 className="text-sm font-semibold text-white/85">외곽 효과</h3>
 
             <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
               {OUTER_OPTIONS.map(opt => {
@@ -96,13 +90,14 @@ export default function EntityFrameSettingsModal({
                     type="button"
                     onClick={() => setOuter(opt.id)}
                     className={[
-                      "rounded-2xl border p-3 text-left transition",
-                      "bg-black/20 border-white/20 hover:border-white/30",
-                      selected ? "ring-2 ring-white/20 is-selected" : "",
+                      "rounded-2xl border p-3 text-left transition-colors",
+                      selected
+                        ? "is-selected bg-brand/[0.08] border-brand/40"
+                        : "bg-black/20 border-white/[0.08] hover:border-white/20",
                     ].join(" ")}
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <div className="text-sm font-semibold px-2">
+                      <div className="text-sm font-medium px-1">
                         {opt.label}
                       </div>
 
@@ -110,12 +105,12 @@ export default function EntityFrameSettingsModal({
                         className={[
                           "w-5 h-5 rounded-full border flex items-center justify-center",
                           selected
-                            ? "border-white/70 bg-white/15"
+                            ? "border-brand bg-brand/20"
                             : "border-white/25 bg-transparent",
                         ].join(" ")}
                       >
                         {selected && (
-                          <div className="w-2.5 h-2.5 rounded-full bg-white" />
+                          <div className="w-2.5 h-2.5 rounded-full bg-brand" />
                         )}
                       </div>
                     </div>
@@ -132,8 +127,8 @@ export default function EntityFrameSettingsModal({
                             style={{
                               ["--frame-thickness" as any]: `2px`,
                               ["--frame-intensity" as any]: `0.9`,
-                              ["--c1" as any]: "#6b7280",
-                              ["--c2" as any]: "#6b7280",
+                              ["--c1" as any]: "#818cf8",
+                              ["--c2" as any]: "#a5b4fc",
                             }}
                           />
                         )}
@@ -144,14 +139,11 @@ export default function EntityFrameSettingsModal({
                 );
               })}
             </div>
-          </HUDPanel>
+          </section>
 
           {/* INNER */}
-          <HUDPanel className="p-4">
-            <div className="text-[11px] tracking-[0.26em] text-white/55">
-              INNER
-            </div>
-            <div className="mt-1 text-sm text-white/70">내부 효과</div>
+          <section className="rounded-3xl border border-white/[0.07] bg-white/[0.02] p-4 sm:p-5">
+            <h3 className="text-sm font-semibold text-white/85">내부 효과</h3>
 
             <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
               {INNER_OPTIONS.map(opt => {
@@ -163,13 +155,14 @@ export default function EntityFrameSettingsModal({
                     type="button"
                     onClick={() => setInner(opt.id)}
                     className={[
-                      "rounded-2xl border p-3 text-left transition",
-                      "bg-black/20 border-white/20 hover:border-white/30",
-                      selected ? "ring-2 ring-white/20 is-selected" : "",
+                      "rounded-2xl border p-3 text-left transition-colors",
+                      selected
+                        ? "is-selected bg-brand/[0.08] border-brand/40"
+                        : "bg-black/20 border-white/[0.08] hover:border-white/20",
                     ].join(" ")}
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <div className="text-sm font-semibold px-2">
+                      <div className="text-sm font-medium px-1">
                         {opt.label}
                       </div>
 
@@ -177,12 +170,12 @@ export default function EntityFrameSettingsModal({
                         className={[
                           "w-5 h-5 rounded-full border flex items-center justify-center",
                           selected
-                            ? "border-white/70 bg-white/15"
+                            ? "border-brand bg-brand/20"
                             : "border-white/25 bg-transparent",
                         ].join(" ")}
                       >
                         {selected && (
-                          <div className="w-2.5 h-2.5 rounded-full bg-white" />
+                          <div className="w-2.5 h-2.5 rounded-full bg-brand" />
                         )}
                       </div>
                     </div>
@@ -200,8 +193,8 @@ export default function EntityFrameSettingsModal({
                               style={{
                                 ["--frame-thickness" as any]: `1px`,
                                 ["--frame-intensity" as any]: `1`,
-                                ["--c1" as any]: "#6b7280",
-                                ["--c2" as any]: "#6b7280",
+                                ["--c1" as any]: "#818cf8",
+                                ["--c2" as any]: "#a5b4fc",
                               }}
                             />
                           )}
@@ -212,12 +205,7 @@ export default function EntityFrameSettingsModal({
                 );
               })}
             </div>
-          </HUDPanel>
-        </div>
-
-        <div className="mt-4 text-xs text-white/55">
-          OUTER: <span className="text-white/80">{value.outer}</span> · INNER:{" "}
-          <span className="text-white/80">{value.inner}</span>
+          </section>
         </div>
       </div>
     </Modal>

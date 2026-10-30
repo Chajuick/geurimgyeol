@@ -20,7 +20,7 @@ export default function HUDSegmentTabs<T extends string>(props: {
   return (
     <div
       className={cn(
-        "rounded-2xl border border-white/10 bg-black/20 p-1",
+        "rounded-2xl border border-white/[0.07] bg-white/[0.025] p-1",
         "flex gap-1",
         className
       )}
@@ -46,7 +46,7 @@ export default function HUDSegmentTabs<T extends string>(props: {
               "outline-none select-none",
 
               // ✅ focus 번쩍 통제 (키보드 접근성은 유지)
-              "focus-visible:ring-2 focus-visible:ring-amber-300/25 focus-visible:ring-offset-0",
+              "focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-0",
 
               // ✅ 눌림(클릭 순간) 번쩍 통제
               !active && !it.disabled
@@ -58,8 +58,8 @@ export default function HUDSegmentTabs<T extends string>(props: {
 
               active
                 ? cn(
-                    "bg-white/10 border border-white/15 text-white",
-                    "shadow-[0_0_0_1px_rgba(255,255,255,0.06),0_18px_40px_rgba(0,0,0,0.35)]"
+                    "bg-white/[0.09] border border-white/10 text-white",
+                    "shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_1px_2px_rgba(0,0,0,0.4)]"
                   )
                 : "text-white/55 hover:text-white hover:bg-white/5"
             )}

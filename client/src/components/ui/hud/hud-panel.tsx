@@ -5,13 +5,13 @@ type HUDPanelProps = {
   className?: string;
   children: React.ReactNode;
 
-  /** 코너 브래킷 표시 */
+  /** 상단 하이라이트 라인 */
   corners?: boolean;
 
-  /** 스캔라인 오버레이 */
+  /** 상단에서 내려오는 은은한 광 */
   scanline?: boolean;
 
-  /** 그리드 오버레이 */
+  /** 미세 도트 텍스처 */
   grid?: boolean;
 };
 
@@ -20,48 +20,36 @@ export default function HUDPanel({
   children,
   corners = true,
   scanline = true,
-  grid = true,
+  grid = false,
 }: HUDPanelProps) {
   return (
-    <div
-      className={cn(
-        "relative rounded-2xl overflow-hidden",
-        "border border-white/10 bg-white/[0.04]",
-        "shadow-[0_18px_60px_rgba(0,0,0,0.55)]",
-        className
-      )}
-    >
-      {/* corner brackets */}
+    <div className={cn("gyeol-surface overflow-hidden", className)}>
+      {/* top hairline */}
       {corners && (
-        <div aria-hidden className="pointer-events-none absolute inset-0">
-          <div className="absolute left-3 top-3 w-6 h-6 border-l border-t border-white/25" />
-          <div className="absolute right-3 top-3 w-6 h-6 border-r border-t border-white/25" />
-          <div className="absolute left-3 bottom-3 w-6 h-6 border-l border-b border-white/20" />
-          <div className="absolute right-3 bottom-3 w-6 h-6 border-r border-b border-white/20" />
-        </div>
-      )}
-
-      {/* scanline */}
-      {scanline && (
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-40"
-          style={{
-            backgroundImage:
-              "linear-gradient(to bottom, rgba(255,255,255,0.06), rgba(255,255,255,0.00) 30%, rgba(0,0,0,0.20) 70%, rgba(255,255,255,0.04))",
-          }}
+          className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"
         />
       )}
 
-      {/* subtle grid */}
+      {/* soft top glow */}
+      {scanline && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[radial-gradient(60%_100%_at_50%_0%,rgba(165,180,252,0.06),transparent)]"
+        />
+      )}
+
+      {/* dot texture */}
       {grid && (
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-[0.10]"
+          className="pointer-events-none absolute inset-0 opacity-[0.35]"
           style={{
             backgroundImage:
-              "linear-gradient(to right, rgba(255,255,255,0.15) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.10) 1px, transparent 1px)",
-            backgroundSize: "38px 38px",
+              "radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px)",
+            backgroundSize: "20px 20px",
+            maskImage: "linear-gradient(to bottom, black, transparent 70%)",
           }}
         />
       )}

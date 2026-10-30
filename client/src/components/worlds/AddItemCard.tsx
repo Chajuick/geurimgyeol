@@ -73,7 +73,7 @@ function AddItemCardBase({ id, name, image, onPick }: Props) {
           />
         ) : (
           <div className="h-full w-full grid place-items-center bg-black/40">
-            <div className="text-[11px] tracking-[0.26em] uppercase text-white/45">
+            <div className="text-[11px] tracking-[0.14em] uppercase text-white/45">
               NO IMAGE
             </div>
           </div>

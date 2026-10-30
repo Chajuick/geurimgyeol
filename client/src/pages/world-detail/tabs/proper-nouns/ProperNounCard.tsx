@@ -1,7 +1,5 @@
 import * as React from "react";
 import { Pencil, Trash2 } from "lucide-react";
-import { HUDBadge } from "@/components/ui/hud";
-import GButton from "@/components/ui/gyeol-button";
 import { useResolvedImage } from "@/hooks/useResolvedImage";
 import { cn } from "@/lib/utils";
 
@@ -25,107 +23,79 @@ function ProperNounCardInner(props: Props) {
 
   return (
     <div
+      role="button"
+      tabIndex={0}
       className={cn(
-        "group relative rounded-2xl border border-white/10 bg-black/20",
-        "p-3 sm:p-4",
-        "transition will-change-transform cursor-pointer",
-        "hover:-translate-y-[2px] hover:bg-black/25 hover:border-white/20",
-        "hover:shadow-[0_18px_50px_rgba(0,0,0,0.45)]"
+        "group relative rounded-2xl border border-white/[0.07] bg-white/[0.02]",
+        "p-3 sm:p-4 cursor-pointer outline-none",
+        "transition-[transform,background-color,border-color] duration-300",
+        "hover:-translate-y-0.5 hover:bg-white/[0.05] hover:border-white/15",
+        "focus-visible:ring-2 focus-visible:ring-brand/50"
       )}
       onClick={() => onOpen(id)}
+      onKeyDown={e => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onOpen(id);
+        }
+      }}
     >
-      {/* glow */}
-      <div
-        className={cn(
-          "pointer-events-none absolute -inset-[1px] rounded-2xl opacity-0",
-          "transition-opacity duration-200 group-hover:opacity-100",
-          "bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.12),transparent_55%),radial-gradient(circle_at_80%_30%,rgba(99,102,241,0.18),transparent_55%)]"
-        )}
-      />
-
-      {/* scanlines */}
-      <div
-        className={cn(
-          "pointer-events-none absolute inset-0 rounded-2xl opacity-0",
-          "transition-opacity duration-200 group-hover:opacity-[0.12]",
-          "bg-[linear-gradient(rgba(255,255,255,0.10)_1px,transparent_1px)] bg-[length:100%_3px]"
-        )}
-      />
-
-      <div className="relative z-10 grid grid-cols-[56px_minmax(0,1fr)_auto] sm:grid-cols-[80px_minmax(0,1fr)_auto] gap-3 items-start">
+      <div className="relative grid grid-cols-[56px_minmax(0,1fr)] sm:grid-cols-[72px_minmax(0,1fr)] gap-3 sm:gap-4 items-center">
         {/* ICON */}
-        <div className="shrink-0">
-          <div
-            className={cn(
-              "relative rounded-2xl border border-white/10 bg-black/30 overflow-hidden",
-              "flex justify-center items-center",
-              "transition group-hover:border-white/20 group-hover:bg-black/35",
-              "w-14 h-14 sm:w-20 sm:h-20"
-            )}
-          >
-            {hasIcon ? (
-              <img
-                src={iconSrc}
-                className="block w-full h-full object-contain p-1 transition-transform duration-200 group-hover:scale-[1.04]"
-                alt="아이콘 이미지"
-                loading="lazy"
-                decoding="async"
-              />
-            ) : (
-              <div className="text-[10px] sm:text-[11px] text-white/40">
-                NO ICON
-              </div>
-            )}
-          </div>
+        <div className="grid place-items-center w-14 h-14 sm:w-[72px] sm:h-[72px] rounded-2xl bg-black/30 border border-white/[0.07] overflow-hidden">
+          {hasIcon ? (
+            <img
+              src={iconSrc}
+              className="block w-full h-full object-contain p-1 transition-transform duration-300 group-hover:scale-[1.06]"
+              alt=""
+              loading="lazy"
+              decoding="async"
+            />
+          ) : null}
         </div>
 
         {/* TEXT */}
         <div className="min-w-0">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="min-w-0 flex-1">
-              <div className="text-base sm:text-lg font-semibold truncate">
-                {n?.title || "제목 없음"}
-              </div>
-            </div>
-            <HUDBadge className="scale-95 shrink-0">{kindLabel}</HUDBadge>
+          <div className="text-[11px] font-medium text-brand/90">
+            {kindLabel}
           </div>
-
+          <div className="mt-0.5 text-base sm:text-lg font-semibold truncate">
+            {n?.title || "제목 없음"}
+          </div>
           {n?.summary ? (
-            <div className="hidden sm:block mt-2 text-sm text-white/70 line-clamp-2 whitespace-pre-wrap">
+            <div className="mt-1 text-sm text-white/55 line-clamp-1 whitespace-pre-wrap">
               {n.summary}
             </div>
-          ) : (
-            <div className="hidden sm:block mt-2 text-sm text-white/50">
-              요약 없음
-            </div>
-          )}
-        </div>
-
-        {/* ACTIONS */}
-        <div
-          className="shrink-0 flex items-center gap-1.5 sm:gap-2 pt-0.5"
-          onClick={e => e.stopPropagation()}
-        >
-          {editMode && (
-            <>
-              <GButton
-                variant="neutral"
-                size="icon"
-                icon={<Pencil className="w-4 h-4" />}
-                onClick={() => onOpenEdit(id)}
-                title="편집"
-              />
-              <GButton
-                variant="danger"
-                size="icon"
-                icon={<Trash2 className="w-4 h-4" />}
-                onClick={() => onRemove(id)}
-                title="삭제"
-              />
-            </>
-          )}
+          ) : null}
         </div>
       </div>
+
+      {/* ACTIONS (hover) */}
+      {editMode && (
+        <div
+          className="absolute top-3 right-3 flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity"
+          onClick={e => e.stopPropagation()}
+        >
+          <button
+            type="button"
+            onClick={() => onOpenEdit(id)}
+            title="편집"
+            aria-label="편집"
+            className="grid h-8 w-8 place-items-center rounded-full bg-black/50 border border-white/15 text-white/75 hover:bg-white/15 hover:text-white transition-colors"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => onRemove(id)}
+            title="삭제"
+            aria-label="삭제"
+            className="grid h-8 w-8 place-items-center rounded-full bg-black/50 border border-white/15 text-white/75 hover:bg-red-500/80 hover:text-white hover:border-transparent transition-colors"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

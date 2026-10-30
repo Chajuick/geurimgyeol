@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 
 import { HUDPanel, HUDSectionTitle, HUDBadge } from "@/components/ui/hud";
@@ -200,7 +200,7 @@ export default function WorldChronologyTab({
       <div className="mt-5 grid grid-cols-1 xl:grid-cols-2 gap-4">
         <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
           <div className="flex items-center justify-between">
-            <div className="text-xs tracking-[0.26em] text-white/55">ERAS</div>
+            <div className="text-xs tracking-[0.14em] text-white/55">ERAS</div>
             <HUDBadge>{`TOTAL ${eras.length}`}</HUDBadge>
           </div>
 
@@ -240,7 +240,7 @@ export default function WorldChronologyTab({
 
         <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
           <div className="flex items-center justify-between">
-            <div className="text-xs tracking-[0.26em] text-white/55">
+            <div className="text-xs tracking-[0.14em] text-white/55">
               YEAR SUFFIX
             </div>
             <HUDBadge>{`TOTAL ${suffixes.length}`}</HUDBadge>

@@ -12,9 +12,7 @@ export default function HUDSectionTitle({
 }) {
   return (
     <div className={cn("flex items-center justify-between", className)}>
-      <div className="text-[12px] tracking-[0.26em] text-white/55">
-        {children}
-      </div>
+      <div className="gyeol-eyebrow">{children}</div>
       {right}
     </div>
   );

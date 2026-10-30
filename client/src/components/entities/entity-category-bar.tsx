@@ -55,18 +55,18 @@ export default function EntityCategoryBar(props: {
     <div className={cn("w-full max-w-full min-w-0", className)}>
       <div className="mt-2 space-y-4">
         {/* main */}
-        <div className="w-full max-w-full min-w-0 overflow-x-auto overflow-y-hidden no-scrollbar scroll-dark pb-2 overscroll-x-contain">
-          <div className="inline-flex gap-3 whitespace-nowrap">
+        <div className="w-full max-w-full min-w-0 overflow-x-auto overflow-y-hidden scrollbar-none pb-2 overscroll-x-contain">
+          <div className="inline-flex gap-1 whitespace-nowrap">
             <button
               onClick={() => {
                 setActiveMain(ALL);
                 setActiveSub(ALL);
               }}
               className={[
-                "px-5 h-10 rounded-full text-sm font-medium transition-all duration-200 flex-shrink-0",
+                "px-4 h-9 rounded-full text-sm font-medium transition-colors duration-200 flex-shrink-0",
                 activeMain === ALL
-                  ? "bg-white/10 text-white border border-white/20 shadow-md"
-                  : "bg-zinc-900 text-zinc-300 border border-zinc-600 hover:bg-zinc-800 hover:text-white",
+                  ? "bg-white/[0.12] text-white border border-white/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
+                  : "bg-white/[0.04] text-white/70 border border-white/[0.08] hover:bg-white/[0.08] hover:text-white",
               ].join(" ")}
             >
               전체
@@ -82,10 +82,10 @@ export default function EntityCategoryBar(props: {
                     setActiveSub(ALL);
                   }}
                   className={[
-                    "px-5 h-10 rounded-full text-sm font-medium transition-all duration-200 flex-shrink-0",
+                    "px-4 h-9 rounded-full text-sm font-medium transition-colors duration-200 flex-shrink-0",
                     active
-                      ? "bg-white/10 text-white border border-white/20 shadow-md"
-                      : "bg-zinc-900 text-zinc-300 border border-zinc-600 hover:bg-zinc-800 hover:text-white",
+                      ? "bg-white/[0.12] text-white border border-white/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
+                      : "bg-white/[0.04] text-white/70 border border-white/[0.08] hover:bg-white/[0.08] hover:text-white",
                   ].join(" ")}
                 >
                   {c.main}
@@ -96,8 +96,8 @@ export default function EntityCategoryBar(props: {
         </div>
 
         {/* sub */}
-        <div className="w-full max-w-full min-w-0 overflow-x-auto overflow-y-hidden no-scrollbar scroll-dark pb-2 overscroll-x-contain">
-          <div className="inline-flex gap-2 whitespace-nowrap">
+        <div className="w-full max-w-full min-w-0 overflow-x-auto overflow-y-hidden scrollbar-none pb-1 overscroll-x-contain [mask-image:linear-gradient(to_right,black_92%,transparent)]">
+          <div className="inline-flex gap-1 whitespace-nowrap">
             {subsOfActiveMain.map(s => {
               const active = s === activeSub;
               return (
@@ -105,10 +105,10 @@ export default function EntityCategoryBar(props: {
                   key={s}
                   onClick={() => setActiveSub(s)}
                   className={[
-                    "px-4 h-8 rounded-full text-xs transition-all duration-200 flex-shrink-0",
+                    "px-3 h-7 rounded-lg text-xs transition-colors duration-200 flex-shrink-0",
                     active
-                      ? "bg-zinc-700 text-white"
-                      : "bg-zinc-900 text-zinc-400 border border-zinc-800 hover:bg-zinc-800 hover:text-white",
+                      ? "bg-brand/15 text-indigo-100 ring-1 ring-inset ring-brand/30"
+                      : "text-white/45 hover:bg-white/[0.05] hover:text-white",
                   ].join(" ")}
                 >
                   {s}

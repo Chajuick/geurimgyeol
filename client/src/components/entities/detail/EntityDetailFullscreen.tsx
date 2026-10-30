@@ -6,11 +6,11 @@ import React, {
   useRef,
   useState,
 } from "react";
-import type { EntityBase, SubImage, SymbolColor } from "@/types";
+import type { EntityBase, SymbolColor } from "@/types";
 import { useResolvedImage } from "@/hooks/useResolvedImage";
+import { Trash2, X } from "lucide-react";
 
 import LeftPanel from "./panels/LeftPanel";
-import MiddlePanel from "./panels/MiddlePanel";
 import RightPanel from "./panels/RightPanel";
 import RightSlideSheet from "./panels/RightSlideSheet";
 
@@ -237,6 +237,10 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
     return getPrimaryColor(normalized);
   }, [symbolColorsDraft]);
 
+  // 상징색 기반 연출 색 (없으면 브랜드 톤)
+  const accent = primaryHex ?? "#818cf8";
+  const accentGlow = `color-mix(in oklab, ${accent} 28%, transparent)`;
+
   /** -----------------------------
    * Mount anim
    * ------------------------------ */
@@ -416,7 +420,17 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
       >
         {/* bg */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute inset-0 bg-zinc-900" />
+          <div className="absolute inset-0 bg-[#0c0c0f]" />
+          {/* 상징색 앰비언트 */}
+          <div
+            className={[
+              "absolute inset-0 transition-opacity duration-1000",
+              mounted ? "opacity-100" : "opacity-0",
+            ].join(" ")}
+            style={{
+              background: `radial-gradient(60% 70% at 32% 45%, ${accentGlow}, transparent 70%)`,
+            }}
+          />
 
           <div
             className={[
@@ -427,7 +441,7 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
             ].join(" ")}
             style={{
               transitionDelay: "80ms",
-              background: "rgba(40,40,40,1)",
+              background: `color-mix(in oklab, ${accent} 10%, #1a1a1f)`,
               clipPath: "polygon(58% 0, 86% 0, 62% 100%, 35% 100%)",
             }}
           />
@@ -441,7 +455,7 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
             ].join(" ")}
             style={{
               transitionDelay: "220ms",
-              background: "rgba(24,24,24,1)",
+              background: `color-mix(in oklab, ${accent} 6%, #121216)`,
               clipPath: "polygon(73% 0, 100% 0, 100% 100%, 50% 100%)",
             }}
           />
@@ -484,20 +498,22 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
                   flushAll();
                   onDelete?.();
                 }}
-                className="h-10 px-4 rounded-xl bg-red-500/15 border border-red-500/25 hover:bg-red-500/20 transition inline-flex items-center gap-2"
+                className="h-10 w-10 rounded-full bg-black/40 border border-white/15 backdrop-blur-md text-white/70 hover:bg-red-500/80 hover:text-white hover:border-transparent transition-colors grid place-items-center"
+                title="삭제"
+                aria-label="삭제"
               >
-                <span className="text-sm">삭제</span>
+                <Trash2 className="h-4 w-4" />
               </button>
             )}
 
             <button
               type="button"
               onClick={handleClose}
-              className="h-10 w-10 rounded-xl bg-white/10 border border-white/10 hover:bg-white/15 transition grid place-items-center"
+              className="h-10 w-10 rounded-full bg-black/40 border border-white/15 backdrop-blur-md text-white/80 hover:bg-white/15 hover:text-white transition-colors grid place-items-center"
               aria-label="닫기"
-              title="닫기"
+              title="닫기 (ESC)"
             >
-              ✕
+              <X className="h-4 w-4" />
             </button>
           </div>
 
@@ -534,6 +550,7 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
               >
                 <RightPanel
                   entity={entity}
+                  accent={accent}
                   editable={editable}
                   symbolColors={symbolColorsDraft}
                   subImages={subImagesDraft}
@@ -548,13 +565,6 @@ export default function EntityDetailFullscreen<T extends EntityBase>(props: {
                 />
               </div>
             </div>
-          </div>
-          {/* ✅ 안내 문구는 모바일에선 방해될 수 있어 lg에서만 */}
-          <div
-            className="hidden lg:block absolute left-1/2 -translate-x-1/2 top-8 text-xs text-white/40 hover:text-white/70 transition cursor-pointer z-30"
-            onClick={handleClose}
-          >
-            ESC를 누르거나 상단 X를 눌러 돌아가기
           </div>
         </div>
 

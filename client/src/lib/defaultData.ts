@@ -31,6 +31,9 @@ export const DEFAULT_PORTFOLIO_DATA: PortfolioData = {
   ========================================================= */
   settings: {
     heroBackgroundImage: "",
+    heroTitle: "그려나가는 내 결",
+    heroSubtitle:
+      "세계관과 그 안에 살아가는 인물, 존재들을\n한 장씩 그려 기록하는 아카이브.",
 
     characterCategories: [],
     creatureCategories: [],

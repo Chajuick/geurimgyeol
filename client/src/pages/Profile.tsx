@@ -1,13 +1,17 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
-  Instagram,
+  ArrowUpRight,
   Globe,
+  Globe2,
+  Instagram,
+  Pencil,
   Plus,
+  Sparkles,
   Trash2,
   UserRound,
-  Link2,
-  Pencil,
 } from "lucide-react";
+import { motion, type Variants } from "framer-motion";
+import { useLocation } from "wouter";
 import { SiPixiv } from "react-icons/si";
 import { FaXTwitter } from "react-icons/fa6";
 
@@ -15,7 +19,6 @@ import { usePortfolioContext } from "@/contexts/PortfolioContext";
 import ImageUpload from "@/components/ImageUpload";
 import GButton from "@/components/ui/gyeol-button";
 import Modal from "@/components/ui/modal";
-import { HUDPanel, HUDBadge } from "@/components/ui/hud";
 import { useResolvedImage } from "@/hooks/useResolvedImage";
 import { cn } from "@/lib/utils";
 
@@ -52,29 +55,39 @@ function emptyLink(): SocialLink {
   return { platform: "", url: "", icon: "" };
 }
 
+const rise: Variants = {
+  hidden: { opacity: 0, y: 14 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: [0.2, 0.8, 0.2, 1] },
+  },
+};
+
 const inputCls = cn(
   "w-full h-10 px-3 rounded-xl text-sm",
-  "bg-black/25 text-white/90",
+  "bg-white/[0.04] text-white/90",
   "border border-white/10",
   "placeholder:text-white/30",
   "outline-none",
-  "focus:ring-2 focus:ring-white/15 focus:border-white/20",
+  "focus:ring-2 focus:ring-brand/40 focus:border-brand/40",
   "transition"
 );
 
 const textareaCls = cn(
   "w-full rounded-xl px-3 py-2 text-sm",
-  "bg-black/25 text-white/90",
+  "bg-white/[0.04] text-white/90",
   "border border-white/10",
   "placeholder:text-white/30",
   "outline-none",
-  "focus:ring-2 focus:ring-white/15 focus:border-white/20",
+  "focus:ring-2 focus:ring-brand/40 focus:border-brand/40",
   "transition",
-  "resize-none"
+  "resize-none leading-relaxed"
 );
 
 export default function Profile() {
   const { data, setData, editMode } = usePortfolioContext();
+  const [, setLocation] = useLocation();
   const profile = data.profile;
 
   const resolvedProfileImg = useResolvedImage(profile?.profileImage || "");
@@ -154,298 +167,288 @@ export default function Profile() {
       .filter(l => l.platform && l.url);
   }, [profile?.socialLinks]);
 
+  const archive = [
+    {
+      label: "세계관",
+      value: data.worlds?.length ?? 0,
+      path: "/worlds",
+      icon: Globe2,
+    },
+    {
+      label: "캐릭터",
+      value: data.characters?.length ?? 0,
+      path: "/characters",
+      icon: UserRound,
+    },
+    {
+      label: "크리쳐",
+      value: data.creatures?.length ?? 0,
+      path: "/creatures",
+      icon: Sparkles,
+    },
+  ];
+
   return (
-    <div
-      className={cn(
-        "min-h-[100svh] w-full overflow-x-hidden text-white",
-        "gyeol-bg relative"
+    <div className="relative min-h-[100svh] w-full overflow-hidden gyeol-bg text-white">
+      {/* #region Ambient */}
+      {resolvedProfileImg && (
+        <img
+          src={resolvedProfileImg}
+          alt=""
+          aria-hidden
+          className="pointer-events-none absolute left-1/2 top-0 h-[70svh] w-[120%] max-w-none -translate-x-1/2 object-cover opacity-[0.12] blur-3xl saturate-150"
+        />
       )}
-    >
-      {/* background HUD vignette */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(255,255,255,0.07),transparent_45%),radial-gradient(circle_at_85%_30%,rgba(99,102,241,0.10),transparent_45%)]" />
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.10),rgba(0,0,0,0.65))]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(50%_40%_at_50%_10%,rgba(129,140,248,0.14),transparent_70%)]" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-background to-transparent" />
+      {/* #endregion */}
 
-      <div className="relative z-10 px-4 sm:px-6 md:px-10 lg:px-12 py-6 md:py-10">
-        {/* ===== TOP HUD BAR ===== */}
-        <div className="flex items-center justify-between gap-3 h-10">
-          <div className="flex items-center gap-2">
-            {editMode ? (
-              <HUDBadge tone="warn">EDIT MODE</HUDBadge>
-            ) : (
-              <HUDBadge>VIEW MODE</HUDBadge>
-            )}
-            <HUDBadge>PROFILE</HUDBadge>
-          </div>
-
-          {editMode && (
-            <GButton
-              variant="ghost"
-              icon={<Pencil className="w-4 h-4" />}
-              text="프로필 수정"
-              onClick={openEdit}
-            />
-          )}
+      {editMode && (
+        <div className="absolute top-4 left-4 md:left-auto md:right-6 z-20">
+          <GButton
+            variant="neutral"
+            icon={<Pencil className="w-4 h-4" />}
+            text="프로필 수정"
+            onClick={openEdit}
+          />
         </div>
+      )}
 
-        {/* ===== HEADER ===== */}
-        <HUDPanel className="p-6 mt-4 sm:mt-6">
-          <div className="flex flex-col md:flex-row gap-8 md:gap-10">
-            {/* Profile Image Card */}
-            <div className="flex-shrink-0 flex items-center justify-center">
-              <div className="relative w-56 h-56 rounded-2xl overflow-hidden border border-white/10 bg-black/25">
-                {/* subtle scanlines */}
-                <div className="pointer-events-none absolute inset-0 opacity-[0.10] bg-[linear-gradient(rgba(255,255,255,0.18)_1px,transparent_1px)] bg-[length:100%_3px]" />
-                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_40%_20%,rgba(255,255,255,0.10),transparent_55%)]" />
-
-                {resolvedProfileImg ? (
-                  <img
-                    src={resolvedProfileImg}
-                    alt={profile?.name || "profile"}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                    decoding="async"
-                  />
-                ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center text-white/45 gap-2">
-                    <UserRound className="w-8 h-8" />
-                    <div className="text-xs">이미지 없음</div>
-                  </div>
-                )}
+      <motion.div
+        initial="hidden"
+        animate="show"
+        variants={{
+          hidden: {},
+          show: { transition: { staggerChildren: 0.08 } },
+        }}
+        className="relative z-10 mx-auto flex w-full max-w-2xl flex-col items-center px-4 sm:px-6 pt-24 sm:pt-28 pb-16 text-center"
+      >
+        {/* avatar */}
+        <motion.div variants={rise} className="relative">
+          <div
+            aria-hidden
+            className="absolute -inset-6 rounded-[40px] bg-[radial-gradient(circle,rgba(165,180,252,0.25),transparent_70%)] blur-2xl"
+          />
+          <div className="relative h-36 w-36 sm:h-44 sm:w-44 overflow-hidden rounded-[32px] border border-white/15 bg-black/40 shadow-[0_20px_60px_rgba(0,0,0,0.6)]">
+            {resolvedProfileImg ? (
+              <img
+                src={resolvedProfileImg}
+                alt={profile?.name || "profile"}
+                className="h-full w-full object-cover"
+                decoding="async"
+              />
+            ) : (
+              <div className="grid h-full w-full place-items-center text-white/40">
+                <UserRound className="h-10 w-10" />
               </div>
-            </div>
+            )}
+          </div>
+        </motion.div>
 
-            {/* Info */}
-            <div className="flex-1 min-w-0">
-              <div className="text-[11px] tracking-[0.26em] text-white/55">
-                DOSSIER
-              </div>
+        <motion.div variants={rise} className="mt-8 gyeol-eyebrow">
+          Creator
+        </motion.div>
 
-              <h1 className="mt-2 text-4xl text-white/90 font-extrabold tracking-tight">
-                {profile?.name || "그림결"}
-              </h1>
+        <motion.h1
+          variants={rise}
+          className="mt-3 font-display text-5xl sm:text-6xl font-semibold tracking-[-0.03em]"
+        >
+          {profile?.name || "그림결"}
+        </motion.h1>
 
-              {/* Connect */}
-              <div className="mt-8">
-                <div className="flex items-center gap-2">
-                  <HUDBadge>CONNECT</HUDBadge>
-                  <div className="text-xs text-white/40">
-                    등록된 링크: {cleanedViewLinks.length}
-                  </div>
-                </div>
+        <motion.p
+          variants={rise}
+          className="mt-5 max-w-xl text-[15px] sm:text-base leading-[1.9] text-white/60 whitespace-pre-line break-keep"
+        >
+          {profile?.bio?.trim()
+            ? profile.bio
+            : editMode
+              ? "소개가 비어있어요. ‘프로필 수정’에서 내용을 추가해보세요."
+              : ""}
+        </motion.p>
 
-                <div className="mt-4 flex flex-wrap gap-3">
-                  {cleanedViewLinks.length === 0 ? (
-                    <div className="text-sm text-white/40">
-                      등록된 링크가 없습니다.
-                    </div>
-                  ) : (
-                    cleanedViewLinks.map((link, index) => (
-                      <a
-                        key={index}
-                        href={link.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={cn(
-                          "group relative w-11 h-11 rounded-full grid place-items-center",
-                          "bg-white/5 border border-white/10",
-                          "text-white/70 hover:text-white",
-                          "hover:bg-white/10",
-                          "transition duration-300",
-                          "hover:shadow-[0_0_18px_rgba(255,255,255,0.22)]"
-                        )}
-                        title={link.platform}
-                        aria-label={link.platform}
-                      >
-                        {getSocialIconNode(link)}
-                        <div className="pointer-events-none absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.15),transparent_60%)]" />
-                      </a>
-                    ))
-                  )}
-                </div>
-              </div>
+        {/* links */}
+        {cleanedViewLinks.length > 0 && (
+          <motion.div
+            variants={rise}
+            className="mt-8 flex flex-wrap items-center justify-center gap-2"
+          >
+            {cleanedViewLinks.map((link, index) => (
+              <a
+                key={index}
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group inline-flex items-center gap-2 h-10 pl-3.5 pr-3 rounded-full border border-white/10 bg-white/[0.04] backdrop-blur text-sm text-white/80 transition-colors hover:bg-white/[0.09] hover:border-white/20 hover:text-white"
+              >
+                <span className="[&_svg]:h-4 [&_svg]:w-4">
+                  {getSocialIconNode(link)}
+                </span>
+                <span className="capitalize">{link.platform}</span>
+                <ArrowUpRight className="h-3.5 w-3.5 text-white/35 transition-[color,transform] group-hover:text-white group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+              </a>
+            ))}
+          </motion.div>
+        )}
+
+        {/* archive */}
+        <motion.div
+          variants={rise}
+          className="mt-14 grid w-full grid-cols-3 gap-2 sm:gap-3"
+        >
+          {archive.map(a => {
+            const Icon = a.icon;
+            return (
+              <button
+                key={a.label}
+                type="button"
+                onClick={() => setLocation(a.path)}
+                className="group gyeol-surface flex flex-col items-center gap-1 px-3 py-5 transition-[border-color,background-color,transform] hover:-translate-y-0.5 hover:border-white/15 hover:bg-white/[0.05]"
+              >
+                <Icon className="h-4 w-4 text-white/40 group-hover:text-brand transition-colors" />
+                <span className="mt-1 text-2xl font-semibold tabular-nums tracking-tight">
+                  {a.value}
+                </span>
+                <span className="text-xs text-white/45">{a.label}</span>
+              </button>
+            );
+          })}
+        </motion.div>
+      </motion.div>
+
+      {/* #region Edit Modal */}
+      <Modal
+        open={isEditing && editMode}
+        onClose={closeEdit}
+        title="프로필 편집"
+        maxWidthClassName="max-w-3xl"
+        footer={
+          <div className="flex justify-end gap-2">
+            <GButton variant="ghost" text="취소" onClick={closeEdit} />
+            <GButton
+              variant="primary"
+              text="저장"
+              onClick={handleSaveProfile}
+            />
+          </div>
+        }
+      >
+        <div className="p-5 sm:p-7 space-y-8">
+          <div className="grid grid-cols-1 sm:grid-cols-[200px_minmax(0,1fr)] gap-6">
+            <EditField label="프로필 이미지">
+              <ImageUpload
+                value={editedProfile.profileImage}
+                onChange={value => handleProfileChange("profileImage", value)}
+                aspect="square"
+              />
+            </EditField>
+
+            <div className="space-y-5 min-w-0">
+              <EditField label="이름">
+                <input
+                  type="text"
+                  value={editedProfile.name}
+                  onChange={e => handleProfileChange("name", e.target.value)}
+                  className={inputCls}
+                  placeholder="이름을 입력하세요"
+                />
+              </EditField>
+              <EditField label="소개">
+                <textarea
+                  rows={6}
+                  value={editedProfile.bio}
+                  onChange={e => handleProfileChange("bio", e.target.value)}
+                  className={textareaCls}
+                  placeholder="소개를 입력하세요"
+                />
+              </EditField>
             </div>
           </div>
-        </HUDPanel>
 
-        {/* ===== SECONDARY PANELS (optional, keeps premium UI balance) ===== */}
-        <div className="mt-6 grid grid-cols-1 gap-4">
-          <HUDPanel className="p-5 md:p-6">
+          <div className="h-px bg-white/[0.07]" />
+
+          {/* social links */}
+          <section>
             <div className="flex items-center justify-between gap-3">
               <div>
-                <div className="text-[11px] tracking-[0.26em] text-white/55">
-                  SUMMARY
-                </div>
+                <h3 className="text-sm font-semibold text-white/85">링크</h3>
+                <p className="mt-1 text-xs text-white/40">
+                  플랫폼 이름으로 아이콘이 자동 매칭돼요 (instagram, x/twitter,
+                  pixiv)
+                </p>
               </div>
-              <HUDBadge>ACTIVE</HUDBadge>
-            </div>
-
-            <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4 text-sm text-white/65 leading-relaxed">
-              {profile?.bio?.trim()
-                ? profile.bio
-                : "소개가 비어있습니다. 편집 모드에서 내용을 추가해보세요."}
-            </div>
-          </HUDPanel>
-        </div>
-
-        {/* ===== Edit Modal ===== */}
-        <Modal
-          open={isEditing && editMode}
-          onClose={closeEdit}
-          title="프로필 편집"
-          maxWidthClassName="max-w-3xl"
-          footer={
-            <div className="flex justify-end gap-2">
-              <GButton variant="neutral" text="취소" onClick={closeEdit} />
               <GButton
-                variant="primary"
-                text="저장"
-                onClick={handleSaveProfile}
+                variant="neutral"
+                size="sm"
+                icon={<Plus className="w-4 h-4" />}
+                text="링크 추가"
+                onClick={addLink}
               />
             </div>
-          }
-        >
-          <div className="space-y-8 px-2">
-            {/* 프로필 이미지 */}
-            <HUDPanel className="p-4 md:p-5">
-              <div className="text-[11px] tracking-[0.26em] text-white/55">
-                IMAGE
+
+            {(editedProfile.socialLinks || []).length === 0 ? (
+              <div className="mt-4 rounded-2xl border border-dashed border-white/10 px-4 py-6 text-center text-sm text-white/40">
+                등록된 링크가 없어요
               </div>
-              <div className="mt-3">
-                <ImageUpload
-                  value={editedProfile.profileImage}
-                  onChange={value => handleProfileChange("profileImage", value)}
-                />
-              </div>
-            </HUDPanel>
-
-            {/* 이름/소개 */}
-            <div className="grid grid-cols-1 gap-4">
-              <HUDPanel className="p-4 md:p-5">
-                <div className="text-[11px] tracking-[0.26em] text-white/55">
-                  INTRO
-                </div>
-                <div className="mt-3">
-                  <input
-                    type="text"
-                    value={editedProfile.name}
-                    onChange={e => handleProfileChange("name", e.target.value)}
-                    className={inputCls}
-                    placeholder="이름을 입력하세요"
-                  />
-                </div>
-                <div className="mt-3">
-                  <textarea
-                    rows={5}
-                    value={editedProfile.bio}
-                    onChange={e => handleProfileChange("bio", e.target.value)}
-                    className={textareaCls}
-                    placeholder="소개를 입력하세요"
-                  />
-                </div>
-              </HUDPanel>
-            </div>
-
-            {/* 소셜 링크 편집 */}
-            <HUDPanel className="p-4 md:p-5">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className="text-[11px] tracking-[0.26em] text-white/55">
-                    SOCIAL LINKS
-                  </div>
-                  <div className="mt-2 text-sm text-white/70">
-                    플랫폼 + URL 입력 → 아이콘 자동 매칭 (instagram, twitter/x,
-                    pixiv)
-                  </div>
-                </div>
-
-                <GButton
-                  variant="ghost"
-                  icon={<Plus className="w-4 h-4" />}
-                  text="추가"
-                  onClick={addLink}
-                />
-              </div>
-
-              {(editedProfile.socialLinks || []).length === 0 ? (
-                <div className="mt-4 text-sm text-white/45">
-                  링크가 없습니다. “추가” 버튼으로 링크를 등록하세요.
-                </div>
-              ) : (
-                <div className="mt-4 space-y-3">
-                  {(editedProfile.socialLinks || []).map((link, idx) => (
-                    <div
-                      key={idx}
-                      className={cn(
-                        "rounded-2xl border border-white/10 bg-black/20 p-4",
-                        "relative overflow-hidden"
-                      )}
-                    >
-                      {/* subtle scanline */}
-                      <div className="pointer-events-none absolute inset-0 opacity-[0.06] bg-[linear-gradient(rgba(255,255,255,0.18)_1px,transparent_1px)] bg-[length:100%_3px]" />
-
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className="h-10 w-10 rounded-xl bg-black/40 grid place-items-center border border-white/10">
-                            {getSocialIconNode(link)}
-                          </div>
-                          <div className="min-w-0">
-                            <div className="text-xs text-white/45">
-                              LINK #{idx + 1}
-                            </div>
-                            <div className="text-sm text-white/85 truncate">
-                              {link.platform?.trim()
-                                ? link.platform
-                                : "플랫폼 미입력"}
-                            </div>
-                          </div>
-                        </div>
-
-                        <GButton
-                          variant="danger"
-                          size="icon"
-                          icon={<Trash2 className="w-4 h-4" />}
-                          onClick={() => removeLink(idx)}
-                          title="삭제"
-                        />
-                      </div>
-
-                      <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <div className="md:col-span-1">
-                          <div className="mb-1 text-[11px] text-white/45">
-                            플랫폼
-                          </div>
-                          <input
-                            value={link.platform}
-                            onChange={e =>
-                              updateLink(idx, { platform: e.target.value })
-                            }
-                            placeholder="instagram / twitter / pixiv ..."
-                            className={inputCls}
-                          />
-                        </div>
-
-                        <div className="md:col-span-2">
-                          <div className="mb-1 text-[11px] text-white/45">
-                            URL
-                          </div>
-                          <input
-                            value={link.url}
-                            onChange={e =>
-                              updateLink(idx, { url: e.target.value })
-                            }
-                            placeholder="https://..."
-                            className={inputCls}
-                          />
-                        </div>
-                      </div>
+            ) : (
+              <div className="mt-4 space-y-2">
+                {(editedProfile.socialLinks || []).map((link, idx) => (
+                  <div
+                    key={idx}
+                    className="flex flex-col sm:flex-row sm:items-center gap-2 rounded-2xl border border-white/[0.07] bg-white/[0.02] p-2"
+                  >
+                    <div className="flex items-center gap-2 sm:w-52 shrink-0">
+                      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/[0.05] text-white/70 [&_svg]:h-4 [&_svg]:w-4">
+                        {getSocialIconNode(link)}
+                      </span>
+                      <input
+                        value={link.platform}
+                        onChange={e =>
+                          updateLink(idx, { platform: e.target.value })
+                        }
+                        placeholder="플랫폼"
+                        className={inputCls}
+                      />
                     </div>
-                  ))}
-                </div>
-              )}
-            </HUDPanel>
-          </div>
-        </Modal>
-      </div>
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <input
+                        value={link.url}
+                        onChange={e => updateLink(idx, { url: e.target.value })}
+                        placeholder="https://..."
+                        className={inputCls}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeLink(idx)}
+                        title="삭제"
+                        className="grid h-10 w-10 shrink-0 place-items-center rounded-xl text-white/45 hover:bg-red-500/80 hover:text-white transition-colors"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        </div>
+      </Modal>
+      {/* #endregion */}
+    </div>
+  );
+}
+
+function EditField({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <div className="mb-2 text-xs font-medium text-white/60">{label}</div>
+      {children}
     </div>
   );
 }

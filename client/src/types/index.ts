@@ -335,6 +335,10 @@ export interface CategoryItem {
 export interface SettingsData {
   heroBackgroundImage: ImageRef;
 
+  /** ✅ 홈 히어로 문구 (편집 모드에서 수정) */
+  heroTitle: string;
+  heroSubtitle: string;
+
   characterCategories: CategoryItem[];
   creatureCategories: CategoryItem[];
 

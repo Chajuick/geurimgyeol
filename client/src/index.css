@@ -1,5 +1,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&family=Lato:wght@300;400;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap");
 @import url("https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/subsets/Paperlogy-dynamic-subset.css");
+@import url("https://fonts.googleapis.com/css2?family=Hahmlet:wght@400..800&family=Manrope:wght@500..800&display=swap");
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -42,77 +44,65 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --font-sans:
+    "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
+    system-ui, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  --font-display:
+    /* 영문은 Manrope, 한글은 Hahmlet (영문 전용 글꼴을 앞에 둬서 자동 분리) */
+    "Manrope", "Hahmlet", "Noto Serif KR", Georgia, serif;
 }
 
-:root {
-  --primary: #000000;
-  --primary-foreground: #ffffff;
-  --sidebar-primary: #000000;
-  --sidebar-primary-foreground: #ffffff;
-  --chart-1: #666666;
-  --chart-2: #999999;
-  --chart-3: #cccccc;
-  --chart-4: #333333;
-  --chart-5: #111111;
-  --radius: 0.5rem;
-  --background: #ffffff;
-  --foreground: #0a0a0a;
-  --card: #ffffff;
-  --card-foreground: #0a0a0a;
-  --popover: #ffffff;
-  --popover-foreground: #0a0a0a;
-  --secondary: #f5f5f5;
-  --secondary-foreground: #333333;
-  --muted: #e5e5e5;
-  --muted-foreground: #666666;
-  --accent: #f5f5f5;
-  --accent-foreground: #0a0a0a;
-  --destructive: #dc2626;
-  --destructive-foreground: #ffffff;
-  --border: #e5e5e5;
-  --input: #f5f5f5;
-  --ring: #000000;
-  --sidebar: #ffffff;
-  --sidebar-foreground: #0a0a0a;
-  --sidebar-accent: #f5f5f5;
-  --sidebar-accent-foreground: #0a0a0a;
-  --sidebar-border: #e5e5e5;
-  --sidebar-ring: #000000;
-}
-
+:root,
 .dark {
-  --primary: #ffffff;
-  --primary-foreground: #000000;
-  --sidebar-primary: #ffffff;
-  --sidebar-primary-foreground: #000000;
-  --background: #0a0a0a;
-  --foreground: #ffffff;
-  --card: #1a1a1a;
-  --card-foreground: #ffffff;
-  --popover: #1a1a1a;
-  --popover-foreground: #ffffff;
-  --secondary: #1a1a1a;
-  --secondary-foreground: #cccccc;
-  --muted: #333333;
-  --muted-foreground: #999999;
-  --accent: #1a1a1a;
-  --accent-foreground: #ffffff;
-  --destructive: #ef4444;
-  --destructive-foreground: #000000;
-  --border: #333333;
-  --input: #1a1a1a;
-  --ring: #ffffff;
-  --chart-1: #999999;
-  --chart-2: #666666;
-  --chart-3: #333333;
-  --chart-4: #cccccc;
-  --chart-5: #eeeeee;
-  --sidebar: #1a1a1a;
-  --sidebar-foreground: #ffffff;
-  --sidebar-accent: #333333;
-  --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #333333;
-  --sidebar-ring: #ffffff;
+  color-scheme: dark;
+
+  --radius: 0.75rem;
+
+  /* surfaces */
+  --background: #09090b;
+  --foreground: #fafafa;
+  --card: #111114;
+  --card-foreground: #fafafa;
+  --popover: #131316;
+  --popover-foreground: #fafafa;
+
+  /* actions */
+  --primary: #fafafa;
+  --primary-foreground: #09090b;
+  --secondary: #18181b;
+  --secondary-foreground: #e4e4e7;
+  --muted: #1c1c20;
+  --muted-foreground: #a1a1aa;
+  --accent: #1f1f24;
+  --accent-foreground: #fafafa;
+  --destructive: #f87171;
+  --destructive-foreground: #09090b;
+
+  /* lines */
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.06);
+  --ring: #a5b4fc;
+
+  /* brand (로고의 은빛-페리윙클 톤) */
+  --brand: #a5b4fc;
+  --brand-strong: #818cf8;
+
+  --chart-1: #a5b4fc;
+  --chart-2: #818cf8;
+  --chart-3: #c4b5fd;
+  --chart-4: #67e8f9;
+  --chart-5: #f0abfc;
+
+  --sidebar: #0c0c0f;
+  --sidebar-foreground: #fafafa;
+  --sidebar-primary: #fafafa;
+  --sidebar-primary-foreground: #09090b;
+  --sidebar-accent: rgba(255, 255, 255, 0.06);
+  --sidebar-accent-foreground: #fafafa;
+  --sidebar-border: rgba(255, 255, 255, 0.06);
+  --sidebar-ring: #a5b4fc;
 }
 
 @layer base {
@@ -120,8 +110,16 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground font-sans;
-    font-family: "Paperlogy", sans-serif;
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings:
+      "ss06",
+      "tnum" 0;
+    letter-spacing: -0.01em;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--brand) 35%, transparent);
+    color: #fff;
   }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
@@ -141,8 +139,9 @@
   h4,
   h5,
   h6 {
-    font-family: "Paperlogy", serif;
+    font-family: var(--font-display);
     font-weight: 600;
+    letter-spacing: -0.02em;
   }
 
   h1 {
@@ -170,7 +169,7 @@
   }
 
   .font-mono {
-    font-family: "Paperlogy", "JetBrains Mono", monospace;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
   }
 }
 
@@ -235,233 +234,95 @@
 
   /* =========================
    * GYEOL BUTTON
+   * - variant 색은 gyeol-button.tsx의 --g-* 변수로 주입
    * ========================= */
-
-  /* Base */
   .gyeol-button {
-    @apply relative inline-flex items-center justify-center gap-2 select-none font-medium outline-none;
-    @apply transition-[transform,background-color,border-color,box-shadow,color,opacity] duration-150;
-    @apply transform-gpu hover:-translate-y-[0.5px] active:translate-y-[0.5px];
-    @apply disabled:opacity-45 disabled:pointer-events-none;
-
+    @apply relative inline-flex items-center justify-center gap-2 select-none font-medium outline-none whitespace-nowrap;
+    @apply border transition-[background-color,border-color,color,box-shadow,transform,opacity] duration-150;
+    @apply active:scale-[0.97] disabled:opacity-40 disabled:pointer-events-none;
+    @apply focus-visible:ring-2 focus-visible:ring-brand/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background;
     transition-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+    background: var(--g-bg, transparent);
+    color: var(--g-fg, inherit);
+    border-color: var(--g-bd, transparent);
+    box-shadow: var(--g-shadow, none);
   }
 
-  /* Size */
+  .gyeol-button:hover {
+    background: var(--g-hbg, var(--g-bg, transparent));
+    border-color: var(--g-hbd, var(--g-bd, transparent));
+    color: var(--g-hfg, var(--g-fg, inherit));
+  }
+
   .gyeol-button--sm {
-    @apply h-9 px-3 text-[13px] rounded-xl;
+    @apply h-8 px-3 text-[13px] rounded-lg;
   }
 
   .gyeol-button--md {
-    @apply h-10 px-4 text-sm rounded-xl;
+    @apply h-9 px-3.5 text-sm rounded-xl;
   }
 
   .gyeol-button--icon {
-    @apply h-11 w-11 p-0 rounded-2xl;
+    @apply h-9 w-9 p-0 rounded-xl gap-0;
   }
 
-  .gyeol-button--icon,
   .gyeol-button--iconOnly {
     @apply gap-0;
   }
 
-  /* Layer transitions */
-  .gyeol-button__frame,
-  .gyeol-button__top,
-  .gyeol-button__glow,
-  .gyeol-button__focus,
-  .gyeol-button__shine {
-    transition:
-      opacity 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
-      transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
-      filter 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
-      box-shadow 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  .gyeol-button--sm.gyeol-button--iconOnly {
+    @apply w-8 px-0;
   }
 
-  /* Frame */
-  .gyeol-button__frame {
-    @apply pointer-events-none absolute inset-0 rounded-[inherit] border;
+  .gyeol-button--md.gyeol-button--iconOnly {
+    @apply w-9 px-0;
   }
 
-  .gyeol-button__frame::after {
-    content: "";
-    @apply absolute inset-[1px] rounded-[calc(theme(borderRadius.xl)-1px)] border;
-  }
-
-  .gyeol-button__frame::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
-  }
-
-  /* Top highlight */
-  .gyeol-button__top {
-    @apply pointer-events-none absolute inset-0 rounded-[inherit];
-    opacity: 0.55;
-    transform: translateY(-2px);
-    filter: brightness(1);
-    background: linear-gradient(
-      to bottom,
-      rgba(255, 255, 255, 0.12),
-      transparent 55%
-    );
-  }
-
-  /* Glow */
-  .gyeol-button__glow {
-    @apply pointer-events-none absolute -inset-2 rounded-[inherit] blur-xl;
-    opacity: 0;
-    transform: scale(0.98);
-    filter: blur(16px);
-    background: radial-gradient(
-      circle at 50% 50%,
-      var(--g-glow),
-      transparent 62%
-    );
-  }
-
-  /* Focus ring */
-  .gyeol-button__focus {
-    @apply pointer-events-none absolute inset-0 rounded-[inherit];
-    opacity: 0;
+  /* =========================
+   * Surfaces
+   * ========================= */
+  .gyeol-surface {
+    @apply relative rounded-3xl border border-white/[0.07] bg-white/[0.025];
     box-shadow:
-      0 0 0 1px rgba(255, 255, 255, 0.16),
-      0 0 0 4px rgba(255, 255, 255, 0.06);
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.04),
+      0 1px 2px rgba(0, 0, 0, 0.3);
   }
 
-  /* Shine */
-  .gyeol-button__shine {
-    pointer-events: none;
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    overflow: hidden;
-    opacity: 0;
+  .gyeol-eyebrow {
+    @apply inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/45;
   }
 
-  .gyeol-button__shine::after {
+  .gyeol-eyebrow::before {
     content: "";
-    position: absolute;
-    top: -20%;
-    left: -60%;
-    width: 40%;
-    height: 140%;
-    transform: rotate(12deg) translateX(0);
-    background: linear-gradient(
-      to right,
-      transparent,
-      rgba(255, 255, 255, 0.14),
-      transparent
-    );
-    transition: transform 520ms cubic-bezier(0.2, 0.8, 0.2, 1);
-  }
-
-  /* Variants */
-  .gyeol-button--solid {
-    background: var(--g-bg);
-    color: var(--g-fg);
-    border-color: var(--g-bd);
-  }
-
-  .gyeol-button--solid .gyeol-button__frame {
-    background: var(--g-bg);
-    border-color: var(--g-bd);
-  }
-
-  .gyeol-button--solid .gyeol-button__frame::after {
-    border-color: var(--g-in);
-  }
-
-  .gyeol-button--ghost {
-    @apply text-white/80;
-  }
-
-  .gyeol-button--ghost .gyeol-button__frame {
-    background: transparent;
-    border-color: rgba(255, 255, 255, 0.14);
-  }
-
-  .gyeol-button--ghost .gyeol-button__frame::after {
-    border-color: rgba(255, 255, 255, 0.08);
-  }
-
-  .gyeol-button--ghost .gyeol-button__top {
-    display: none;
-  }
-
-  .gyeol-button--onlyText {
-    @apply bg-transparent border border-transparent text-white/70 hover:text-white;
-  }
-
-  /* Interactions */
-  .gyeol-button--solid:hover .gyeol-button__frame {
-    background: var(--g-hbg);
-    border-color: var(--g-hbd);
-  }
-
-  .gyeol-button:hover .gyeol-button__frame::before {
-    opacity: 1;
-  }
-
-  .gyeol-button:hover .gyeol-button__top {
-    transform: translateY(0);
-    opacity: 0.85;
-    filter: brightness(1.05);
-  }
-
-  .gyeol-button:hover .gyeol-button__glow {
-    opacity: 1;
-    transform: scale(1.02);
-    filter: blur(18px);
-  }
-
-  .gyeol-button:hover .gyeol-button__shine {
-    opacity: 1;
-  }
-
-  .gyeol-button:hover .gyeol-button__shine::after {
-    transform: rotate(12deg) translateX(260%);
-  }
-
-  .gyeol-button:active {
-    transform: translateY(0.5px) scale(0.99);
-  }
-
-  .gyeol-button:active .gyeol-button__top {
-    opacity: 0.35;
-    filter: brightness(0.98);
-  }
-
-  .gyeol-button:active .gyeol-button__glow {
-    opacity: 0.35;
-    transform: scale(0.98);
-    filter: blur(14px);
-  }
-
-  .gyeol-button:active .gyeol-button__frame {
-    filter: brightness(1.02);
-  }
-
-  .gyeol-button:focus-visible .gyeol-button__focus {
-    opacity: 1;
-  }
-
-  /* Reduced motion */
-  @media (prefers-reduced-motion: reduce) {
-    .gyeol-button,
-    .gyeol-button__frame,
-    .gyeol-button__top,
-    .gyeol-button__glow,
-    .gyeol-button__focus,
-    .gyeol-button__shine {
-      transition: none !important;
-      transform: none !important;
-    }
+    @apply h-1.5 w-1.5 rounded-full bg-brand/80;
+    box-shadow: 0 0 10px var(--brand);
   }
 }
-```
+
+/* =========================
+ * Ambient motion (home)
+ * ========================= */
+@keyframes gyeol-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes gyeol-breathe {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.07) translate3d(-1%, -1%, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [class*="animate-[gyeol-marquee"],
+  [class*="animate-[gyeol-breathe"] {
+    animation: none !important;
+  }
+}

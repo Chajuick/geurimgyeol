@@ -3,7 +3,6 @@ import { Save, Trash2, X, Plus } from "lucide-react";
 
 import Modal from "@/components/ui/modal";
 import GButton from "@/components/ui/gyeol-button";
-import { HUDBadge, HUDPanel } from "@/components/ui/hud";
 import { uiInput, uiTextarea } from "@/components/ui/form/presets";
 import { cn } from "@/lib/utils";
 import ImageUpload from "@/components/ImageUpload";
@@ -38,56 +37,78 @@ function getEntryKindId(n: any): string {
 
 type AddTab = "character" | "creature";
 
-/** ✅ HUD 카드 베이스 */
-const hudCard = cn(
-  "rounded-2xl border",
-  "border-white/14",
-  "bg-gradient-to-b from-white/[0.06] to-black/40",
-  "shadow-[0_10px_40px_rgba(0,0,0,0.55)]",
-  "backdrop-blur-md"
-);
+/** 폼 필드 래퍼 */
+function Field({
+  label,
+  hint,
+  required,
+  children,
+}: {
+  label: string;
+  hint?: string;
+  required?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <div className="mb-2 flex items-baseline gap-2">
+        <span className="text-xs font-medium text-white/60">
+          {label}
+          {required && <span className="ml-0.5 text-brand">*</span>}
+        </span>
+        {hint && <span className="text-[11px] text-white/30">{hint}</span>}
+      </div>
+      {children}
+    </div>
+  );
+}
 
-/** ✅ 내부 패널 */
-const hudPanel = cn(
-  "rounded-2xl border border-white/4",
-  "shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
-);
-
-const labelCls = "text-[11px] tracking-wider uppercase text-white/55";
-
-const readBox = cn("rounded-xl border-none", "text-white/60");
-
-function LinkedThumbCard(props: {
+/** 연관 캐릭터/크리쳐 칩 */
+function LinkedChip(props: {
   name?: string;
   profileImage?: string;
   type: AddTab;
+  onOpen: () => void;
+  onRemove?: () => void;
 }) {
-  const { name, profileImage, type } = props;
+  const { name, profileImage, type, onOpen, onRemove } = props;
   const src = useResolvedImage(profileImage || "");
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-black/25 overflow-hidden">
-      <div className="aspect-square overflow-hidden">
-        {src ? (
-          <img
-            src={src}
-            alt={name || ""}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full grid place-items-center text-[11px] text-white/45 bg-black/40">
-            NO IMAGE
-          </div>
+    <div className="group relative">
+      <button
+        type="button"
+        onClick={onOpen}
+        className={cn(
+          "inline-flex items-center gap-2.5 h-11 pl-1 rounded-full",
+          onRemove ? "pr-9" : "pr-4",
+          "bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] hover:border-white/15 transition-colors"
         )}
-      </div>
-      <div className="p-2">
-        <div className="text-xs font-semibold text-white/85 truncate">
-          {name || "이름 없음"}
-        </div>
-        <div className="mt-0.5 text-[10px] text-white/45">
-          {type === "character" ? "CHAR" : "CREATURE"}
-        </div>
-      </div>
+      >
+        <span className="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-white/5">
+          {src ? (
+            <img src={src} alt="" className="h-full w-full object-cover" />
+          ) : null}
+        </span>
+        <span className="text-left leading-tight">
+          <span className="block text-sm font-medium text-white/90 max-w-[140px] truncate">
+            {name || "이름 없음"}
+          </span>
+          <span className="block text-[10px] text-white/40">
+            {type === "character" ? "캐릭터" : "크리쳐"}
+          </span>
+        </span>
+      </button>
+      {onRemove && (
+        <button
+          type="button"
+          onClick={onRemove}
+          title="연결 제거"
+          className="absolute right-1.5 top-1/2 -translate-y-1/2 grid place-items-center h-7 w-7 rounded-full text-white/45 hover:bg-red-500/80 hover:text-white transition-colors"
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
+      )}
     </div>
   );
 }
@@ -286,63 +307,6 @@ export default function ProperNounDetailModal(props: {
     return out;
   }, [linkedCharacterIds, linkedCreatureIds, characterById, creatureById]);
 
-  const header = useMemo(() => {
-    return (
-      <div className={cn(hudCard, "p-3 sm:p-4 relative overflow-hidden")}>
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-white/15" />
-        <div className="pointer-events-none absolute -top-24 -right-24 w-64 h-64 rounded-full bg-white/10 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-28 -left-28 w-72 h-72 rounded-full bg-white/5 blur-3xl" />
-
-        <div className="flex items-start sm:items-center gap-3 min-w-0">
-          <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl border border-white/15 bg-black/50 overflow-hidden flex items-center justify-center shrink-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
-            {iconSrc ? (
-              <img
-                src={iconSrc}
-                className="w-full h-full object-contain"
-                alt=""
-              />
-            ) : (
-              <div className="text-[11px] text-white/45 text-center">
-                NO ICON
-              </div>
-            )}
-          </div>
-
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 min-w-0">
-              <div className="text-lg sm:text-xl font-semibold truncate flex-1 min-w-0 text-white/90">
-                {title || "제목 없음"}
-              </div>
-            </div>
-
-            {draft?.summary ? (
-              <div className="hidden sm:block mt-1 text-sm text-white/65 line-clamp-1 whitespace-pre-wrap">
-                {draft.summary}
-              </div>
-            ) : (
-              <div className="mt-1 text-sm text-white/45">요약 없음</div>
-            )}
-
-            {/* ✅ 모바일에서도 뱃지 보여주기 (줄바꿈 허용) */}
-            <div className="mt-2 flex flex-wrap gap-2 sm:hidden">
-              <HUDBadge>{viewKindLabel}</HUDBadge>
-              <HUDBadge tone={isEditing ? "warn" : "neutral"}>
-                {isEditing ? "EDIT" : "VIEW"}
-              </HUDBadge>
-            </div>
-          </div>
-
-          <div className="shrink-0 hidden sm:flex items-center gap-2">
-            <HUDBadge>{viewKindLabel}</HUDBadge>
-            <HUDBadge tone={isEditing ? "warn" : "neutral"}>
-              {isEditing ? "EDIT" : "VIEW"}
-            </HUDBadge>
-          </div>
-        </div>
-      </div>
-    );
-  }, [iconSrc, title, viewKindLabel, draft?.summary, isEditing]);
-
   const close = onClose;
 
   const doSave = useCallback(() => {
@@ -473,13 +437,226 @@ export default function ProperNounDetailModal(props: {
   }, [addTab, data?.characters, data?.creatures, addedSet, q]);
 
   const skeleton = (
-    <div className="p-4 sm:p-6 space-y-4">
-      <div className="h-16 rounded-2xl bg-white/5 animate-pulse" />
-      <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-4">
-        <div className="h-[240px] sm:h-[280px] rounded-2xl bg-white/5 animate-pulse" />
-        <div className="h-[240px] sm:h-[280px] rounded-2xl bg-white/5 animate-pulse" />
+    <div className="space-y-4 p-6">
+      <div className="aspect-[16/9] rounded-2xl bg-white/5 animate-pulse" />
+      <div className="h-8 w-1/2 rounded-xl bg-white/5 animate-pulse" />
+      <div className="h-24 rounded-2xl bg-white/5 animate-pulse" />
+    </div>
+  );
+
+  const openLinkedDetail = (type: AddTab, id: string) => {
+    setDetailOpen({ type, id });
+    setDetailSubIndex(0);
+  };
+
+  /* ---------- 연관 캐릭터/크리쳐 (보기/편집 공용) ---------- */
+  const linkedSection = (
+    <section>
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="text-sm font-semibold text-white/85">
+          연관 캐릭터 · 크리쳐
+          {linkedItems.length > 0 && (
+            <span className="ml-1.5 font-normal text-white/35">
+              {linkedItems.length}
+            </span>
+          )}
+        </h3>
+        {isEditing && (
+          <GButton
+            variant="neutral"
+            size="sm"
+            icon={<Plus className="w-4 h-4" />}
+            text="연결 추가"
+            onClick={() => {
+              setIsAddingLink(true);
+              setAddTab("character");
+              setSearch("");
+            }}
+          />
+        )}
       </div>
-      <div className="h-24 sm:h-32 rounded-2xl bg-white/5 animate-pulse" />
+
+      <div className="mt-3">
+        {linkedItems.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-white/10 px-4 py-6 text-center text-sm text-white/40">
+            {isEditing
+              ? "‘연결 추가’로 관련된 캐릭터·크리쳐를 이어보세요"
+              : "연결된 캐릭터·크리쳐가 없어요"}
+          </div>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {linkedItems.map(it => (
+              <LinkedChip
+                key={`${it.type}:${it.id}`}
+                type={it.type}
+                name={it.data?.name}
+                profileImage={it.data?.profileImage}
+                onOpen={() => openLinkedDetail(it.type, it.id)}
+                onRemove={
+                  isEditing ? () => removeLinked(it.type, it.id) : undefined
+                }
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+
+  /* ---------- 보기 모드: 커버형 레이아웃 ---------- */
+  const viewBody = draft && (
+    <article>
+      {/* cover */}
+      <div
+        className={cn(
+          "relative w-full overflow-hidden",
+          imageSrc ? "aspect-[16/9] max-h-[52vh]" : "h-40"
+        )}
+      >
+        {imageSrc ? (
+          <img
+            src={imageSrc}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover animate-in fade-in zoom-in-105 duration-700"
+          />
+        ) : (
+          <div className="absolute inset-0 bg-[radial-gradient(80%_100%_at_20%_0%,rgba(129,140,248,0.18),transparent_70%)]" />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#111114] via-[#111114]/40 to-transparent" />
+      </div>
+
+      {/* title block (커버 하단에 겹침) */}
+      <div className="relative -mt-20 px-6 sm:px-8">
+        <div className="flex items-end gap-4">
+          <div className="h-16 w-16 sm:h-20 sm:w-20 shrink-0 overflow-hidden rounded-2xl border border-white/15 bg-black/60 shadow-[0_10px_30px_rgba(0,0,0,0.6)] grid place-items-center">
+            {iconSrc ? (
+              <img
+                src={iconSrc}
+                alt=""
+                className="h-full w-full object-contain"
+              />
+            ) : null}
+          </div>
+          <div className="min-w-0 pb-1">
+            <span className="inline-flex items-center h-6 px-2.5 rounded-full bg-brand/15 border border-brand/25 text-[11px] font-medium text-indigo-100">
+              {viewKindLabel}
+            </span>
+          </div>
+        </div>
+
+        <h2 className="mt-4 font-display text-3xl sm:text-4xl font-semibold tracking-[-0.02em] leading-tight break-keep">
+          {title || "제목 없음"}
+        </h2>
+        {draft.summary ? (
+          <p className="mt-2 text-base sm:text-lg text-white/60 leading-relaxed whitespace-pre-line break-keep">
+            {draft.summary}
+          </p>
+        ) : null}
+      </div>
+
+      {/* body */}
+      <div className="px-6 sm:px-8 pt-6 pb-8 space-y-8">
+        <div className="h-px bg-gradient-to-r from-white/10 via-white/[0.06] to-transparent" />
+
+        {draft.description ? (
+          <p className="text-[15px] sm:text-base leading-[1.95] text-white/80 whitespace-pre-line break-keep">
+            {draft.description}
+          </p>
+        ) : (
+          <p className="text-sm text-white/40">
+            아직 본문이 작성되지 않았어요.
+          </p>
+        )}
+
+        {linkedSection}
+      </div>
+    </article>
+  );
+
+  /* ---------- 편집 모드: 폼 레이아웃 ---------- */
+  const editBody = draft && (
+    <div className="p-5 sm:p-7 space-y-8">
+      <div className="grid grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)] gap-6">
+        {/* media */}
+        <div className="space-y-5">
+          <Field label="대표 이미지">
+            <ImageUpload
+              value={draft.image || ""}
+              onChange={(v: string) => setDraft({ ...draft, image: v })}
+              aspect="video"
+              className="w-full"
+            />
+          </Field>
+          <Field label="아이콘">
+            <ImageUpload
+              value={draft.icon || ""}
+              onChange={(v: string) => setDraft({ ...draft, icon: v })}
+              aspect="square"
+              className="w-full max-w-[160px]"
+            />
+          </Field>
+        </div>
+
+        {/* fields */}
+        <div className="min-w-0 space-y-5">
+          <Field label="분류">
+            <div className="flex flex-wrap gap-1.5">
+              {kinds.map(k => {
+                const active = String(draft.kindId) === k.id;
+                return (
+                  <button
+                    key={k.id}
+                    type="button"
+                    onClick={() => setDraft({ ...draft, kindId: k.id })}
+                    className={cn(
+                      "h-8 px-3.5 rounded-full text-[13px] font-medium border transition-colors",
+                      active
+                        ? "bg-brand/15 text-indigo-100 border-brand/35"
+                        : "bg-white/[0.03] text-white/55 border-white/[0.08] hover:bg-white/[0.07] hover:text-white"
+                    )}
+                  >
+                    {k.label}
+                  </button>
+                );
+              })}
+            </div>
+          </Field>
+
+          <Field label="명칭" required>
+            <input
+              className={cn(uiInput, "w-full min-w-0")}
+              value={draft.title}
+              placeholder="예: 「CORE ZONE」"
+              onChange={e => setDraft({ ...draft, title: e.target.value })}
+            />
+          </Field>
+
+          <Field label="요약" hint="목록 카드와 상세 제목 아래에 보여요">
+            <textarea
+              className={cn(uiTextarea, "min-h-[72px]")}
+              value={draft.summary}
+              onChange={e => setDraft({ ...draft, summary: e.target.value })}
+            />
+          </Field>
+
+          <Field label="본문">
+            <textarea
+              className={cn(
+                uiTextarea,
+                "min-h-[200px] sm:min-h-[260px] leading-relaxed"
+              )}
+              value={draft.description}
+              onChange={e =>
+                setDraft({ ...draft, description: e.target.value })
+              }
+            />
+          </Field>
+        </div>
+      </div>
+
+      <div className="h-px bg-white/[0.07]" />
+
+      {linkedSection}
     </div>
   );
 
@@ -488,30 +665,25 @@ export default function ProperNounDetailModal(props: {
       <Modal
         open={open}
         onClose={close}
-        title="항목 상세"
-        maxWidthClassName="max-w-6xl"
+        title={isEditing ? (editingId ? "항목 편집" : "새 항목") : title}
+        headerless={!isEditing}
+        maxWidthClassName={isEditing ? "max-w-5xl" : "max-w-3xl"}
         footer={
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              {isEditing && draft?.id && (
-                <GButton
-                  variant="danger"
-                  icon={<Trash2 className="w-4 h-4" />}
-                  text="삭제"
-                  onClick={doDelete}
-                  disabled={!editingId}
-                />
-              )}
-            </div>
+          isEditing ? (
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                {draft?.id && editingId && (
+                  <GButton
+                    variant="danger"
+                    icon={<Trash2 className="w-4 h-4" />}
+                    text="삭제"
+                    onClick={doDelete}
+                  />
+                )}
+              </div>
 
-            <div className="flex items-center gap-2">
-              <GButton
-                variant="neutral"
-                icon={<X className="w-4 h-4" />}
-                text="닫기"
-                onClick={close}
-              />
-              {isEditing && (
+              <div className="flex items-center gap-2">
+                <GButton variant="ghost" text="취소" onClick={close} />
                 <GButton
                   variant="primary"
                   icon={<Save className="w-4 h-4" />}
@@ -519,305 +691,12 @@ export default function ProperNounDetailModal(props: {
                   onClick={doSave}
                   disabled={!canSave}
                 />
-              )}
+              </div>
             </div>
-          </div>
+          ) : undefined
         }
       >
-        {!draft ? (
-          skeleton
-        ) : (
-          // ✅ 모달 바디 한 곳만 스크롤: 모바일에서 내용 잘림/이중 스크롤 방지
-          <div className="p-2 sm:p-4">
-            <div
-              className={cn(
-                "max-h-[calc(100svh-220px)] sm:max-h-none",
-                "min-w-0",
-                "space-y-4"
-              )}
-            >
-              {header}
-
-              <HUDPanel className="p-6">
-                <div className="space-y-5 sm:space-y-6">
-                  {/* ABOUT */}
-                  <div>
-                    <div className="text-[11px] tracking-[0.26em] text-white/55">
-                      ABOUT
-                    </div>
-                    <div className="mt-1 text-sm text-white/70">개요</div>
-                  </div>
-
-                  {/* ✅ 모바일: 1열(스택), 데스크탑: 2열 */}
-                  <div className="grid grid-cols-1 lg:grid-cols-[380px_minmax(0,1fr)] gap-4 items-stretch">
-                    {/* LEFT */}
-                    <div className="flex flex-col gap-4 min-h-0">
-                      <div
-                        className={cn(
-                          hudPanel,
-                          "flex flex-col min-h-[220px] sm:min-h-[320px] py-4"
-                        )}
-                      >
-                        {isEditing && (
-                          <div className={labelCls + " mb-2"}>대표 이미지</div>
-                        )}
-
-                        <div className="flex-1 min-h-0">
-                          {isEditing ? (
-                            <ImageUpload
-                              value={draft.image || ""}
-                              onChange={(v: string) =>
-                                setDraft({ ...draft, image: v })
-                              }
-                              aspect="video"
-                              className="w-full h-full"
-                            />
-                          ) : (
-                            <div className="rounded-2xl border border-none overflow-hidden h-full">
-                              {imageSrc ? (
-                                <img
-                                  src={imageSrc}
-                                  className="w-full h-full object-cover"
-                                  alt=""
-                                />
-                              ) : (
-                                <div className="h-full grid place-items-center text-sm text-white/50">
-                                  이미지 없음
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {isEditing && (
-                        <div className={cn(hudPanel, "p-4")}>
-                          <div className={labelCls + " mb-2"}>아이콘</div>
-                          <ImageUpload
-                            value={draft.icon || ""}
-                            onChange={(v: string) =>
-                              setDraft({ ...draft, icon: v })
-                            }
-                            aspect="square"
-                            className="w-full"
-                          />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* RIGHT */}
-                    <div className="min-h-0 min-w-0 overflow-hidden">
-                      <div
-                        className={cn(
-                          hudPanel,
-                          "p-4 space-y-4 min-h-[220px] sm:min-h-[320px]",
-                          "min-w-0 overflow-hidden"
-                        )}
-                      >
-                        {isEditing && (
-                          <div>
-                            <div className={labelCls + " mb-2"}>분류</div>
-
-                            {/* ✅ 모바일: 가로 스크롤 chips */}
-                            <div
-                              className={cn(
-                                "rounded-2xl border border-white/12 bg-black/40 p-1",
-                                "flex items-center gap-1",
-                                "overflow-x-auto overflow-y-hidden whitespace-nowrap",
-                                "scrollbar-none"
-                              )}
-                            >
-                              {kinds.map(k => {
-                                const active = String(draft.kindId) === k.id;
-                                return (
-                                  <button
-                                    key={k.id}
-                                    type="button"
-                                    onClick={() =>
-                                      setDraft({ ...draft, kindId: k.id })
-                                    }
-                                    className={cn(
-                                      "px-3 py-2 rounded-xl text-sm font-medium transition shrink-0",
-                                      active
-                                        ? "bg-white/12 border border-white/20 text-white"
-                                        : "text-white/60 hover:text-white hover:bg-white/6"
-                                    )}
-                                  >
-                                    {k.label}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        )}
-
-                        {isEditing && (
-                          <div className="min-w-0">
-                            <div className={labelCls + " mb-2"}>명칭</div>
-                            <input
-                              className={cn(
-                                uiInput,
-                                "bg-black/55 border-white/12",
-                                "w-full min-w-0 max-w-full"
-                              )}
-                              value={draft.title}
-                              onChange={e =>
-                                setDraft({ ...draft, title: e.target.value })
-                              }
-                            />
-                          </div>
-                        )}
-
-                        <div>
-                          {isEditing && (
-                            <div className={labelCls + " mb-2"}>요약</div>
-                          )}
-                          {isEditing ? (
-                            <textarea
-                              className={cn(
-                                uiTextarea,
-                                "bg-black/55 border-white/12"
-                              )}
-                              value={draft.summary}
-                              onChange={e =>
-                                setDraft({ ...draft, summary: e.target.value })
-                              }
-                            />
-                          ) : (
-                            <div
-                              className={cn(
-                                readBox,
-                                "whitespace-pre-wrap text-base sm:text-xl text-white/80"
-                              )}
-                            >
-                              {draft.summary || "요약 없음"}
-                            </div>
-                          )}
-                        </div>
-
-                        <div>
-                          {isEditing && (
-                            <div className={labelCls + " mb-2"}>본문</div>
-                          )}
-                          {isEditing ? (
-                            <textarea
-                              className={cn(
-                                uiTextarea,
-                                "min-h-[160px] sm:min-h-[220px]",
-                                "bg-black/55 border-white/12"
-                              )}
-                              value={draft.description}
-                              onChange={e =>
-                                setDraft({
-                                  ...draft,
-                                  description: e.target.value,
-                                })
-                              }
-                            />
-                          ) : (
-                            <div className={cn(readBox, "whitespace-pre-wrap")}>
-                              {draft.description || "본문 없음"}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* LINKED */}
-                  <div>
-                    <div className="flex items-center justify-between gap-3 pt-1">
-                      <div>
-                        <div className="text-[11px] tracking-[0.26em] text-white/55">
-                          LINKED
-                        </div>
-                        <div className="mt-1 text-sm text-white/70">
-                          연관 캐릭터 / 크리쳐
-                        </div>
-                      </div>
-
-                      {isEditing && (
-                        <GButton
-                          variant="neutral"
-                          icon={<Plus className="w-4 h-4" />}
-                          text="추가"
-                          onClick={() => {
-                            setIsAddingLink(true);
-                            setAddTab("character");
-                            setSearch("");
-                          }}
-                        />
-                      )}
-                    </div>
-
-                    <div className="mt-4 mb-2">
-                      {linkedItems.length === 0 ? (
-                        <div
-                          className={cn(
-                            hudPanel,
-                            "relative overflow-hidden p-6 bg-black/30 border border-white/10"
-                          )}
-                        >
-                          <div className="pointer-events-none absolute inset-0 opacity-[0.12] bg-[linear-gradient(rgba(255,255,255,0.18)_1px,transparent_1px)] bg-[length:100%_3px]" />
-                          <div className="pointer-events-none absolute -top-16 -right-16 w-56 h-56 rounded-full bg-white/10 blur-3xl" />
-                          <div className="pointer-events-none absolute -bottom-20 -left-20 w-64 h-64 rounded-full bg-white/5 blur-3xl" />
-
-                          <div className="relative">
-                            <div className="text-sm font-semibold text-white/85">
-                              연관된 캐릭터/크리쳐가 없습니다.
-                            </div>
-                            <div className="mt-1 text-[12px] text-white/55">
-                              {isEditing
-                                ? "추가 버튼으로 연결을 만들어 보세요."
-                                : "연결된 항목이 아직 존재하지 않습니다."}
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="grid gap-3 grid-cols-3 sm:grid-cols-4 md:grid-cols-6 xl:grid-cols-7">
-                          {linkedItems.map(it => (
-                            <div
-                              key={`${it.type}:${it.id}`}
-                              className="text-left"
-                              onClick={() => {
-                                setDetailOpen({ type: it.type, id: it.id });
-                                setDetailSubIndex(0);
-                              }}
-                            >
-                              <div className="relative">
-                                <LinkedThumbCard
-                                  type={it.type}
-                                  name={it.data?.name}
-                                  profileImage={it.data?.profileImage}
-                                />
-
-                                {isEditing && (
-                                  <button
-                                    type="button"
-                                    className="absolute -top-2 -right-2 w-8 h-8 rounded-full border border-white/15 bg-black/70 text-white/80 hover:bg-black/90"
-                                    onClick={e => {
-                                      e.stopPropagation();
-                                      removeLinked(it.type, it.id);
-                                    }}
-                                    title="연결 제거"
-                                  >
-                                    <X className="w-4 h-4 mx-auto" />
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* 태그/링크 텍스트 UI는 숨김 유지 */}
-                </div>
-              </HUDPanel>
-            </div>
-          </div>
-        )}
+        {!draft ? skeleton : isEditing ? editBody : viewBody}
       </Modal>
 
       {/* 연관 추가 모달 */}
@@ -875,6 +754,7 @@ export default function ProperNounDetailModal(props: {
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
               {filteredAddList.map((item: any) => (
                 <AddItemCard
+                  key={item.id}
                   id={item.id}
                   name={item.name}
                   image={item.profileImage}

@@ -84,3 +84,6 @@ temp/
 # bkit plugin state (auto-generated)
 docs/.bkit-memory.json
 docs/.pdca-status.json
+
+# Playwright MCP screenshots/snapshots (local verification artifacts)
+.playwright-mcp/
